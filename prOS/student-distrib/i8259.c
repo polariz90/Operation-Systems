@@ -40,12 +40,12 @@ enable_irq(uint32_t irq_num)
 
 	if(irq_num < 8)
 	{
-		outportb(MASTER_8259_PORT+1, inb(MASTER_8259_PORT+1) & ~(1 << irq_num));
+		outb(inb(MASTER_8259_PORT+1) & ~(1 << irq_num), MASTER_8259_PORT+1);
 	}
 	else
 	{
 		irq_num -= 8;
-		outportb(SLAVE_8259_PORT+1, inb(MSLAVE_8259_PORT+1) & ~(1 << irq_num));
+		outb(inb(SLAVE_8259_PORT+1) & ~(1 << irq_num), SLAVE_8259_PORT+1);
 	}
 
 }
@@ -56,12 +56,12 @@ disable_irq(uint32_t irq_num)
 {
 	if(irq_num < 8)
 	{
-		outportb(MASTER_8259_PORT+1, inb(MASTER_8259_PORT+1) | ~(1 << irq_num));
+		outb(inb(MASTER_8259_PORT+1) | ~(1 << irq_num), MASTER_8259_PORT+1);
 	}
 	else
 	{
 		irq_num -= 8;
-		outportb(SLAVE_8259_PORT+1, inb(MSLAVE_8259_PORT+1) | ~(1 << irq_num));
+		outb(inb(SLAVE_8259_PORT+1) | ~(1 << irq_num), SLAVE_8259_PORT+1);
 	}
 }
 
