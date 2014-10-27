@@ -156,8 +156,8 @@ entry (unsigned long magic, unsigned long addr)
 	/*initilize keyboard*/
 	kb_enable();
 	
-	/*initailize keyboard*/
-	//rtc_enable();
+	/*initailize rtc*/
+	rtc_enable();
 	
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */

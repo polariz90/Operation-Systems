@@ -25,6 +25,7 @@ void device_not_availible();
 void double_fault_exception(); 
 void invalid_tss_exception();
 void keyboard_handler();
+void rtc_handler();
 
 
 

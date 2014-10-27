@@ -21,8 +21,9 @@
  unsigned char code_set[0x59];
 
 /*
- *
- *
+ * This function initializes every interrupt descriptor table to enter 
+ * general handler. If there are special exceptions, it will jump to the 
+ * corresponding table.	
  *
  */
 void init_idt()
@@ -47,14 +48,14 @@ void init_idt()
 	//initializing the specific vector values
 	SET_IDT_ENTRY(idt[0], divide_error_exception); 			//divide by 0
 	SET_IDT_ENTRY(idt[33], keyboard_handler);     			//keyboard 
-	SET_IDT_ENTRY(idt[40], test_interrupts);     				//rtc 
+	SET_IDT_ENTRY(idt[40], rtc_handler);     				//rtc 
 	SET_IDT_ENTRY(idt[32], debug_exception);
 
 }
 
 /*
- *
- *
+ *	
+ *	handler that handles general inturrupt
  *
  */
 void general_handler()
@@ -65,6 +66,28 @@ void general_handler()
 }
 
 
+/* Description:
+ * Handler for the rtc interruption. While those other interrupts are being handled
+ * (until your OS sends an EOI and STI), your OS will not receive any clock ticks.
+ * What is important is that if register C is not read after an IRQ 8, then the interrupt will not happen again.
+ *
+ * Exception Class:
+ *
+ *
+ * Exception Error Code:
+ * 
+ *
+ * Saved Instruction Pointer:
+ * 
+ */
+void rtc_handler()
+{
+	test_interrupts();
+	outb(0x0C, RTC_PORT);	// select register C
+	inb(RTC_CMOS_PORT);	
+	send_eoi(RTC_IRQ);
+	sti();
+}
 
 /* Description:
  * Divisor operand is zero
