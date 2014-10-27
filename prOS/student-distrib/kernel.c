@@ -7,12 +7,9 @@
 #include "lib.h"
 #include "i8259.h"
 #include "debug.h"
-<<<<<<< HEAD
-#include "page.h"
-=======
 #include "idt.h"
-
->>>>>>> origin/greg_idt
+#include "keyboard.h"
+#include "rtc.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -156,11 +153,12 @@ entry (unsigned long magic, unsigned long addr)
 	/* Init the PIC */
 	i8259_init();
 
-	/* initializing paging */
-	init_paging();
-
-
-
+	/*initilize keyboard*/
+	kb_enable();
+	
+	/*initailize keyboard*/
+	//rtc_enable();
+	
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
 
@@ -170,8 +168,8 @@ entry (unsigned long magic, unsigned long addr)
 	 * without showing you any output */
 	printf("Enabling Interrupts\n");
 	sti();
-	asm("INT $0");
-	printf("returned from the exception \n");
+	//asm("INT $0");
+	//printf("returned from the exception \n");
 
 	/* Execute the first program (`shell') ... */
 

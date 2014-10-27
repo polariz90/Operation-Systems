@@ -14,6 +14,7 @@
 #include "idt.h"
 #include "x86_desc.h"
 #include "lib.h"
+#include "keyboard.h"
 
 
 /*
@@ -41,11 +42,10 @@ void init_idt()
 
 
 	//initializing the specific vector values
-	SET_IDT_ENTRY(idt[0],divide_error_exception); 			//divide by 0
-	SET_IDT_ENTRY(idt[0],divide_error_exception); 			//
-	SET_IDT_ENTRY(idt[0],divide_error_exception); 			//divide by 0
-	SET_IDT_ENTRY(idt[33],keyboard_handler);     			//keyboard 
-	SET_IDT_ENTRY(idt[40],rtc_handler);     				//rtc 
+	SET_IDT_ENTRY(idt[0], divide_error_exception); 			//divide by 0
+	SET_IDT_ENTRY(idt[33], keyboard_handler);     			//keyboard 
+	SET_IDT_ENTRY(idt[40], test_interrupts);     				//rtc 
+	SET_IDT_ENTRY(idt[32], debug_exception);
 
 }
 
@@ -57,7 +57,7 @@ void init_idt()
 void general_handler()
 {
 		printf("Has not been intilized to handle this interrupt\n");
-		asm("iret");
+		asm("leave;iret");
 
 }
 
@@ -325,34 +325,15 @@ void invalid_tss_exception()
  */
 void keyboard_handler()
 {
+	asm("pushal");
 	printf("Key pressed\n");
 
 	//reads byte from the keyboard R/w port 
-	uint32_t temp = inb(KEYBOARD_R_W);
-	printf("%c",temp);
-
+	/*uint32_t temp = inb(KEYBOARD_R_W);
+	printf("%c",temp);*/
+	send_eoi(KB_IRQ);
 	//loops until user halt
-	asm("leave;iret");
-}
-
-/* Description:
- * 
- *
- * Exception Class:
- *
- *
- * Exception Error Code:
- * 
- *
- * Saved Instruction Pointer:
- * Saved contents fo the CS and EIP point to the instruction
- *
- * Program State Change:
- * 
- */
-void rtc_handler()
-{
-	asm("leave;iret");
+	asm("popal;leave;iret");
 }
 
 
