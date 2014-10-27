@@ -9,6 +9,8 @@
 #include "debug.h"
 #include "page.h"
 #include "idt.h"
+#include "keyboard.h"
+#include "rtc.h"
 
 
 /* Macros. */
@@ -150,18 +152,19 @@ entry (unsigned long magic, unsigned long addr)
 	/*initializing idt values*/
 	init_idt(); 
 
+	/* initializing paging */
+	init_paging();
+
+
 	/* Init the PIC */
 	i8259_init();
+
 
 	/*initilize keyboard*/
 	kb_enable();
 
 	/*initiailize rtc*/
 	rtc_enable();
-
-	/* initializing paging */
-	init_paging();
-
 
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
@@ -173,7 +176,7 @@ entry (unsigned long magic, unsigned long addr)
 	 * without showing you any output */
 	printf("Enabling Interrupts\n");
 	sti();
-	asm("INT $0");
+	//asm("INT $0");
 	printf("returned from the exception \n");
 
 	/* Execute the first program (`shell') ... */
