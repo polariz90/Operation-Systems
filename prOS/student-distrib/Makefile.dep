@@ -2,11 +2,4 @@ boot.o: boot.S multiboot.h x86_desc.h types.h
 x86_desc.o: x86_desc.S x86_desc.h types.h
 exception.o: exception.c exception.h lib.h types.h
 i8259.o: i8259.c i8259.h types.h lib.h
-idt.o: idt.c idt.h x86_desc.h types.h lib.h keyboard.h i8259.h rtc.h \
-  exception.h
-kernel.o: kernel.c multiboot.h types.h x86_desc.h lib.h i8259.h debug.h \
-  page.h idt.h keyboard.h rtc.h
-keyboard.o: keyboard.c keyboard.h i8259.h types.h
-lib.o: lib.c lib.h types.h i8259.h rtc.h
 page.o: page.c x86_desc.h types.h lib.h page.h
-rtc.o: rtc.c i8259.h types.h rtc.h lib.h
