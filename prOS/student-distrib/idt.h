@@ -9,9 +9,6 @@
 #ifndef _IDT_H
 #define _IDT_H
 
-#define KEYBOARD_R_W 0X060
-
-
 /*idt functions*/
 void init_idt(); void general_handler(); 
 
@@ -28,6 +25,7 @@ void device_not_availible();
 void double_fault_exception(); 
 void invalid_tss_exception();
 void keyboard_handler();
+void rtc_handler();
 
 
 
