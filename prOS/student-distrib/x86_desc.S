@@ -7,7 +7,7 @@
 .text
 
 .globl  ldt_size, tss_size
-.globl  gdt_desc, ldt_desc, tss_desc
+.globl  gdt_desc_ptr, ldt_desc, tss_desc
 .globl  tss, tss_desc_ptr, ldt, ldt_desc_ptr
 .globl  gdt_ptr
 .globl  idt_desc_ptr, idt
@@ -24,7 +24,7 @@ ldt_size:
 
 	.word 0 # Padding
 
-gdt_desc:	# set up gdt register, which upper 32 bits are linear base address, lower 16 bits are Table size
+gdt_desc_ptr:
 	.word gdt_bottom - gdt - 1
 	.long gdt
 	
@@ -100,7 +100,7 @@ ldt_bottom:
 .align 4
 	.word 0 # Padding
 
-idt_desc_ptr: # idt register set up, which upper 32-bits Base Address, lower 16-bits table size
+idt_desc_ptr:
 	.word idt_bottom - idt - 1
 	.long idt
 	
@@ -114,6 +114,7 @@ _idt: # actual idt, filling up with to NUM_VEC
 
 idt_bottom:
 
+<<<<<<< HEAD
 ## initializing kernel paging
 ## declared in desc.h
 #	.align 4096 #4KB aligned 
@@ -134,3 +135,7 @@ idt_bottom:
 #	.quad 0
 #	.endr
 #video_pte_bottom:
+=======
+
+
+>>>>>>> origin/greg_idt
