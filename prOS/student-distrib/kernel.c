@@ -7,6 +7,12 @@
 #include "lib.h"
 #include "i8259.h"
 #include "debug.h"
+<<<<<<< HEAD
+#include "page.h"
+=======
+#include "idt.h"
+
+>>>>>>> origin/greg_idt
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -144,8 +150,16 @@ entry (unsigned long magic, unsigned long addr)
 		ltr(KERNEL_TSS);
 	}
 
+	/*initializing idt values*/
+	init_idt(); 
+
 	/* Init the PIC */
 	i8259_init();
+
+	/* initializing paging */
+	init_paging();
+
+
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
@@ -154,12 +168,18 @@ entry (unsigned long magic, unsigned long addr)
 	/* Do not enable the following until after you have set up your
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
-	/*printf("Enabling Interrupts\n");
-	sti();*/
+	printf("Enabling Interrupts\n");
+	sti();
+	asm("INT $0");
+	printf("returned from the exception \n");
 
 	/* Execute the first program (`shell') ... */
 
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
 }
+
+
+
+
 
