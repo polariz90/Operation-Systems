@@ -11,7 +11,7 @@
 .globl  tss, tss_desc_ptr, ldt, ldt_desc_ptr
 .globl  gdt_ptr
 .globl  idt_desc_ptr, idt
-.globl  kernel_pde, video_pte
+.globl  kernel_page_dir, video_page_table
 
 .align 4
 
@@ -114,28 +114,25 @@ _idt: # actual idt, filling up with to NUM_VEC
 
 idt_bottom:
 
-<<<<<<< HEAD
-## initializing kernel paging
-## declared in desc.h
-#	.align 4096 #4KB aligned 
-#kernel_pde:
-#_kernel_pde: 
-#	.rept PAGE_DIRECTORY_SIZE
-#	.quad 0
-#	.endr
-#
-#kernel_pde_bottom:
-#
-## initializing video paging
-## declared in desc.h
-#	.align 4096 #4KB aligned
-#video_pte:
-#_video_pte:
-#	.rept PAGE_TABLE_SIZE
-#	.quad 0
-#	.endr
-#video_pte_bottom:
-=======
 
+# initializing kernel paging
+# declared in desc.h
+	.align 4096 #4KB aligned 
+kernel_page_dir:
+_kernel_page_dir: 
+	.rept PAGE_DIRECTORY_SIZE
+	.quad 0
+	.endr
 
->>>>>>> origin/greg_idt
+kernel_page_dir_bottom:
+
+# initializing video paging
+# declared in desc.h
+	.align 4096 #4KB aligned
+video_page_table:
+_video_page_table:
+	.rept PAGE_TABLE_SIZE
+	.quad 0
+	.endr
+video_page_table_bottom:
+

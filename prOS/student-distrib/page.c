@@ -7,9 +7,9 @@
   * 	new pages with execution systemcall was called
   */
 
-  #include "page.h"
   #include "x86_desc.h"
   #include "lib.h"
+   #include "page.h"
 
 
 
@@ -26,8 +26,11 @@
     */
 void init_paging( ){
 
+printf(" init_paging starts \n");
+
 	int i; /* counter for loops */
 
+printf("loop init kernel page dir \n");
 	/* initialize kernel_page_dir and video_page table */
 	for( i = 0; i < PAGE_DIRECTORY_SIZE; i++){
 		kernel_page_dir[i].present = 0;
@@ -42,6 +45,7 @@ void init_paging( ){
 		kernel_page_dir[i].avail = 0;
 		kernel_page_dir[i].PT_base_add = i;
 	}
+printf("loop init page table \n");
 	for(i = 0; i < PAGE_TABLE_SIZE; i++){
 
 		video_page_table[i].present = 0;
@@ -57,7 +61,7 @@ void init_paging( ){
 		video_page_table[i].page_base_add = i;
 	}
 
-
+printf(" load kernel page dir set up 4mb\n");
 	/* set up kernel page entries */
 	kernel_page_dir[1].present = 1;
 	kernel_page_dir[1].read_write = 1;
@@ -71,6 +75,7 @@ void init_paging( ){
 	kernel_page_dir[1].avail = 0;
 	kernel_page_dir[1].PT_base_add = 1024;
 
+printf(" load kernel page video mem \n");
 	/* set up video page directory  entries */
 
 	kernel_page_dir[0].present = 1;
@@ -85,6 +90,7 @@ void init_paging( ){
 	kernel_page_dir[0].avail = 0;
 	kernel_page_dir[0].PT_base_add = (int)video_page_table;
 
+printf(" load page table video mem\n");
 	/* set up video page table entries*/
 	video_page_table[VIDEO_TABLE_IDX].present = 1;
 	video_page_table[VIDEO_TABLE_IDX].read_write = 1;
@@ -99,24 +105,24 @@ void init_paging( ){
 	video_page_table[VIDEO_TABLE_IDX].page_base_add = VIDEO_TABLE_IDX;		
 
 	/* copies the address of the page directory into the CR3 register and enable paging*/
-/*
-	
-	asm volatile( "\n\
-				  movl %%eax, %%cr3\n\
-				  movl %%cr0, %%eax\n\
-				  orl $0x80000000, %%eax\n\
-				  movl %%eax, %%cr0\n\
-				  " 
-				  :
-				  :"a" (kernel_page_dir)
-				  :"eax", "memory"
-				);
-*/
-	
-asm volatile (	"mov (kernel_page_dir), %eax\n"
-			"mov %eax, %cr3\n"
-			"mov %cr0, %eax\n"
-			"orl $0x80000000, %eax\n"
-			"mov %eax, %cr0\n");
+
+printf(" in line assem!!!!!\n");
+
+
+printf("pointer value is %d \n", (int)kernel_page_dir);
+
+asm (
+	"movl $kernel_page_dir, %%eax    ;"
+	"movl %%eax, %%cr3                ;"
+	"movl %%cr4, %%eax				  ;"
+	"andl $0xFFFFFFDF, %%eax          ;"
+	"orl $0x00000010, %%eax			  ;"
+	"movl %%eax, %%cr4 				  ;"
+	"movl %%cr0, %%eax                ;"
+	"orl $0x80000000, %%eax 	      ;"
+	"movl %%eax, %%cr0                ;"
+	: : : "eax", "memory" ,"cc" );
+
+printf(" init page done \n");
 
 }

@@ -30,6 +30,19 @@ continue:
 	# Load the IDT
 	lidt	idt_desc_ptr
 
+	#initializing paging 
+	# save registers
+#	pushl %eax
+#	pushl %ecx 
+#	pushl %edx
+#
+#	call 
+#
+#	#restore all registers
+#	popl %edx
+#	popl %ecx	
+#	popl %eax9
+
 	# Load CS with the new descriptor value
 	ljmp    $KERNEL_CS, $keep_going
 
@@ -58,4 +71,9 @@ keep_going:
 halt:
 	hlt
 	jmp     halt
+
+
+
+
+
 
