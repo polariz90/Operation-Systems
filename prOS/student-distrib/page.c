@@ -9,7 +9,7 @@
 
   #include "x86_desc.h"
   #include "lib.h"
-   #include "page.h"
+  #include "page.h"
 
 
 
@@ -40,14 +40,15 @@ printf("loop init kernel page dir \n");
 		kernel_page_dir[i].cache_disabled = 0;
 		kernel_page_dir[i].accessed = 0;
 		kernel_page_dir[i].reserved = 0;
+		//kernel_page_dir[i].dirty = 0;
 		kernel_page_dir[i].page_size = 0;
 		kernel_page_dir[i].global_page = 0;
 		kernel_page_dir[i].avail = 0;
-		kernel_page_dir[i].PT_base_add = i;
+		kernel_page_dir[i].PT_base_add = i*1024;
+		//kernel_page_dir[i].page_base_add = i;
 	}
 printf("loop init page table \n");
 	for(i = 0; i < PAGE_TABLE_SIZE; i++){
-
 		video_page_table[i].present = 0;
 		video_page_table[i].read_write = 0;
 		video_page_table[i].user_supervisor = 0;
@@ -63,17 +64,18 @@ printf("loop init page table \n");
 
 printf(" load kernel page dir set up 4mb\n");
 	/* set up kernel page entries */
-	kernel_page_dir[1].present = 1;
-	kernel_page_dir[1].read_write = 1;
-	kernel_page_dir[1].user_supervisor = 0;
-	kernel_page_dir[1].write_through = 0;
-	kernel_page_dir[1].cache_disabled = 0;
-	kernel_page_dir[1].accessed = 0;
-	kernel_page_dir[1].reserved = 0;
-	kernel_page_dir[1].page_size = 1;
-	kernel_page_dir[1].global_page = 0;
-	kernel_page_dir[1].avail = 0;
+	kernel_page_dir[1].present = 1; /* enable page entry */
+	kernel_page_dir[1].read_write = 1; /* read and write enable*/
+	kernel_page_dir[1].user_supervisor = 0; /* 0 for supervisor privilege lvl */
+	kernel_page_dir[1].write_through = 0; /* set to one, pass control to CR0 */
+	kernel_page_dir[1].cache_disabled = 0; /* set to one, pass control to CR0*/
+	kernel_page_dir[1].accessed = 0; /* set to one to access it */
+	kernel_page_dir[1].reserved = 0; /* set to 0 */
+	kernel_page_dir[1].page_size = 1; /* 1 indicate 4 MB pages */
+	kernel_page_dir[1].global_page = 1; /* set to global*/
+	kernel_page_dir[1].avail = 0; /* set to 0 */
 	kernel_page_dir[1].PT_base_add = 1024;
+
 
 printf(" load kernel page video mem \n");
 	/* set up video page directory  entries */
@@ -86,9 +88,9 @@ printf(" load kernel page video mem \n");
 	kernel_page_dir[0].accessed = 0;
 	kernel_page_dir[0].reserved =0;
 	kernel_page_dir[0].page_size =0;
-	kernel_page_dir[0].global_page = 0;
+	kernel_page_dir[0].global_page = 1;
 	kernel_page_dir[0].avail = 0;
-	kernel_page_dir[0].PT_base_add = (int)video_page_table;
+	kernel_page_dir[0].PT_base_add = ((int)video_page_table >> 12);
 
 printf(" load page table video mem\n");
 	/* set up video page table entries*/
@@ -100,9 +102,9 @@ printf(" load page table video mem\n");
 	video_page_table[VIDEO_TABLE_IDX].accessed = 0;
 	video_page_table[VIDEO_TABLE_IDX].dirty = 0;
 	video_page_table[VIDEO_TABLE_IDX].PT_attribute_idx = 0;
-	video_page_table[VIDEO_TABLE_IDX].global_page = 0;
+	video_page_table[VIDEO_TABLE_IDX].global_page = 1;
 	video_page_table[VIDEO_TABLE_IDX].avail = 0;
-	video_page_table[VIDEO_TABLE_IDX].page_base_add = VIDEO_TABLE_IDX;		
+//	video_page_table[VIDEO_TABLE_IDX].page_base_add = 0X8000;		
 
 	/* copies the address of the page directory into the CR3 register and enable paging*/
 
@@ -123,6 +125,10 @@ asm (
 	"movl %%eax, %%cr0                ;"
 	: : : "eax", "memory" ,"cc" );
 
-printf(" init page done \n");
+//printf(" init page done \n");
+int n =0; 
+
+	
+
 
 }

@@ -189,6 +189,26 @@ typedef union page_pde_t{
 	}__attribute__((packed));
 }page_pde_t;
 
+typedef union page_pde_4MB_t{
+	uint32_t val;
+	struct 
+	{
+		uint32_t present : 1;
+		uint32_t read_write : 1;
+		uint32_t user_supervisor : 1;
+		uint32_t write_through : 1;
+		uint32_t cache_disabled : 1;
+		uint32_t accessed : 1;
+		uint32_t dirty : 1;
+		uint32_t page_size : 1;
+		uint32_t global_page : 1;
+		uint32_t avail : 3;
+		uint32_t pat : 1;
+		uint32_t reserved : 9;
+		uint32_t page_base_add : 10;
+	}__attribute__((packed));
+}page_pde_4MB_t;
+
 
 /* Page-Table Entry (4-Byte Page)*/
 typedef union page_pte_t{
@@ -213,6 +233,7 @@ typedef union page_pte_t{
 
 /* declare kernel page directory */
 extern page_pde_t kernel_page_dir[PAGE_DIRECTORY_SIZE];
+//extern page_pde_4MB_t kernel_page_dir[PAGE_DIRECTORY_SIZE];
 //page_pde_t kernel_page_dir[PAGE_DIRECTORY_SIZE] __attribute__((aligned(4096))); /* 4KB aligned */
 /* declare page only 1 for video memory*/
 extern page_pte_t video_page_table[PAGE_TABLE_SIZE];

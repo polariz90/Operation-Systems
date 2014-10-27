@@ -155,7 +155,6 @@ entry (unsigned long magic, unsigned long addr)
 
 	/* initializing paging */
 
-
 	init_paging();
 
 
@@ -167,9 +166,9 @@ entry (unsigned long magic, unsigned long addr)
 	/* Do not enable the following until after you have set up your
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
-	/*printf("Enabling Interrupts\n");
+	printf("Enabling Interrupts\n");
 	sti();
-	asm("INT $0");*/
+	asm("INT $0");
 	printf("returned from the exception \n");
 
 	/* Execute the first program (`shell') ... */
