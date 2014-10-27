@@ -17,7 +17,6 @@
 #include "keyboard.h"
 #include "i8259.h"
 #include "rtc.h"
-#include "exception.h"
 
  unsigned char code_set[0x59];
 
@@ -47,28 +46,10 @@ void init_idt()
 
 
 	//initializing the specific vector values
-	SET_IDT_ENTRY(idt[0], div_err_excpn_0); 			//divide by 0
-	SET_IDT_ENTRY(idt[1], debug_excpn_1);
-	SET_IDT_ENTRY(idt[2],NMI_excpn_2);
-	SET_IDT_ENTRY(idt[3],brkpnt_excpn_3);
-	SET_IDT_ENTRY(idt[4],overflow_excpn_4);
-	SET_IDT_ENTRY(idt[5],bound_range_exceed_excpn_5);
-	SET_IDT_ENTRY(idt[6],invalid_opcode_excpn_6);
-	SET_IDT_ENTRY(idt[7],device_unvailable_excpn_7);
-	SET_IDT_ENTRY(idt[8],dbl_fault_excpn_8);
-	SET_IDT_ENTRY(idt[9],coproc_sgmt_excpn_9);
-	SET_IDT_ENTRY(idt[10],invalid_TSS_excpn_10);
-	SET_IDT_ENTRY(idt[11],sgmt_not_present_excpn_11);
-	SET_IDT_ENTRY(idt[12],stack_fault_excpn_12);
-	SET_IDT_ENTRY(idt[13],gen_protection_excpn_13);
-	SET_IDT_ENTRY(idt[14],page_fault_excpn_14);
-	SET_IDT_ENTRY(idt[16],FPU_F_P_excpn_16);
-	SET_IDT_ENTRY(idt[17],algnmnt_chk_excpn_17);
-	SET_IDT_ENTRY(idt[18],machine_chk_excpn_18);
-	SET_IDT_ENTRY(idt[19],SIMD_F_P_excpn_19);
-
+	SET_IDT_ENTRY(idt[0], divide_error_exception); 			//divide by 0
 	SET_IDT_ENTRY(idt[33], keyboard_handler);     			//keyboard 
 	SET_IDT_ENTRY(idt[40], rtc_handler);     				//rtc 
+	SET_IDT_ENTRY(idt[32], debug_exception);
 
 }
 
