@@ -11,6 +11,7 @@
 .globl  tss, tss_desc_ptr, ldt, ldt_desc_ptr
 .globl  gdt_ptr
 .globl  idt_desc_ptr, idt
+.globl  kernel_pde, video_pte
 
 .align 4
 
@@ -106,9 +107,30 @@ idt_desc_ptr: # idt register set up, which upper 32-bits Base Address, lower 16-
 
 	.align  16
 idt:
-_idt:
+_idt: # actual idt, filling up with to NUM_VEC 
 	.rept NUM_VEC
 	.quad 0
 	.endr
 
 idt_bottom:
+
+## initializing kernel paging
+## declared in desc.h
+#	.align 4096 #4KB aligned 
+#kernel_pde:
+#_kernel_pde: 
+#	.rept PAGE_DIRECTORY_SIZE
+#	.quad 0
+#	.endr
+#
+#kernel_pde_bottom:
+#
+## initializing video paging
+## declared in desc.h
+#	.align 4096 #4KB aligned
+#video_pte:
+#_video_pte:
+#	.rept PAGE_TABLE_SIZE
+#	.quad 0
+#	.endr
+#video_pte_bottom:

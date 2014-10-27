@@ -22,6 +22,10 @@
 /* Number of vectors in the interrupt descriptor table (IDT) */
 #define NUM_VEC 256
 
+/* Variables for paging, include PT size and PD size */
+#define PAGE_TABLE_SIZE 	1024
+#define PAGE_DIRECTORY_SIZE 1024 
+
 #ifndef ASM
 
 /* This structure is used to load descriptor base registers
@@ -166,6 +170,53 @@ typedef union idt_desc_t {
 extern idt_desc_t idt[NUM_VEC];
 /* The descriptor used to load the IDTR */
 extern x86_desc_t idt_desc_ptr;
+
+/* Page-Directory Entry (4-KByte Page Table)*/
+typedef union page_pde_t{
+	uint32_t val;
+	struct{
+		uint32_t present : 1;
+		uint32_t read_write : 1;
+		uint32_t user_supervisor : 1;
+		uint32_t write_through : 1;
+		uint32_t cache_disabled : 1;
+		uint32_t accessed : 1;
+		uint32_t reserved : 1;
+		uint32_t page_size : 1;
+		uint32_t global_page : 1;
+		uint32_t avail : 3;
+		uint32_t PT_base_add : 20;
+	}__attribute__((packed));
+}page_pde_t;
+
+
+/* Page-Table Entry (4-Byte Page)*/
+typedef union page_pte_t{
+	uint32_t val;
+	struct 
+	{
+		uint32_t present : 1;
+		uint32_t read_write : 1;
+		uint32_t user_supervisor : 1;
+		uint32_t write_through : 1;
+		uint32_t cache_disabled : 1;
+		uint32_t accessed : 1;
+		uint32_t dirty : 1;
+		uint32_t PT_attribute_idx : 1;
+		uint32_t global_page : 1;
+		uint32_t avail : 3;
+		uint32_t page_base_add : 20;
+	}__attribute__((packed));
+}page_pte_t;
+
+
+
+/* declare kernel page directory */
+//extern page_pde_t kernel_page_dir[PAGE_DIRECTORY_SIZE];
+page_pde_t kernel_page_dir[PAGE_DIRECTORY_SIZE] __attribute__((aligned(4096))); /* 4KB aligned */
+/* declare page only 1 for video memory*/
+//extern page_pte_t video_page_table[PAGE_TABLE_SIZE];
+page_pte_t video_page_table[PAGE_TABLE_SIZE] __attribute__((aligned(4096))); /* 4KB aligned */
 
 /* Sets runtime parameters for an IDT entry */
 #define SET_IDT_ENTRY(str, handler) \
