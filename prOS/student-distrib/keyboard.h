@@ -9,7 +9,7 @@
 extern void kb_enable();
 extern void kb_disable();
 /*
-unsigned char code_set[0x58] = {
+extern unsigned char code_set[0x58] = {
 	'\0','\e','1','2','3','4','5','6','7','8','9','0','-','=','\b',
 	'\t','q','w','e','r','t','y','u','i','o','p','[',']','\n',
 	'\0','a','s','d','f','g','h','j','k','l',';','\'','`',
@@ -33,6 +33,6 @@ unsigned char code_set[0x58] = {
 	'\0',
 	'\0',		// F11
 	'\0',		// F12
-};*/
-
+};
+*/
 #endif

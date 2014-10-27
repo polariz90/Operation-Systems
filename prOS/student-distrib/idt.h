@@ -9,9 +9,6 @@
 #ifndef _IDT_H
 #define _IDT_H
 
-#define KEYBOARD_R_W 0X060
-
-
 /*idt functions*/
 void init_idt(); void general_handler(); 
 

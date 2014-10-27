@@ -15,7 +15,10 @@
 #include "x86_desc.h"
 #include "lib.h"
 #include "keyboard.h"
+#include "i8259.h"
+#include "rtc.h"
 
+ unsigned char code_set[0x59];
 
 /*
  *
@@ -309,7 +312,8 @@ void invalid_tss_exception()
 
 
 /* Description:
- * 
+ * Handler for the keyboard interruption. The function receives keyboard signals and converts 
+ * the signal into keys to be written.
  *
  * Exception Class:
  *
@@ -318,26 +322,49 @@ void invalid_tss_exception()
  * 
  *
  * Saved Instruction Pointer:
- * Saved contents fo the CS and EIP point to the instruction
- *
- * Program State Change:
  * 
  */
 void keyboard_handler()
 {
 	asm("pushal");
-	printf("Key pressed\n");
-
-	//reads byte from the keyboard R/w port 
-	/*uint32_t temp = inb(KEYBOARD_R_W);
-	printf("%c",temp);*/
-	send_eoi(KB_IRQ);
-	//loops until user halt
+	
+	unsigned char temp = inb(KEYBOARD_PORT); 				//get signal from the keyboard
+	if((int)temp<=58)	printf("%c", code_set[(int)temp]);	//print a key thay corresponds to the signal
+	send_eoi(KB_IRQ);										//send PIC end of interrupt
+	
 	asm("popal;leave;iret");
 }
 
 
-
+/* Description:
+ * Code set table of keyboard keys.
+ * Signals recieved from keyboard will be converted via the table below.
+ */
+unsigned char code_set[0x59] = {
+	'\0','\e','1','2','3','4','5','6','7','8','9','0','-','=','\b',
+	'\t','q','w','e','r','t','y','u','i','o','p','[',']','\n',
+	'\0','a','s','d','f','g','h','j','k','l',';','\'','`',
+	'\0','\\','z','x','c','v','b','n','m',',','.','/','\0',	
+	'*','\0',' ','\0',
+	'\0',		// F1
+	'\0',		// F2
+	'\0',		// F3
+	'\0',		// F4
+	'\0',		// F5
+	'\0',		// F6
+	'\0',		// F7
+	'\0',		// F8
+	'\0',		// F9
+	'\0',		// F10
+	'\0',		// num lock
+	'\0',		// scroll lock
+	'7','8','9','-','4','5','6','+','1','2','3','0','.',//keypad
+	'\0',
+	'\0',
+	'\0',
+	'\0',		// F11
+	'\0',		// F12
+};
 
 
 
