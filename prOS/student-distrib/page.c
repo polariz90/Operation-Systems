@@ -26,11 +26,9 @@
     */
 void init_paging( ){
 
-printf(" init_paging starts \n");
 
 	int i; /* counter for loops */
 
-printf("loop init kernel page dir \n");
 	/* initialize kernel_page_dir and video_page table */
 	for( i = 0; i < PAGE_DIRECTORY_SIZE; i++){
 		kernel_page_dir[i].present = 0;
@@ -47,7 +45,7 @@ printf("loop init kernel page dir \n");
 		kernel_page_dir[i].PT_base_add = i*1024;
 		//kernel_page_dir[i].page_base_add = i;
 	}
-printf("loop init page table \n");
+
 	for(i = 0; i < PAGE_TABLE_SIZE; i++){
 		video_page_table[i].present = 0;
 		video_page_table[i].read_write = 0;
@@ -62,7 +60,6 @@ printf("loop init page table \n");
 		video_page_table[i].page_base_add = i;
 	}
 
-printf(" load kernel page dir set up 4mb\n");
 	/* set up kernel page entries */
 	kernel_page_dir[1].present = 1; /* enable page entry */
 	kernel_page_dir[1].read_write = 1; /* read and write enable*/
@@ -77,7 +74,6 @@ printf(" load kernel page dir set up 4mb\n");
 	kernel_page_dir[1].PT_base_add = 1024;
 
 
-printf(" load kernel page video mem \n");
 	/* set up video page directory  entries */
 
 	kernel_page_dir[0].present = 1;
@@ -92,7 +88,6 @@ printf(" load kernel page video mem \n");
 	kernel_page_dir[0].avail = 0;
 	kernel_page_dir[0].PT_base_add = ((int)video_page_table >> 12);
 
-printf(" load page table video mem\n");
 	/* set up video page table entries*/
 	video_page_table[VIDEO_TABLE_IDX].present = 1;
 	video_page_table[VIDEO_TABLE_IDX].read_write = 1;
@@ -108,11 +103,6 @@ printf(" load page table video mem\n");
 
 	/* copies the address of the page directory into the CR3 register and enable paging*/
 
-printf(" in line assem!!!!!\n");
-
-
-printf("pointer value is %d \n", (int)kernel_page_dir);
-
 asm (
 	"movl $kernel_page_dir, %%eax    ;"
 	"movl %%eax, %%cr3                ;"
@@ -124,11 +114,5 @@ asm (
 	"orl $0x80000000, %%eax 	      ;"
 	"movl %%eax, %%cr0                ;"
 	: : : "eax", "memory" ,"cc" );
-
-//printf(" init page done \n");
-int n =0; 
-
-	
-
 
 }

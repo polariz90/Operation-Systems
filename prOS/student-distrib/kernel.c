@@ -153,8 +153,13 @@ entry (unsigned long magic, unsigned long addr)
 	/* Init the PIC */
 	i8259_init();
 
-	/* initializing paging */
+	/*initilize keyboard*/
+	kb_enable();
 
+	/*initiailize rtc*/
+	rtc_enable();
+
+	/* initializing paging */
 	init_paging();
 
 
