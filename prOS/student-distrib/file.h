@@ -22,8 +22,8 @@ typedef struct
 	uint32_t reserved[13]; /* 53 bytes reserved */
 	/*4031 bytes left for entries, total of 62 entries, need round*/
 	/* not sure if this is right, or need to alian, need ask */
-	file_struct file_entries[63];
-}boot_block;
+	inode file_entries[63];
+}super_block;
 
 /**
   * Basic structure for file system:
@@ -36,7 +36,7 @@ typedef struct
 	uint32_t file_type; /* 4 bytes file type: (0) RTC, (1) Directory, (2) regular file */
 	uint32_t inode_num;	/* 4 bytes inode number index */
 	uint32_t reserved[6];	/* 24 bytes reserved */
-}file_struct;
+}inode;
 
 /**
   * Basic structure for file system:
