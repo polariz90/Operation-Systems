@@ -260,6 +260,7 @@ void gen_protection_excpn_13()
 {
 	clear();
 	printf("General protection violation detected(#13)");
+
 	asm("leave;iret");
 	return;
 }
@@ -267,6 +268,7 @@ void page_fault_excpn_14()
 {
 	clear();
 	printf("Page fault detected(#14)");
+	while(1){}
 	asm("leave;iret");
 	return;
 }
