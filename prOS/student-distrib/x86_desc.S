@@ -7,10 +7,11 @@
 .text
 
 .globl  ldt_size, tss_size
-.globl  gdt_desc, ldt_desc, tss_desc
+.globl  gdt_desc_ptr, ldt_desc, tss_desc
 .globl  tss, tss_desc_ptr, ldt, ldt_desc_ptr
 .globl  gdt_ptr
 .globl  idt_desc_ptr, idt
+.globl  kernel_page_dir, video_page_table
 
 .align 4
 
@@ -23,7 +24,7 @@ ldt_size:
 
 	.word 0 # Padding
 
-gdt_desc:	# set up gdt register, which upper 32 bits are linear base address, lower 16 bits are Table size
+gdt_desc_ptr:
 	.word gdt_bottom - gdt - 1
 	.long gdt
 	
@@ -99,16 +100,39 @@ ldt_bottom:
 .align 4
 	.word 0 # Padding
 
-idt_desc_ptr: # idt register set up, which upper 32-bits Base Address, lower 16-bits table size
+idt_desc_ptr:
 	.word idt_bottom - idt - 1
 	.long idt
 	
 
 	.align  16
 idt:
-_idt:
+_idt: # actual idt, filling up with to NUM_VEC 
 	.rept NUM_VEC
 	.quad 0
 	.endr
 
 idt_bottom:
+
+
+# initializing kernel paging
+# declared in desc.h
+	.align 4096 #4KB aligned 
+kernel_page_dir:
+_kernel_page_dir: 
+	.rept PAGE_DIRECTORY_SIZE
+	.quad 0
+	.endr
+
+kernel_page_dir_bottom:
+
+# initializing video paging
+# declared in desc.h
+	.align 4096 #4KB aligned
+video_page_table:
+_video_page_table:
+	.rept PAGE_TABLE_SIZE
+	.quad 0
+	.endr
+video_page_table_bottom:
+
