@@ -13,5 +13,8 @@
 /* Function initializing paging */
   void init_paging();
 
+/*function to map the vertual memery address to the same physical memery address*/
+int set_same_virtual_addr(int physical_addr, int mem_size, int wr);
+
 
 #endif

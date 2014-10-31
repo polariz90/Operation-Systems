@@ -11,7 +11,7 @@
 #include "idt.h"
 #include "keyboard.h"
 #include "rtc.h"
-
+#include "file.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -23,6 +23,7 @@ void
 entry (unsigned long magic, unsigned long addr)
 {
 	multiboot_info_t *mbi;
+	super_block* s_block;
 
 	/* Clear the screen. */
 	clear();
@@ -65,6 +66,11 @@ entry (unsigned long magic, unsigned long addr)
 				printf("0x%x ", *((char*)(mod->mod_start+i)));
 			}
 			printf("\n");
+			
+			s_block= (super_block*)mod->mod_start;
+			/*map same address to paging*/
+			if(set_same_virtual_addr((unsigned int)mod->mod_start,(unsigned int)mod->mod_end-(unsigned int)mod->mod_start+1,0))	printf("set filesystem mem fail!\n");
+
 			mod_count++;
 			mod++;
 		}
@@ -155,6 +161,11 @@ entry (unsigned long magic, unsigned long addr)
 	/* initializing paging */
 	init_paging();
 
+	clear();
+
+	printf("\n info in super_block:\n");
+	printf("num of file dir entry: %d\n", s_block->dir_entries);
+	printf("inode: %d\n", s_block->inodes);
 
 	/* Init the PIC */
 	i8259_init();
@@ -174,10 +185,8 @@ entry (unsigned long magic, unsigned long addr)
 	/* Do not enable the following until after you have set up your
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
-	printf("Enabling Interrupts\n");
-	sti();
-	//asm("INT $0");
-	printf("returned from the exception \n");
+	/*printf("Enabling Interrupts\n");
+	sti();*/
 
 	/* Execute the first program (`shell') ... */
 
