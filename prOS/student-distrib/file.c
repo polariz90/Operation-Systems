@@ -27,6 +27,7 @@ int32_t read_dentry_by_name(const uint8_t * fname, dentry_t * dentry){
 	uint32_t num_entries = s_block->dir_entries; /* variable hold # of entries */
 	uint32_t length; /* variable to hold fname string length */
 	length = strlen((int8_t*)fname);	
+	dentry->filename[1] = 1;
 
 	for(i = 0; i < num_entries; i++){ /* looping through entire entries to find file*/
 		if(strlen(s_block->file_entries->filename) == length){/* case 2 names doesnt have the same length*/
@@ -34,7 +35,7 @@ int32_t read_dentry_by_name(const uint8_t * fname, dentry_t * dentry){
 				/* copy over to dentry_t*/
 				//dentry_t.filename = s_block->file_entries.filename;
 				/* using strncpy from lib to make deep copy*/
-				strcpy(dentry->filename, s_block->file_entries[i].filename);
+				strcpy((int8_t*)dentry->filename, (int8_t*)s_block->file_entries[i].filename);
 				dentry->file_type = s_block->file_entries->file_type;
 				dentry->inode_num = s_block->file_entries->inode_num;
 				return 0; /* operation success*/
@@ -65,7 +66,7 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t * dentry){
 	}
 
 	/* length of copying file name */
-	uint32_t length = strlen(s_block->file_entries[index].filename);
+	//uint32_t length = strlen((int8_t*)s_block->file_entries[index].filename);
 
 	/* copy operation */
 	//dentry_t.filename = s_block->file_entries[index].filename;
@@ -86,14 +87,14 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t * dentry){
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t * buf, uint32_t length){
 
 	/* need more case check for sure */
-	uint32_t dentry_add = s_block + FOUR_KB; /*first dentry block address */
-	uint32_t data_block_add = s_block + FOUR_KB + (s_block->inodes)*FOUR_KB;/* first data block address */
+	uint32_t dentry_add = (uint32_t)s_block + FOUR_KB; /*first dentry block address */
+	uint32_t data_block_add = (uint32_t)s_block + FOUR_KB + (s_block->inodes)*FOUR_KB;/* first data block address */
 
 	uint32_t num_block = offset / FOUR_KB;	/* compute number of data block offset is in */
 	uint32_t num_skip = offset % FOUR_KB;	/* compute number of bytes need to skip in initial data block */ 
 	//uint32_t inodes_N = s_block.inodes; /* total number of dentries we have in file system */
-	inode_struct * curr_inode = dentry_add + inode*FOUR_KB; /* pointer points at current inode */
-	data_struct * curr_data = data_block_add + num_block*FOUR_KB; /* pointer points at current data block */
+	inode_struct * curr_inode =(inode_struct*)(dentry_add + inode*FOUR_KB); /* pointer points at current inode */
+	data_struct * curr_data = (data_struct*)(data_block_add + num_block*FOUR_KB); /* pointer points at current data block */
 
 	uint32_t file_length = curr_inode->length; /* length of this file */
 	uint32_t bytes_left = file_length - offset; /* this gives number of bytes left to read */
@@ -124,3 +125,4 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t * buf, uint32_t lengt
 
 	return ori_length - length; 
 }
+

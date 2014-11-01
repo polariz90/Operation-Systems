@@ -160,7 +160,7 @@ entry (unsigned long magic, unsigned long addr)
 	init_idt(); 
 
 	/* initializing paging */
-	init_paging();
+	//init_paging();
 
 	clear();
 
@@ -177,12 +177,10 @@ entry (unsigned long magic, unsigned long addr)
 	printf("testing file system function \n");
 
 	dentry_t* test_dentry;
+	test_dentry->filename[1] = 1;
 	int test = read_dentry_by_name(".", test_dentry);
 	printf("test function return is %d\n", test);
 	printf("file copyied name is %s\n", test_dentry->filename);
-
-	//int test = read_dentry_by_name(".", )
-
 
 	/* Init the PIC */
 	i8259_init();
