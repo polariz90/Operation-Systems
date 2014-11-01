@@ -6,18 +6,12 @@
   */
 
 #include "multiboot.h"
-#include <string.h>
 #include "file.h"
-#include "kernel.c"
+//#include "kernel.c"
+#include "lib.h"
 
 #define FOUR_KB 4096 /* 4KB = 4096 bytes */
 
-/** pointer to the super block is in kernel.c 
-  * variable name s_block (global)
-  */
-
-uint32_t NUM_ENTRIES = s_block->dir_entries; /* variable hold # of entries */
-uint32_t NUM_INODES = s_block->inode;	/* variable hold # of inodes */
 
 /**	read_dentry_by_name 
   *	DESCRIPTION:	read the dentry from the file system according to the name
@@ -30,17 +24,19 @@ uint32_t NUM_INODES = s_block->inode;	/* variable hold # of inodes */
   */
 int32_t read_dentry_by_name(const uint8_t * fname, dentry_t * dentry){
 	int i;	/* loop counter */
-
+	uint32_t num_entries = s_block->dir_entries; /* variable hold # of entries */
 	uint32_t length; /* variable to hold fname string length */
-	length = strlen(fname);	
+	length = strlen((int8_t*)fname);	
 
-	for(i = 0; i < NUM_ENTRIES; i++){ /* looping through entire entries to find file*/
+	for(i = 0; i < num_entries; i++){ /* looping through entire entries to find file*/
 		if(strlen(s_block->file_entries->filename) == length){/* case 2 names doesnt have the same length*/
-			if(strncmp(fname, s_block->file_entries->filename, length) == 0){ /* check if 2 are the same */
+			if(strncmp((int8_t*)fname, s_block->file_entries->filename, length) == 0){ /* check if 2 are the same */
 				/* copy over to dentry_t*/
-				dentry_t->filename = s_block->file_entries.filename;
-				dentry_t->file_type = s_block->file_entries.file_type;
-				dentry_t->inode_num = s_block->file_entries.inode_num;
+				//dentry_t.filename = s_block->file_entries.filename;
+				/* using strncpy from lib to make deep copy*/
+				strcpy(dentry->filename, s_block->file_entries[i].filename);
+				dentry->file_type = s_block->file_entries->file_type;
+				dentry->inode_num = s_block->file_entries->inode_num;
 				return 0; /* operation success*/
 			}
 		}
@@ -60,15 +56,22 @@ int32_t read_dentry_by_name(const uint8_t * fname, dentry_t * dentry){
   *					file type, and inode when success
   */
 int32_t read_dentry_by_index(uint32_t index, dentry_t * dentry){
+
+	uint32_t num_entries = s_block->dir_entries; /* variable hold # of entries */
+
 	/* check if index is in bound */
-	if(index < 0 || index >= NUM_ENTRIES){
+	if(index < 0 || index >= num_entries){
 		return -1; /* operation failed */
 	}
 
+	/* length of copying file name */
+	uint32_t length = strlen(s_block->file_entries[index].filename);
+
 	/* copy operation */
-	dentry_t->filename = s_block->file_entries[index].filename;
-	dentry_t->file_type = s_block->file_entries[index].file_type;
-	dentry_t->inode_num = s_block->file_entries[index].inode_num;
+	//dentry_t.filename = s_block->file_entries[index].filename;
+	strcpy(dentry->filename, s_block->file_entries[index].filename);
+	dentry->file_type = s_block->file_entries[index].file_type;
+	dentry->inode_num = s_block->file_entries[index].inode_num;
 	return 0; /* operation success*/
 }
 
@@ -81,27 +84,43 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t * dentry){
   * SIDE EFFECT:	fill up the buffer with file information
   */
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t * buf, uint32_t length){
-	/* check boundary conditions */
-	if(inode < 0 || inode > s_block.inodes){
-		retrun -1; /* case invalid inode number */
-	}
-	if(offset < 0 || offset > s_block[inode+1].length){
-		retrun -1; /* case invalid offset */
-	}
-	/* need more case check for sure */
 
-	/* compute number of data block offset is in */
-	uint32_t num_block = offset / FOUR_KB;
-	/* compute number of bytes need to skip in initial data block */ 
-	uint32_t num_left = offset % FOUR_KB;
-	uint32_t inodes_N = s_block.inodes;
+	/* need more case check for sure */
+	uint32_t dentry_add = s_block + FOUR_KB; /*first dentry block address */
+	uint32_t data_block_add = s_block + FOUR_KB + (s_block->inodes)*FOUR_KB;/* first data block address */
+
+	uint32_t num_block = offset / FOUR_KB;	/* compute number of data block offset is in */
+	uint32_t num_skip = offset % FOUR_KB;	/* compute number of bytes need to skip in initial data block */ 
+	//uint32_t inodes_N = s_block.inodes; /* total number of dentries we have in file system */
+	inode_struct * curr_inode = dentry_add + inode*FOUR_KB; /* pointer points at current inode */
+	data_struct * curr_data = data_block_add + num_block*FOUR_KB; /* pointer points at current data block */
+
+	uint32_t file_length = curr_inode->length; /* length of this file */
+	uint32_t bytes_left = file_length - offset; /* this gives number of bytes left to read */
+	uint32_t ori_length = length; /* keep in track of original length*/
+
+
+	/* check boundary conditions */
+	if(inode < 0 || inode > s_block->inodes){
+		return -1; /* case invalid inode number */
+	}
+	if(offset < 0 || offset > file_length){
+		return -1; /* case invalid offset */
+	}
 
 	for(; length > 0; length --){ /* loop to read length bytes of data into buffer */
-		buf = s_block[inode_N + num_block + 1].data[num_left]; /* copying data */
-		buf ++; num_left ++; 
-		if(num_left == FOUR_KB){ /* reach end of the block */
+		if(bytes_left == 0){ /* case finished the entire file */
+			return 0; 
+		}
+
+		//*buf = s_block[inodes_N + num_block + 1].data[num_skip]; /* copying data */
+		*buf = curr_data->data[num_skip];
+		buf ++; num_skip ++; bytes_left--; 
+		if(num_skip == (FOUR_KB-1)){ /* reach end of the block */
 			num_block ++;
-			num_left = 0; /* goes to next block */
+			num_skip = 0; /* goes to next block */
 		}
 	}
+
+	return ori_length - length; 
 }

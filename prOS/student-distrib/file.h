@@ -9,6 +9,17 @@
 #define PROS_FILE_H
 
 
+
+/**
+  * Basic structure for file system:
+  * data_block for file system
+  * contain 4kb char array
+  */
+typedef struct 
+{
+  char data[4096]; /*4kb --> 4098 bytes --> 4096 chars */
+}data_struct;
+
 /**
   * Basic structure for file system:
   * file struct
@@ -16,11 +27,11 @@
   */
 typedef struct 
 {
-	char filename[32]; /* 32 bytes of file name */
+	int8_t filename[32]; /* 32 bytes of file name */
 	uint32_t file_type; /* 4 bytes file type: (0) RTC, (1) Directory, (2) regular file */
 	uint32_t inode_num;	/* 4 bytes inode number index */
 	uint8_t reserved[24];	/* 24 bytes reserved */
-}file_struct;
+}dentry_t;
 
 /**
   * Basic structure for file system:
@@ -49,19 +60,11 @@ typedef struct
   uint8_t reserved[52]; /* 52 bytes reserved */
   /*4031 bytes left for entries, total of 62 entries, need round*/
   /* not sure if this is right, or need to alian, need ask */
-  file_struct file_entries[63];
+  dentry_t file_entries[63];
 }super_block;
 
 
-/**
-  * Basic structure for file system:
-  * data_block for file system
-  * contain 4kb char array
-  */
-typedef struct 
-{
-  char data[4096]; /*4kb --> 4098 bytes --> 4096 chars */
-}data_struct;
+extern super_block* s_block;
 
 int32_t read_dentry_by_name (const uint8_t * fname, dentry_t * dentry);
 int32_t read_dentry_by_index (uint32_t index, dentry_t * dentry);

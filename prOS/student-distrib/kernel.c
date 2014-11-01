@@ -16,6 +16,7 @@
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags,bit)   ((flags) & (1 << (bit)))
+super_block* s_block;
 
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
@@ -23,7 +24,7 @@ void
 entry (unsigned long magic, unsigned long addr)
 {
 	multiboot_info_t *mbi;
-	super_block* s_block;
+	//super_block* s_block; /* you may want to put this as global, need access in file.c*/
 
 	/* Clear the screen. */
 	clear();
@@ -166,6 +167,22 @@ entry (unsigned long magic, unsigned long addr)
 	printf("\n info in super_block:\n");
 	printf("num of file dir entry: %d\n", s_block->dir_entries);
 	printf("inode: %d\n", s_block->inodes);
+
+	int i;
+	for(i = 0; i<16; i++) {
+				printf("%s \n", s_block->file_entries[i].filename);
+			}
+
+
+	printf("testing file system function \n");
+
+	dentry_t* test_dentry;
+	int test = read_dentry_by_name(".", test_dentry);
+	printf("test function return is %d\n", test);
+	printf("file copyied name is %s\n", test_dentry->filename);
+
+	//int test = read_dentry_by_name(".", )
+
 
 	/* Init the PIC */
 	i8259_init();
