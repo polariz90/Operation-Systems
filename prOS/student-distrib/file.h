@@ -20,7 +20,7 @@ typedef struct
 	uint32_t file_type; /* 4 bytes file type: (0) RTC, (1) Directory, (2) regular file */
 	uint32_t inode_num;	/* 4 bytes inode number index */
 	uint8_t reserved[24];	/* 24 bytes reserved */
-}inode;
+}file_struct;
 
 /**
   * Basic structure for file system:
@@ -30,10 +30,10 @@ typedef struct
 typedef struct 
 {
 	uint32_t length; /*length of file? in Bytes */
-	uint32_t data_blocks[1023]; /* pointers to data blocks */
+	data_struct data_blocks[1023]; /* pointers to data blocks */
 	/* each file can totally holds 1023 4kb-data blocks */
 	/* each file max 4MB? */
-}data_struct;
+}inode_struct;
 
 /**
   * Basic structures for file system:
@@ -49,8 +49,23 @@ typedef struct
   uint8_t reserved[52]; /* 52 bytes reserved */
   /*4031 bytes left for entries, total of 62 entries, need round*/
   /* not sure if this is right, or need to alian, need ask */
-  inode file_entries[63];
+  file_struct file_entries[63];
 }super_block;
+
+
+/**
+  * Basic structure for file system:
+  * data_block for file system
+  * contain 4kb char array
+  */
+typedef struct 
+{
+  char data[4096]; /*4kb --> 4098 bytes --> 4096 chars */
+}data_struct;
+
+int32_t read_dentry_by_name (const uint8_t * fname, dentry_t * dentry);
+int32_t read_dentry_by_index (uint32_t index, dentry_t * dentry);
+int32_t read_data (uint32_t inode, uint32_t offset, uint8_t * buf, uint32_t length);
 
 
 #endif
