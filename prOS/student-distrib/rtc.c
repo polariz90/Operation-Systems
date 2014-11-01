@@ -30,11 +30,9 @@ extern void rtc_disable()
  * Retvals: none
  */
 extern int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
-{
-	while(flag = 1)
-	{}
-
-	flag = 0;
+{	
+	flag = 1;
+	while(flag);
 
 	return 0;
 }
@@ -52,38 +50,39 @@ extern int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
  * -1: failure
  * n: number of bytes written
  */
-extern int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
+extern int32_t rtc_write(int32_t fd, const int32_t* buf, int32_t nbytes)
 {
-	unsigned char prev_a // temporary 
+	unsigned char prev_a; // temporary 
 	int8_t freq;
+	int32_t new_buf;
 
 	//condition which write fails
 	if(nbytes != 4 || buf == NULL)
 	{
 		return -1;
 	}
-
+	new_buf = *buf;
 	//save old values
 	outb(0x8B, RTC_PORT);
 	prev_a = inb(RTC_CMOS_PORT);
 
 	//rtc frequency limited up to 1024
-	if(*buf > 1024)
+	if(new_buf > 1024)
 	{
 		return -1;
 	}
 	else
 	{
-		if(*buf == 1024) {freq = F1024HZ;}
-		if(*buf == 512) {freq = F512HZ;}
-		if(*buf == 256) {freq = F256HZ;}
-		if(*buf == 128) freq = F128HZ;}
-		if(*buf == 64) {freq = F64HZ;}
-		if(*buf == 32) {freq = F32HZ;}
-		if(*buf == 16) {freq = F16HZ;}
-		if(*buf == 8) {freq = F8HZ;}
-		if(*buf == 4) {freq = F4HZ;}
-		if(*buf == 2) {freq = F2HZ;}
+		if(new_buf == 1024) {freq = F1024HZ;}
+		if(new_buf == 512) {freq = F512HZ;}
+		if(new_buf == 256) {freq = F256HZ;}
+		if(new_buf == 128) {freq = F128HZ;}
+		if(new_buf == 64) {freq = F64HZ;}
+		if(new_buf == 32) {freq = F32HZ;}
+		if(new_buf == 16) {freq = F16HZ;}
+		if(new_buf == 8) {freq = F8HZ;}
+		if(new_buf == 4) {freq = F4HZ;}
+		if(new_buf == 2) {freq = F2HZ;}
 	}
 
 	outb(0x8B, RTC_PORT);
@@ -91,8 +90,7 @@ extern int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
 
 	//write success!! (always 0) */
 	return 0;
-
-
+	
 }
 
 /*
@@ -103,12 +101,12 @@ extern int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
  * Inputs: 
  * Outputs:
  */
-extern int32_t rtc_open(const uiunt8_t* filesname)
+extern int32_t rtc_open(const uint8_t* filesname)
 {
 	outb(0x8B, RTC_PORT);
-	prev_a = inb(RTC_CMOS_PORT);
+	char prev_b = inb(RTC_CMOS_PORT);
 	outb(0x8B, RTC_PORT);
-	outb((0xF0 & prev_a) | F2HZ, RTC_CMOS_PORT);
+	outb((0xF0 & prev_b) | F2HZ, RTC_CMOS_PORT);
 	return 0;
 }
 

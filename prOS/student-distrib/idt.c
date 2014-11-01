@@ -18,8 +18,8 @@
 #include "i8259.h"
 #include "rtc.h"
 #include "exception.h"
-
- unsigned char code_set[0x59];
+volatile int flag;
+unsigned char code_set[0x59];
 
 /*
  * This function initializes every interrupt descriptor table to enter 
@@ -106,6 +106,7 @@ void rtc_handler()
 	outb(0x0C, RTC_PORT);	// select register C
 	inb(RTC_CMOS_PORT);	
 	send_eoi(RTC_IRQ);
+	flag = 0;
 	sti();
 	asm("popal;leave;iret");
 }
