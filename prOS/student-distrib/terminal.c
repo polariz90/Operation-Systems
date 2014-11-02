@@ -1,6 +1,8 @@
 #include "terminal.h"
 #include "lib.h"
 
+#define NUM_COLS 80
+#define NUM_ROWS 25
 
 /* Opens the terminal
   *
@@ -70,15 +72,52 @@ int terminal_close()
 
 int write_buf_to_screen()
 {
-	
-	clear_line();
+	//may need to change 
 	int i;
-	for(i = 0; i<curr_terminal_loc; i++)
+
+	/*still on the first line*/
+	if(curr_terminal_loc < NUM_COLS)
 	{
-		printf("%c",terminal_buffer[i]);
+		clear_line();
+		for(i = 0; i<curr_terminal_loc; i++)
+		{
+			printf("%c",terminal_buffer[i]);
+		}
+		move_screen_xy(-1*curr_terminal_loc);
+	}
+	
+	/*The case where we are just going into the second line*/
+	else if( curr_terminal_loc == NUM_COLS)
+	{
+		clear_line();
+		for(i = 0; i<curr_terminal_loc; i++)
+		{
+			printf("%c",terminal_buffer[i]);
+		}
+		if(get_screen_y() == NUM_ROWS-1)
+		{
+				vert_scroll(1);
+				move_screen_xy(-1*curr_terminal_loc);
+		}
+		else 
+		{
+				putc('\n');
+		}
 	}
 
-	move_screen_xy(-1*curr_terminal_loc);
+	/*The case where we are deep into the second line */
+	else
+	{
+		clear_line();
+		for(i = NUM_COLS; i<curr_terminal_loc; i++)
+		{
+			printf("%c",terminal_buffer[i]);
+		}
+		move_screen_xy(-1*(curr_terminal_loc- NUM_COLS));
+
+	}
+		
+
 	return 0;
 }
 
@@ -177,8 +216,17 @@ void exe_special_key(int key)
 			break;
 
 		case ENTP :
-			putc('\n');
-			curr_terminal_loc = 0;
+			if(get_screen_y() == NUM_ROWS-1)
+			{
+				vert_scroll(1);
+				clear_line();
+				curr_terminal_loc = 0;
+			}
+			else 
+			{
+				putc('\n');
+				curr_terminal_loc = 0;
+			}	
 			break;
 
 		case RSHFTP :

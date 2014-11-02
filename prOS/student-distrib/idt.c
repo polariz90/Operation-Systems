@@ -149,7 +149,7 @@ void keyboard_handler()
 		if (shift ==1)
 			terminal_buffer[curr_terminal_loc] = code_set_shift[(int)temp] ; 
 		else 
-			terminal_buffer[curr_terminal_loc] = code_set[(int)temp] -  ((caps+shift)%2)*(CAPS_CONV);
+			terminal_buffer[curr_terminal_loc] = code_set[(int)temp] - ((caps+shift)%2)*(CAPS_CONV);
 
 		curr_terminal_loc++;
 		write_buf_to_screen();

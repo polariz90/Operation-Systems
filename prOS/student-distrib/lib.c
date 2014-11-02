@@ -615,7 +615,8 @@ void vert_scroll(uint32_t count)
 			*(uint8_t *)(video_mem + ((i) << 1) + 1 )=ATTRIB;
 		}	
 
-		//here is where i am going to adjust the screen x and screen y	
+		//here is where i am going to adjust the screen x and screen y
+		screen_x =0;	
 	}
 	return;
 }
@@ -635,4 +636,10 @@ void clear_line()
 	}
 	screen_x = 0;
 	return;
+}
+
+
+int get_screen_y()
+{
+	return screen_y;
 }

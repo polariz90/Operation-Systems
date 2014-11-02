@@ -182,6 +182,8 @@ entry (unsigned long magic, unsigned long addr)
 	sti();
 
 	/*testing zone*/
+	printf("clearing screen but scrolling first\n");
+	vert_scroll(1);
 	clear();
 	/* Execute the first program (`shell') ... */
 

@@ -41,7 +41,7 @@ void test_interrupts();
 void vert_scroll(uint32_t count);
 void move_screen_xy(int chars); 
 void clear_line();
-
+int get_screen_y();
 
 
 /* Userspace address-check functions */
