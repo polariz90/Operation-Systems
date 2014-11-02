@@ -128,6 +128,9 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t * buf, uint32_t lengt
 	if(file_length == 0){
 		return 0; /* case empty file */
 	}
+	if(buf == NULL){
+		return -1; /* case passed in invalid buffer */
+	}
 
 
 	block_number = curr_inode->data_blocks[num_block];
@@ -137,6 +140,9 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t * buf, uint32_t lengt
 	for(; length > 0; length --){ /* loop to read length bytes of data into buffer */
 		if(bytes_left == 0){ /* case finished the entire file */
 			return 0; 
+		}
+		if (*buf == '\0'){ /* case buffer is full, need to check with later code */
+			return ori_length - length;
 		}
 
 		*buf = curr_data->data[num_skip];
@@ -220,10 +226,32 @@ int32_t read_sys(int32_t fd, void * buf, int32_t nbytes){
 	return -1;
 }
 
+/** read_file
+  * DESCRIPTION: 	read a file from file system
+  * INPUT:			filename, buffer, number of bytes need to read 
+  * OUTPUT:			 0 when success 
+  * 				-1 when failed 
+  * SIDE EFFECT: 	filling the buffer with file chars
+  */
+int32_t read_file( const int8_t* fname, void * buf, uint32_t nbytes){
+	/* case invalid fname and buffer */
+	if( fname == NULL || buf == NULL){
+		return -1; 
+	}
+
+	dentry_t file_dentry; /* dentry to hold inofrmation of this file */
+
+	read_dentry_by_name(fname, &file_dentry); /* read dentry by name */
+
+	read_data(file_dentry->inode_num, 0, buf, nbytes); /* read file data into buffer */
+
+	return 0;
+}
+
 /** write_sys
   * DESCRIPTION: 	write system call
   * INPUT:
-  * OUTPUT:			0 when seccess
+  * OUTPUT:			0 when success
   *					-1 when fail: cannot write
   * SIDE EFFECT:	
   */
@@ -267,4 +295,24 @@ int32_t close_sys(int32_t fd){
 int32_t write_file(){
 	//read only return -1
 	return -1;
+}
+
+/** open file
+  * DESCRIPTION: 	open a file from file system
+  * INPUT: 			file name
+  * OUTPUT:         none
+  * SIDE EFFECT:    none
+  */
+int32_t open_file( const uint8_t * filename){
+	return 0;
+}
+
+/** open directory
+  * DESCRIPTION:   open a directory in file system
+  * INPUT: 		   file name
+  * OUTPUT:		   none
+  * SIDE EFFECT:   none
+  */
+int32_t open_dir( const uint8_t * filename){
+	return 0;
 }
