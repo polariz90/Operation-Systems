@@ -32,8 +32,8 @@ extern void rtc_disable()
 extern int32_t rtc_read()
 {	
 	flag = 1;
-	volatile while(flag);
-
+	while(flag);
+	//printf("i am read\n");
 	return 0;
 }
 
@@ -61,16 +61,15 @@ extern int32_t rtc_write(const int32_t* buf, int32_t nbytes)
 	{
 		return -1;
 	}
+
 	new_buf = *buf;
+
 	//save old values
-	outb(0x8B, RTC_PORT);
+	outb(0x8A, RTC_PORT);
 	prev_a = inb(RTC_CMOS_PORT);
 
 	//rtc frequency limited up to 1024
-	if(new_buf > 1024)
-	{
-		return -1;
-	}
+	if(new_buf > 1024) {return -1;}
 	else
 	{
 		if(new_buf == 1024) {freq = F1024HZ;}
@@ -83,12 +82,11 @@ extern int32_t rtc_write(const int32_t* buf, int32_t nbytes)
 		if(new_buf == 8) {freq = F8HZ;}
 		if(new_buf == 4) {freq = F4HZ;}
 		if(new_buf == 2) {freq = F2HZ;}
+		if(new_buf == 0) {freq = F0HZ;}
 	}
 
-	outb(0x8B, RTC_PORT);
+	outb(0x8A, RTC_PORT);
 	outb((0xF0 & prev_a) | freq, RTC_CMOS_PORT);
-
-	printf("freq/n");
 
 	//write success!! (always 0) */
 	return 0;
@@ -112,42 +110,61 @@ extern int32_t rtc_open(const uint8_t* filesname)
 	return 0;
 }
 
-
+/*
+ * rtc_close()
+ *
+ * returns 0
+ *
+ * Inputs: 
+ * Outputs:
+ */
 extern int32_t rtc_close(int32_t fd)
 {
 	return 0;
 }
 
+/*
+ * test_read()
+ *
+ * Function that tests if rtc_read() function is properly working
+ * Prints <3 according to frequency.
+ *
+ * Inputs: none
+ * Outputs: none
+ */
 extern void test_read()
 {
 	// set RTC speed
 int counter = 0;
-int temp_counter = 0;
-int i;
-int ret_val = 32;
-rtc_write(&ret_val, 4);
+//int ret_val = 1024;
+//rtc_write(&ret_val, 4);
 	while(1) {
 		// read the rtc
-		printf("HAHAHAHAHAHAHA3\n");
+		
 		rtc_read();
-		printf("HAHAHAHAHAHAHA4\n");
+		//clear();
 		counter++;
-		if (counter % 5 == 0) {
+		if (counter % 50 == 0) {
 			// do something visible on the screen
-			printf("HAHAHAHAHAHAHA5\n");
-			temp_counter = counter / 10;
+			
 			clear();
-			for(i = 0 ; i<temp_counter;i++)
-			{
-				printf("<3");
-			}	
+			printf("<3");
+			
 		}
 	}
 }
 
 /*
+ * test_close()
+ *
+ * Function which tests if rtc_write() function is properly working
+ * Channges frequency.
+ *
+ * Inputs: frequency value, bytes
+ * Outputs: none
+ */
 extern void test_write(int ret_val, int32_t nbytes)
 {
 	rtc_write(&ret_val, nbytes);
 }
-*/
+

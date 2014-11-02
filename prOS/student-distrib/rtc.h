@@ -15,6 +15,7 @@
 #define F256HZ  8
 #define F512HZ  7
 #define F1024HZ 6
+#define NONE	0
 
 extern void rtc_enable();
 extern void rtc_disable();
@@ -25,6 +26,6 @@ extern int32_t rtc_open(const uint8_t* filesname);
 extern int32_t rtc_close(int32_t fd);
 
 extern void test_read();
-//extern void test_write(int ret_val, int32_t nbytes);
+extern void test_write(int ret_val, int32_t nbytes);
 
 #endif

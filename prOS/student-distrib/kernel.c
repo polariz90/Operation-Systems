@@ -165,8 +165,7 @@ entry (unsigned long magic, unsigned long addr)
 
 	/*initiailize rtc*/
 	rtc_enable();
-	printf("HAHAHAHAHAHAHA\n");
-	test_read();
+	
 
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
@@ -178,6 +177,14 @@ entry (unsigned long magic, unsigned long addr)
 	 * without showing you any output */
 	printf("Enabling Interrupts\n");
 	sti();
+
+	//test rtc_write function, changes frequency
+	test_write(1024, 4); // frequency , nbytes
+
+	//tests rtc_read function
+	test_read();
+
+
 	//asm("INT $0");
 	printf("returned from the exception \n");
 
