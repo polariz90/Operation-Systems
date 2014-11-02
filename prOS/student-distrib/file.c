@@ -10,7 +10,7 @@
 //#include "kernel.c"
 #include "lib.h"
 
-#define FOUR_KB 4096 /* 4KB = 4096 bytes */
+#define four_kb 4096 /* 4KB = 4096 bytes */
 
 
 /**	read_dentry_by_name 
@@ -96,17 +96,19 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t * dentry){
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t * buf, uint32_t length){
 
 	/* need more case check for sure */
-	uint32_t dentry_add = (uint32_t)s_block + FOUR_KB; /*first dentry block address */
+	uint32_t inodes_N = s_block->inodes; /* total number of dentries we have in file system */
+	uint32_t dentry_add = (uint32_t)s_block + four_kb; /*first dentry block address */
+	uint32_t data_add = (uint32_t)s_block + (inodes_N+1)*four_kb; /* address for first data block*/
 
-	uint32_t num_block = offset / FOUR_KB;	/* compute number of data block offset is in */
-	uint32_t num_skip = offset % FOUR_KB;	/* compute number of bytes need to skip in initial data block */ 
-	//uint32_t inodes_N = s_block.inodes; /* total number of dentries we have in file system */
-	inode_struct * curr_inode =(inode_struct*)(dentry_add + inode*FOUR_KB); /* pointer points at current inode */
+	uint32_t num_block = offset / four_kb;	/* compute number of data block offset is in */
+	uint32_t num_skip = offset % four_kb;	/* compute number of bytes need to skip in initial data block */ 
+	inode_struct * curr_inode =(inode_struct*)(dentry_add + inode*four_kb); /* pointer points at current inode */
+	//data_struct * curr_data = (data_struct*)(data_add + num_block*four_kb); /* pointer points at current data*/
 
 	uint32_t file_length = curr_inode->length; /* length of this file */
 	uint32_t bytes_left = file_length - offset; /* this gives number of bytes left to read */
 	uint32_t ori_length = length; /* keep in track of original length*/
-
+	uint32_t block_number; /* keep in track of which block is on */
 
 	/* check boundary conditions */
 	if(inode < 0 || inode > s_block->inodes){
@@ -119,21 +121,25 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t * buf, uint32_t lengt
 		return 0; /* case empty file */
 	}
 
-	printf("inode number is %d\n", inode);
-	printf("size of this file is %d\n", curr_inode->length);
+
+	block_number = curr_inode->data_blocks[num_block];
+	 /* variable to point at current data block */
+	data_struct* curr_data = (data_struct*)((uint32_t)s_block + (inodes_N + block_number+1)*four_kb);
 
 	for(; length > 0; length --){ /* loop to read length bytes of data into buffer */
 		if(bytes_left == 0){ /* case finished the entire file */
 			return 0; 
 		}
 
-		printf("%c \n",curr_inode->data_blocks[num_block].data[num_skip]);
-		*buf = curr_inode->data_blocks[num_block].data[num_skip];
+		*buf = curr_data->data[num_skip];
 		buf ++; num_skip ++; bytes_left --;
 
-		if(num_skip == (FOUR_KB-1)){ /* reach end of the block */
+		if(num_skip == (four_kb-1)){ /* reach end of the block */
 			num_block ++;
 			num_skip = 0; /* goes to next block */
+			block_number = curr_inode->data_blocks[num_block];
+			curr_data = (data_struct*)((uint32_t)s_block + (inodes_N + block_number+1)*four_kb);
+			/* points at the new data block*/
 		}
 	}
 

@@ -41,7 +41,7 @@ typedef struct
 typedef struct 
 {
 	uint32_t length; /*length of file? in Bytes */
-	data_struct data_blocks[1023]; /* pointers to data blocks */
+	uint32_t data_blocks[1023]; /* pointers to data blocks */
 	/* each file can totally holds 1023 4kb-data blocks */
 	/* each file max 4MB? */
 }inode_struct;
