@@ -233,11 +233,9 @@ typedef union page_pte_t{
 
 /* declare kernel page directory */
 extern page_pde_t kernel_page_dir[PAGE_DIRECTORY_SIZE];
-//extern page_pde_4MB_t kernel_page_dir[PAGE_DIRECTORY_SIZE];
-//page_pde_t kernel_page_dir[PAGE_DIRECTORY_SIZE] __attribute__((aligned(4096))); /* 4KB aligned */
 /* declare page only 1 for video memory*/
 extern page_pte_t video_page_table[PAGE_TABLE_SIZE];
-//page_pte_t video_page_table[PAGE_TABLE_SIZE] __attribute__((aligned(4096))); /* 4KB aligned */
+
 
 /* Sets runtime parameters for an IDT entry */
 #define SET_IDT_ENTRY(str, handler) \

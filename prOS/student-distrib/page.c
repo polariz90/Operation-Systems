@@ -38,12 +38,10 @@ void init_paging( ){
 		kernel_page_dir[i].cache_disabled = 0;
 		kernel_page_dir[i].accessed = 0;
 		kernel_page_dir[i].reserved = 0;
-		//kernel_page_dir[i].dirty = 0;
 		kernel_page_dir[i].page_size = 0;
 		kernel_page_dir[i].global_page = 0;
 		kernel_page_dir[i].avail = 0;
 		kernel_page_dir[i].PT_base_add = i*1024;
-		//kernel_page_dir[i].page_base_add = i;
 	}
 
 	for(i = 0; i < PAGE_TABLE_SIZE; i++){
