@@ -34,6 +34,17 @@ int32_t safe_strncpy(int8_t* dest, const int8_t* src, int32_t n);
 /*used to test rtc interrupt*/
 void test_interrupts(void);
 
+
+
+/*added from terminal.h*/
+/* Scrolls the screen count lines 
+  * returns nothing
+  */
+void vert_scroll(uint32_t count);
+
+
+
+
 /* Port read functions */
 /* Inb reads a byte and returns its value as a zero-extended 32-bit
  * unsigned int */

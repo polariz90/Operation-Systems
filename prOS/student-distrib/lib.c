@@ -5,14 +5,27 @@
 #include "lib.h"
 #include "i8259.h"
 #include "rtc.h"
+#include "terminal.h"
+
+
 #define VIDEO 0xB8000
 #define NUM_COLS 80
 #define NUM_ROWS 25
 #define ATTRIB 0x7
+#define X_INITAL_LOC 0
+#define Y_INITAL_LOC 0
+
+
+
+
+
 
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
+
+
+
 
 /*
 * void clear(void);
@@ -24,6 +37,9 @@ static char* video_mem = (char *)VIDEO;
 void
 clear(void)
 {
+	screen_x = X_INITAL_LOC;
+	screen_y = Y_INITAL_LOC;
+
     int32_t i;
     for(i=0; i<NUM_ROWS*NUM_COLS; i++) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
@@ -568,3 +584,44 @@ test_interrupts(void)
 		video_mem[i<<1]++;
 	}
 }
+
+
+/* Scrolls the screen count lines 
+  * returns nothing
+  */
+void vert_scroll(uint32_t count)
+{
+	
+	int i;			/*index into video memory*/
+	int j;			/*count for the number of scrolls*/
+	char temp;		/*temporary variable to hold screen info*/
+
+
+	for(j =0 ; j < count ; j++)
+	{
+		for(i = NUM_COLS; i < NUM_ROWS*NUM_COLS ; i++)
+		{
+
+			//writing the character one row above current location
+			temp =  *(uint8_t *)(video_mem + (i << 1));
+			*(uint8_t *)(video_mem + ((i- NUM_COLS) << 1) 	)= temp;
+			*(uint8_t *)(video_mem + ((i- NUM_COLS) << 1) + 1 )=ATTRIB;
+			
+		}
+
+		/*Loop to delete the bottom row*/
+		for(i = NUM_COLS*NUM_ROWS - 1; i > (NUM_ROWS-1)*NUM_COLS -1; i-- )
+		{
+			*(uint8_t *)(video_mem + ((i) << 1)) = ' ';
+			*(uint8_t *)(video_mem + ((i) << 1) + 1 )=ATTRIB;
+		}	
+
+		//here is where i am going to adjust the screen x and screen y	
+	}
+
+
+	return ;
+}
+
+
+

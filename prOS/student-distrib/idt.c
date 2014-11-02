@@ -18,6 +18,8 @@
 #include "i8259.h"
 #include "rtc.h"
 #include "exception.h"
+#include "terminal.h"
+
 
  unsigned char code_set[0x59];
 
@@ -110,250 +112,6 @@ void rtc_handler()
 	asm("popal;leave;iret");
 }
 
-/* Description:
- * Divisor operand is zero
- *
- * Exception Class:
- * Fault
- *
- * Exception Error Code:
- * None
- *
- * Saved Instruction Pointer:
- * Saved contents fo CS and EIP registers point to the instruction that generated the exeption
- *
- * Program State Change:
- * No state change
- */
-void divide_error_exception()
-{
-	//asm("pushad");
-	asm("leave;iret");
-}
-
-
-
-/* Description:
- * Debug exception has occurred
- *
- * Exception Class:
- * Trap
- *
- * Exception Error Code:
- * None 
- *
- * Saved Instruction Pointer:
- * Fault- Saved contents of the CS and EIP registers point to function that generated the exception
- * Trap- Saved contents of the CS and EIP registers point to following function that generated the exception
- *
- * Program State Change:
- * Fault- No program change
- * Trap- No program change 
- */
-void debug_exception()
-{
-	printf("Debug exception\n");
-	asm("leave;iret");
-	return;
-}
-
-
-
-/* Description:
- * A nonmaskable interrupt has been generated
- *
- * Exception Class:
- * N/a
- *
- * Exception Error Code:
- * None
- *
- * Saved Instruction Pointer:
- * 
- *
- * Program State Change:
- * 
- */
-void nmi()
-{
-	printf("Nonmaskable interrupt\n");
-	asm("leave;iret");
-	return;	
-}
-
-
-
-/* Description:
- * Break point exception has been generated. INT 3 was called
- *
- * Exception Class:
- * Trap
- *
- * Exception Error Code:
- * None
- *
- * Saved Instruction Pointer:
- * Saved contents of CS and EIP point to the instruction after INT 3
- *
- * Program State Change:
- * Essentially unchanged
- */
-void breakpoint_exception()
-{
-	printf("Breakpoint Exception\n");
-	asm("leave;iret");
-	return;	
-}
-
-
-
-/* Description:
- * Overflow trap occurred when an INTO instruction was executed
- *
- * Exception Class:
- * Trap
- *
- * Exception Error Code:
- * None
- *
- * Saved Instruction Pointer:
- * Saved contents fo the CS and EIP point to the instruction following hte INTO
- *
- * Program State Change:
- * Essentially unchanged
- */
-void overflow_exception()
-{
-	printf("Overflow exception\n");
-	asm("leave;iret");
-	return;	
-}
-
-
-
-
-/* Description:
- * Bound range fault occurred when a BOUND instruction was executed
- *
- * Exception Class:
- * Fault
- *
- * Exception Error Code:
- * None
- *
- * Saved Instruction Pointer:
- * Saved contents fo the CS and EIP point to the BOUND instruction that generated teh exception
- *
- * Program State Change:
- * None
- */
-void bound_range_exception()
-{
-	printf("Bound range exception\n");
-	asm("leave;iret");
-	return;	
-}
-
-
-
-
-/* Description:
- * Attempted to execute invalid or reserved opcode
- * Attempted to execute an instruction with an operand type that is invalid
- * A variety of other reasons(see p.171 manual)
- *
- * Exception Class:
- * Fault
- *
- * Exception Error Code:
- * None 
- *
- * Saved Instruction Pointer:
- * Saved contents fo the CS and EIP point to the instruction that generated the exception 
- *
- * Program State Change:
- * None
- */
-void invalid_opcode()
-{
-	printf("Invalid opcode\n");
-	asm("leave;iret");
-	return;	
-}
-
-
-/* Description:
- * Device not availble 
- *
- * Exception Class:
- * Fault
- *
- * Exception Error Code:
- * None 
- *
- * Saved Instruction Pointer:
- * Saved contents fo the CS and EIP point to the instruction or the WAIT/FWAIT that generated the exception
- *
- * Program State Change:
- * None
- */
-void device_not_availible()
-{
-	printf("Device not availible\n");
-	asm("leave;iret");
-	return;	
-}
-
-
-
-/* Description:
- * A second exception was generated during the handling of the first
- *
- * Exception Class:
- * Abort
- *
- * Exception Error Code:
- * Zero is pushed onto the stack
- *
- * Saved Instruction Pointer:
- * Saved contents fo the CS and EIP are undefined 
- *
- * Program State Change:
- * Undefined 
- */
-void double_fault_exception()
-{
-	printf("Double fault exception\n");
-	asm("leave;iret");
-	//should push zero on the stack here
-	
-	return;	
-}
-
-
-
-/* Description:
- * 
- *
- * Exception Class:
- *
- *
- * Exception Error Code:
- * 
- *
- * Saved Instruction Pointer:
- * Saved contents fo the CS and EIP point to the instruction
- *
- * Program State Change:
- * 
- */
-void invalid_tss_exception()
-{
-	printf("\n");
-	asm("leave;iret");
-	return;	
-}
-
 
 /* Description:
  * Handler for the keyboard interruption. The function receives keyboard signals and converts 
@@ -373,10 +131,29 @@ void keyboard_handler()
 	asm("pushal");
 	
 	unsigned char temp = inb(KEYBOARD_PORT); 				//get signal from the keyboard
-	if((int)temp<=58)	printf("%c", code_set[(int)temp]);	//print a key thay corresponds to the signal
-	send_eoi(KB_IRQ);										//send PIC end of interrupt
-	
-	asm("popal;leave;iret");
+	//if((int)temp<=58)	printf("%c", code_set[(int)temp]);	//print a key thay corresponds to the signal
+	send_eoi(KB_IRQ);
+
+	/*checking for the sepecial cases*/
+
+	if(is_special_key((int)temp) == 1)
+	{
+		exe_special_key((int)temp);
+	}
+
+	/*Writing to the buffer if it is a valid character*/
+	else if(curr_terminal_loc < BUF_SIZE && (int) temp <= 58)
+	{
+		terminal_buffer[curr_terminal_loc] = code_set[(int)temp] -  caps*(CAPS_CONV); 
+		curr_terminal_loc++;
+	}	
+
+
+	clear();
+	write_buf_to_screen();
+
+	//send PIC end of interrupt
+ 	asm("popal;leave;iret");
 }
 
 
@@ -413,19 +190,4 @@ unsigned char code_set[0x59] = {
 
 
 
-/* Description:
- * 
- *
- * Exception Class:
- *
- *
- * Exception Error Code:
- * 
- *
- * Saved Instruction Pointer:
- * Saved contents fo the CS and EIP point to the instruction
- *
- * Program State Change:
- * 
- */
 

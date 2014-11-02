@@ -3,10 +3,11 @@ x86_desc.o: x86_desc.S x86_desc.h types.h
 exception.o: exception.c exception.h lib.h types.h
 i8259.o: i8259.c i8259.h types.h lib.h
 idt.o: idt.c idt.h x86_desc.h types.h lib.h keyboard.h i8259.h rtc.h \
-  exception.h
+  exception.h terminal.h
 kernel.o: kernel.c multiboot.h types.h x86_desc.h lib.h i8259.h debug.h \
-  page.h idt.h keyboard.h rtc.h
+  page.h idt.h keyboard.h rtc.h terminal.h
 keyboard.o: keyboard.c keyboard.h i8259.h types.h
-lib.o: lib.c lib.h types.h i8259.h rtc.h
+lib.o: lib.c lib.h types.h i8259.h rtc.h terminal.h
 page.o: page.c x86_desc.h types.h lib.h page.h
 rtc.o: rtc.c i8259.h types.h rtc.h lib.h
+terminal.o: terminal.c terminal.h lib.h types.h

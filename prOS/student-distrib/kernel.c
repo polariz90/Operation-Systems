@@ -11,6 +11,7 @@
 #include "idt.h"
 #include "keyboard.h"
 #include "rtc.h"
+#include "terminal.h"
 
 
 /* Macros. */
@@ -158,13 +159,17 @@ entry (unsigned long magic, unsigned long addr)
 
 	/* Init the PIC */
 	i8259_init();
-
+	
 
 	/*initilize keyboard*/
 	kb_enable();
 
 	/*initiailize rtc*/
-	rtc_enable();
+	//rtc_enable();
+	
+
+	/*opens the terminal, done by user*/
+	terminal_open();
 
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
@@ -174,10 +179,9 @@ entry (unsigned long magic, unsigned long addr)
 	/* Do not enable the following until after you have set up your
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
-	printf("Enabling Interrupts\n");
 	sti();
-	//asm("INT $0");
-	printf("returned from the exception \n");
+
+	/*testing zone*/
 
 	/* Execute the first program (`shell') ... */
 
