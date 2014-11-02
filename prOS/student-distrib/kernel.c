@@ -160,7 +160,7 @@ entry (unsigned long magic, unsigned long addr)
 	init_idt(); 
 
 	/* initializing paging */
-	//init_paging();
+	init_paging();
 
 	clear();
 
@@ -170,18 +170,38 @@ entry (unsigned long magic, unsigned long addr)
 
 	int i;
 	for(i = 0; i<16; i++) {
-				printf("%s \n", s_block->file_entries[i].filename);
+				printf("name = %s", s_block->file_entries[i].filename);
+				printf("inode = %d\n", s_block->file_entries[i].inode_num);
 			}
 
 
 	printf("testing file system function \n");
 
-	dentry_t* test_dentry;
-	test_dentry->filename[1] = 1;
-	int test = read_dentry_by_name(".", test_dentry);
-	printf("test function return is %d\n", test);
-	printf("file copyied name is %s\n", test_dentry->filename);
 
+	//dentry_t test_dentry;
+	//int test = read_dentry_by_name("verylargetxtwithverylongname.txt", &test_dentry);
+	//int test = read_dentry_by_index(2, &test_dentry);
+	//printf("test function return is %d\n", test);
+	//printf("file copyied name is %s\n", test_dentry.filename);
+
+//	uint32_t data_block_add = (uint32_t)s_block + 4096 + (s_block->inodes)*4096;
+//	for(i = 0; i < 3; i++){
+//		inode_struct * curr_inode = (inode_struct*)(dentry_add + i*4096);
+//		printf("file length is %d \n", curr_inode->length);
+//	}
+
+	uint32_t read_length = 275;
+	uint8_t * buffer[300];
+	uint32_t inode_index = 16;
+	uint32_t offset = 0;
+
+	read_data(inode_index, offset, buffer, read_length);
+
+	for(i = 0; i < 275; i++){
+		printf("%c", buffer[i]);
+	}
+
+	
 	/* Init the PIC */
 	i8259_init();
 

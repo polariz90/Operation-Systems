@@ -26,18 +26,27 @@ int32_t read_dentry_by_name(const uint8_t * fname, dentry_t * dentry){
 	int i;	/* loop counter */
 	uint32_t num_entries = s_block->dir_entries; /* variable hold # of entries */
 	uint32_t length; /* variable to hold fname string length */
-	length = strlen((int8_t*)fname);	
-	dentry->filename[1] = 1;
+	length = strlen((int8_t*)fname);
+
+	int8_t * input_arr[32]; /* new input string */
+	if (length >= 32){/* case too long */
+		strncpy(input_arr, fname, 31);
+		input_arr[32] = '\0';
+	}
+	else{
+		strncpy(input_arr, fname, 32);
+	}
+	
+	uint32_t input_length = strlen(input_arr); /* cutted array length */
 
 	for(i = 0; i < num_entries; i++){ /* looping through entire entries to find file*/
-		if(strlen(s_block->file_entries->filename) == length){/* case 2 names doesnt have the same length*/
-			if(strncmp((int8_t*)fname, s_block->file_entries->filename, length) == 0){ /* check if 2 are the same */
+		if(strlen(s_block->file_entries[i].filename) == input_length){/* case 2 names doesnt have the same length*/
+			if(strncmp((int8_t*)fname, s_block->file_entries[i].filename, input_length) == 0){ /* check if 2 are the same */
 				/* copy over to dentry_t*/
-				//dentry_t.filename = s_block->file_entries.filename;
 				/* using strncpy from lib to make deep copy*/
 				strcpy((int8_t*)dentry->filename, (int8_t*)s_block->file_entries[i].filename);
-				dentry->file_type = s_block->file_entries->file_type;
-				dentry->inode_num = s_block->file_entries->inode_num;
+				dentry->file_type = s_block->file_entries[i].file_type;
+				dentry->inode_num = s_block->file_entries[i].inode_num;
 				return 0; /* operation success*/
 			}
 		}
@@ -88,13 +97,11 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t * buf, uint32_t lengt
 
 	/* need more case check for sure */
 	uint32_t dentry_add = (uint32_t)s_block + FOUR_KB; /*first dentry block address */
-	uint32_t data_block_add = (uint32_t)s_block + FOUR_KB + (s_block->inodes)*FOUR_KB;/* first data block address */
 
 	uint32_t num_block = offset / FOUR_KB;	/* compute number of data block offset is in */
 	uint32_t num_skip = offset % FOUR_KB;	/* compute number of bytes need to skip in initial data block */ 
 	//uint32_t inodes_N = s_block.inodes; /* total number of dentries we have in file system */
 	inode_struct * curr_inode =(inode_struct*)(dentry_add + inode*FOUR_KB); /* pointer points at current inode */
-	data_struct * curr_data = (data_struct*)(data_block_add + num_block*FOUR_KB); /* pointer points at current data block */
 
 	uint32_t file_length = curr_inode->length; /* length of this file */
 	uint32_t bytes_left = file_length - offset; /* this gives number of bytes left to read */
@@ -108,15 +115,22 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t * buf, uint32_t lengt
 	if(offset < 0 || offset > file_length){
 		return -1; /* case invalid offset */
 	}
+	if(file_length == 0){
+		return 0; /* case empty file */
+	}
+
+	printf("inode number is %d\n", inode);
+	printf("size of this file is %d\n", curr_inode->length);
 
 	for(; length > 0; length --){ /* loop to read length bytes of data into buffer */
 		if(bytes_left == 0){ /* case finished the entire file */
 			return 0; 
 		}
 
-		//*buf = s_block[inodes_N + num_block + 1].data[num_skip]; /* copying data */
-		*buf = curr_data->data[num_skip];
-		buf ++; num_skip ++; bytes_left--; 
+		printf("%c \n",curr_inode->data_blocks[num_block].data[num_skip]);
+		*buf = curr_inode->data_blocks[num_block].data[num_skip];
+		buf ++; num_skip ++; bytes_left --;
+
 		if(num_skip == (FOUR_KB-1)){ /* reach end of the block */
 			num_block ++;
 			num_skip = 0; /* goes to next block */
