@@ -160,7 +160,7 @@ entry (unsigned long magic, unsigned long addr)
 	init_idt(); 
 
 	/* initializing paging */
-	//init_paging();
+	init_paging();
 
 	clear();
 
@@ -170,17 +170,22 @@ entry (unsigned long magic, unsigned long addr)
 
 	int i;
 	for(i = 0; i<16; i++) {
-				printf("%s \n", s_block->file_entries[i].filename);
-			}
+				//printf("%s \n", s_block->file_entries[i].filename);
+		open_f(s_block->file_entries[i].filename);
+	}
 
 
 	printf("testing file system function \n");
 
-	dentry_t* test_dentry;
-	test_dentry->filename[1] = 1;
-	int test = read_dentry_by_name(".", test_dentry);
-	printf("test function return is %d\n", test);
-	printf("file copyied name is %s\n", test_dentry->filename);
+	//test_dentry->filename[1] = 1;
+	//int test = read_dentry_by_name(".", &test_dentry);
+	//printf("test function return is %d\n", test);
+	//printf("file copyied name is %s\n", test_dentry.filename);
+
+//	open_f("hello");
+//	open_f("ls");
+//	open_f("frame0.txt");
+//	open_f("rtc");
 
 	/* Init the PIC */
 	i8259_init();
