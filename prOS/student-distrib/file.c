@@ -11,6 +11,7 @@
 #include "lib.h"
 
 #define four_kb 4096 /* 4KB = 4096 bytes */
+#define name_length 32 /* length of the name string */
 
 /*extern var: file descriptor*/
 pcb file_desc[8];
@@ -36,13 +37,13 @@ int32_t read_dentry_by_name(const uint8_t * fname, dentry_t * dentry){
 	uint32_t length; /* variable to hold fname string length */
 	length = strlen((int8_t*)fname);
 
-	int8_t * input_arr[32]; /* new input string */
-	if (length >= 32){/* case too long */
-		strncpy(input_arr, fname, 31);
-		input_arr[32] = '\0';
+	int8_t * input_arr[name_length]; /* new input string */
+	if (length >= name_length){/* case too long */
+		strncpy(input_arr, fname, name_length-1);
+		input_arr[name_length] = '\0';
 	}
 	else{
-		strncpy(input_arr, fname, 32);
+		strncpy(input_arr, fname, name_length);
 	}
 	
 	uint32_t input_length = strlen(input_arr); /* cutted array length */
