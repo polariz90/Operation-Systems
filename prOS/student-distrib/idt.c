@@ -22,6 +22,8 @@
 
 
  unsigned char code_set[0x59];
+ unsigned char code_set_shift[0x59];
+
 
 /*
  * This function initializes every interrupt descriptor table to enter 
@@ -144,13 +146,14 @@ void keyboard_handler()
 	/*Writing to the buffer if it is a valid character*/
 	else if(curr_terminal_loc < BUF_SIZE && (int) temp <= 58)
 	{
-		terminal_buffer[curr_terminal_loc] = code_set[(int)temp] -  caps*(CAPS_CONV); 
+		if (shift ==1)
+			terminal_buffer[curr_terminal_loc] = code_set_shift[(int)temp] ; 
+		else 
+			terminal_buffer[curr_terminal_loc] = code_set[(int)temp] -  ((caps+shift)%2)*(CAPS_CONV);
+
 		curr_terminal_loc++;
+		write_buf_to_screen();
 	}	
-
-
-	clear();
-	write_buf_to_screen();
 
 	//send PIC end of interrupt
  	asm("popal;leave;iret");
@@ -166,6 +169,32 @@ unsigned char code_set[0x59] = {
 	'\t','q','w','e','r','t','y','u','i','o','p','[',']','\n',
 	'\0','a','s','d','f','g','h','j','k','l',';','\'','`',
 	'\0','\\','z','x','c','v','b','n','m',',','.','/','\0',	
+	'*','\0',' ','\0',
+	'\0',		// F1
+	'\0',		// F2
+	'\0',		// F3
+	'\0',		// F4
+	'\0',		// F5
+	'\0',		// F6
+	'\0',		// F7
+	'\0',		// F8
+	'\0',		// F9
+	'\0',		// F10
+	'\0',		// num lock
+	'\0',		// scroll lock
+	'7','8','9','-','4','5','6','+','1','2','3','0','.',//keypad
+	'\0',
+	'\0',
+	'\0',
+	'\0',		// F11
+	'\0',		// F12
+};
+
+unsigned char code_set_shift[0x59] = {
+	'\0','\e','!','@','#','$','%','^','&','*','(',')','_','+','\b',
+	'\t','Q','W','E','R','T','Y','U','I','O','P','{','}','\n',
+	'\0','A','S','D','F','G','H','J','K','L',':','\'','`',
+	'\0','\\','Z','X','C','V','B','N','M','<','>','?','\0',	
 	'*','\0',' ','\0',
 	'\0',		// F1
 	'\0',		// F2

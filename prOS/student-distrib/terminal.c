@@ -70,17 +70,21 @@ int terminal_close()
 
 int write_buf_to_screen()
 {
+	
+	clear_line();
 	int i;
 	for(i = 0; i<curr_terminal_loc; i++)
 	{
 		printf("%c",terminal_buffer[i]);
 	}
-	
+
+	move_screen_xy(-1*curr_terminal_loc);
 	return 0;
 }
 
 
 //vertical scrolling function moved to lib.h
+
 
 int is_special_key(int key)
 {
@@ -114,21 +118,21 @@ int is_special_key(int key)
 	 */
 
 
-	if( key == LTABP   ||
-		key == LTABR   ||
-		key == CAPP    ||
-		key == CAPR    ||
-		key == LSHFTP  ||
-	    key == LSHFTR  ||
-		key == BSP     ||	
-		key == BSR     ||	
-		key == ENTP    ||	
-		key == ENTR    ||	
-		key == RSHFTP  ||	
-		key == RSHFTR  ||
-		key == CTLP    ||
-		key == CTLR    ||
-	    key == Lp 			
+	if( key == LTABP   				||
+		key == LTABR   				||
+		key == CAPP    				||
+		key == CAPR    				||
+		key == LSHFTP  				||
+	    key == LSHFTR  				||
+		key == BSP     				||	
+		key == BSR     				||	
+		key == ENTP 			    ||	
+		key == ENTR   				||	
+		key == RSHFTP  				||	
+		key == RSHFTR  				||
+		key == CTLP 			    ||
+		key == CTLR    				||
+	    (key == Lp && ctrl == 1)			
 	  )
 	{
 		return 1;
@@ -156,11 +160,11 @@ void exe_special_key(int key)
 			break;
 
 		case LSHFTP :
-			toggle_caps();
+			toggle_shift();
 			break;
 
 		case LSHFTR :
-			toggle_caps();
+			toggle_shift();
 			break;
 
 		case BSP :
@@ -168,19 +172,21 @@ void exe_special_key(int key)
 			{
 				terminal_buffer[curr_terminal_loc] = ' ';
 				curr_terminal_loc--;
+				write_buf_to_screen();
 			}
 			break;
 
 		case ENTP :
 			putc('\n');
+			curr_terminal_loc = 0;
 			break;
 
 		case RSHFTP :
-			toggle_caps();
+			toggle_shift();
 			break;
 
 		case RSHFTR :
-			toggle_caps();
+			toggle_shift();
 			break;
 
 		case CTLP :
@@ -192,11 +198,7 @@ void exe_special_key(int key)
 			break;
 
 		case Lp :
-			if(ctrl == 1)
-			{
-				curr_terminal_loc = 0;		
-				clear();
-			}
+			clear();
 			break;
 
 
@@ -213,6 +215,13 @@ void toggle_caps()
 		caps =1;
 }
 
+void toggle_shift()
+{
+	if(shift == 1)
+		shift = 0;
+	else
+		shift =1;
+}
 
 void toggle_ctrl()
 {

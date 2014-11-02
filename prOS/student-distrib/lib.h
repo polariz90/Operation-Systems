@@ -7,6 +7,16 @@
 
 #include "types.h"
 
+
+
+
+/*Varible declarations*/
+//int screen_x;
+//int screen_y ;
+//char* video_mem = (char *)VIDEO;
+
+
+
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);
 int32_t puts(int8_t *s);
@@ -27,23 +37,19 @@ int8_t* strncpy(int8_t* dest, const int8_t*src, uint32_t n);
 //
 void test_interrupts();
 
+/*more functions added from terminal*/
+void vert_scroll(uint32_t count);
+void move_screen_xy(int chars); 
+void clear_line();
+
+
+
 /* Userspace address-check functions */
 int32_t bad_userspace_addr(const void* addr, int32_t len);
 int32_t safe_strncpy(int8_t* dest, const int8_t* src, int32_t n);
 
 /*used to test rtc interrupt*/
 void test_interrupts(void);
-
-
-
-/*added from terminal.h*/
-/* Scrolls the screen count lines 
-  * returns nothing
-  */
-void vert_scroll(uint32_t count);
-
-
-
 
 /* Port read functions */
 /* Inb reads a byte and returns its value as a zero-extended 32-bit

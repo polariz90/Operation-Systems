@@ -7,7 +7,6 @@
 #include "rtc.h"
 #include "terminal.h"
 
-
 #define VIDEO 0xB8000
 #define NUM_COLS 80
 #define NUM_ROWS 25
@@ -15,7 +14,7 @@
 #define X_INITAL_LOC 0
 #define Y_INITAL_LOC 0
 
-
+/*defined moved to lib.h*/
 
 
 
@@ -37,6 +36,7 @@ static char* video_mem = (char *)VIDEO;
 void
 clear(void)
 {
+	curr_terminal_loc = 0;
 	screen_x = X_INITAL_LOC;
 	screen_y = Y_INITAL_LOC;
 
@@ -585,7 +585,6 @@ test_interrupts(void)
 	}
 }
 
-
 /* Scrolls the screen count lines 
   * returns nothing
   */
@@ -618,10 +617,22 @@ void vert_scroll(uint32_t count)
 
 		//here is where i am going to adjust the screen x and screen y	
 	}
-
-
-	return ;
+	return;
 }
 
+void move_screen_xy(int chars)
+{
+	screen_x += chars;
+}
 
+void clear_line()
+{
+	int i;
 
+	for(i=0;i< NUM_COLS; i++)
+	{
+		*(uint8_t *)(video_mem + ((screen_y*NUM_COLS) << 1) + ((i) << 1)) = ' ';
+	}
+	screen_x = 0;
+	return;
+}

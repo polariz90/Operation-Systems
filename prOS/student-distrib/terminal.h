@@ -34,6 +34,7 @@
 int curr_terminal_loc;
 char terminal_buffer[BUF_SIZE];
 uint8_t caps;
+uint8_t shift;
 uint8_t ctrl; 
 
 
@@ -76,8 +77,9 @@ int is_special_key(int key);
 void exe_special_key(int key);
 
 void toggle_caps();
-
+void toggle_shift();
 void toggle_ctrl(); 
+
 
 
 

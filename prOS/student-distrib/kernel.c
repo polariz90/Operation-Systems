@@ -182,7 +182,7 @@ entry (unsigned long magic, unsigned long addr)
 	sti();
 
 	/*testing zone*/
-
+	clear();
 	/* Execute the first program (`shell') ... */
 
 	/* Spin (nicely, so we don't chew up cycles) */
