@@ -161,10 +161,12 @@ entry (unsigned long magic, unsigned long addr)
 
 
 	/*initilize keyboard*/
-	kb_enable();
+	//kb_enable();
 
 	/*initiailize rtc*/
 	rtc_enable();
+	printf("HAHAHAHAHAHAHA\n");
+	test_read();
 
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the

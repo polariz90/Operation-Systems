@@ -29,10 +29,10 @@ extern void rtc_disable()
  * Inputs: none
  * Retvals: none
  */
-extern int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
+extern int32_t rtc_read()
 {	
 	flag = 1;
-	while(flag);
+	volatile while(flag);
 
 	return 0;
 }
@@ -50,7 +50,7 @@ extern int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
  * -1: failure
  * n: number of bytes written
  */
-extern int32_t rtc_write(int32_t fd, const int32_t* buf, int32_t nbytes)
+extern int32_t rtc_write(const int32_t* buf, int32_t nbytes)
 {
 	unsigned char prev_a; // temporary 
 	int8_t freq;
@@ -88,6 +88,8 @@ extern int32_t rtc_write(int32_t fd, const int32_t* buf, int32_t nbytes)
 	outb(0x8B, RTC_PORT);
 	outb((0xF0 & prev_a) | freq, RTC_CMOS_PORT);
 
+	printf("freq/n");
+
 	//write success!! (always 0) */
 	return 0;
 	
@@ -115,3 +117,37 @@ extern int32_t rtc_close(int32_t fd)
 {
 	return 0;
 }
+
+extern void test_read()
+{
+	// set RTC speed
+int counter = 0;
+int temp_counter = 0;
+int i;
+int ret_val = 32;
+rtc_write(&ret_val, 4);
+	while(1) {
+		// read the rtc
+		printf("HAHAHAHAHAHAHA3\n");
+		rtc_read();
+		printf("HAHAHAHAHAHAHA4\n");
+		counter++;
+		if (counter % 5 == 0) {
+			// do something visible on the screen
+			printf("HAHAHAHAHAHAHA5\n");
+			temp_counter = counter / 10;
+			clear();
+			for(i = 0 ; i<temp_counter;i++)
+			{
+				printf("<3");
+			}	
+		}
+	}
+}
+
+/*
+extern void test_write(int ret_val, int32_t nbytes)
+{
+	rtc_write(&ret_val, nbytes);
+}
+*/

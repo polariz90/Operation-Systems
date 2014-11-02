@@ -102,7 +102,7 @@ void general_handler()
 void rtc_handler()
 {
 	asm("pushal");
-	test_interrupts();
+	//test_interrupts();
 	outb(0x0C, RTC_PORT);	// select register C
 	inb(RTC_CMOS_PORT);	
 	send_eoi(RTC_IRQ);
