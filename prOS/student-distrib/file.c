@@ -156,15 +156,16 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t * buf, uint32_t lengt
 
 
 
-/** open_file_sys
-  * DESCRIPTION: 	open system call for file system read the file system by given file name
+/** open_sys
+  * DESCRIPTION: 	open system call
+  					for file system read the file system by given file name
   *					open the process control block in file descriptor
   * INPUT:			fname---file name
   * OUTPUT:			0 when seccess
   *					-1 when fail: the file descriptor is full or cannot find the file
   * SIDE EFFECT:	open a new pcb in file_desc
   */
-int32_t open_file_sys(const uint8_t * fname){
+int32_t open_sys(const uint8_t * fname){
 
 	int i, j;	/* loop counter */
 	uint32_t num_entries = s_block->dir_entries; /* variable hold # of entries */
@@ -182,9 +183,11 @@ int32_t open_file_sys(const uint8_t * fname){
 				printf("	inode num: %d\n", s_block->file_entries[i].inode_num);
 				for(j=0;j<6;j++){
 					if(file_desc[j+2].flags==0){
-						if(type==0)	//set this pcb to rtc
-						else if(type==1)	//set this pcb to directory
-						else if(type==2)	//set this pcb to regular file
+						if(type==0){}	//set this pcb to rtc
+						else if(type==1){}	//set this pcb to directory
+						else if(type==2){}	//set this pcb to regular file
+
+
 						file_desc[j+2].flags=1;
 						break;	
 					}
@@ -240,6 +243,20 @@ int32_t write_dir(){
 	//read only return -1
 	return -1;
 }
+
+/** close_sys
+  * DESCRIPTION: 	close this pcb on file descriptor
+  * INPUT:			fd---file descriptor number
+  * OUTPUT:			return 0 
+  * SIDE EFFECT:
+  */
+int32_t close_sys(int32_t fd){
+	//read only return -1
+	file_desc[fd].flags=0;
+	return 0;
+}
+
+
 
 /** write_file
   * DESCRIPTION: 	write operation for file

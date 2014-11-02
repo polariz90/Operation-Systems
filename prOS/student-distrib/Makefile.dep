@@ -11,3 +11,4 @@ keyboard.o: keyboard.c keyboard.h i8259.h types.h
 lib.o: lib.c lib.h types.h i8259.h rtc.h
 page.o: page.c x86_desc.h types.h lib.h page.h
 rtc.o: rtc.c i8259.h types.h rtc.h lib.h
+sys_call.o: sys_call.c

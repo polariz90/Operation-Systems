@@ -169,14 +169,19 @@ entry (unsigned long magic, unsigned long addr)
 	printf("inode: %d\n", s_block->inodes);
 
 	int i;
-	for(i = 0; i<16; i++) {
+	/*for(i = 0; i<16; i++) {
 				printf("name = %s", s_block->file_entries[i].filename);
 				printf("inode = %d\n", s_block->file_entries[i].inode_num);
-			}
-				//printf("%s \n", s_block->file_entries[i].filename);
-	//	open_f(s_block->file_entries[i].filename);
+	}*/
+
+	printf("name = %s", s_block->file_entries[0].filename);
+	printf("inode = %d\n", s_block->file_entries[0].inode_num);
+	printf("24B reserved%s\n", s_block->file_entries[0].reserved);
 	
-	
+	//char buf[4000];
+	//read_data(0,0,buf,4000);
+	//printf("inode 0: %s\n", buf);
+
 	/* Init the PIC */
 	i8259_init();
 
