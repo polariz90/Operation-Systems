@@ -164,23 +164,23 @@ entry (unsigned long magic, unsigned long addr)
 
 	clear();
 
-	printf("\n info in super_block:\n");
-	printf("num of file dir entry: %d\n", s_block->dir_entries);
-	printf("inode: %d\n", s_block->inodes);
-
+	/* test file system functions */
+	/* read text file */
+	char buf[4000];
 	int i;
-	/*for(i = 0; i<16; i++) {
-				printf("name = %s", s_block->file_entries[i].filename);
-				printf("inode = %d\n", s_block->file_entries[i].inode_num);
-	}*/
+	read_file("frame0.txt", buf, 300);
+	printf("%s\n", buf);
 
-	printf("name = %s", s_block->file_entries[0].filename);
-	printf("inode = %d\n", s_block->file_entries[0].inode_num);
-	printf("24B reserved%s\n", s_block->file_entries[0].reserved);
-	
-	//char buf[4000];
-	//read_data(0,0,buf,4000);
-	//printf("inode 0: %s\n", buf);
+	/* read text with long names */
+	read_file("verylargetxtwithverylongname.txt", buf, 500);
+	printf("%s\n", buf);
+
+	/* read non text file */
+	read_file("shell", buf, 500);
+	for(i = 0; i < 500; i++){
+		printf("%x", buf[i] );
+	}
+
 
 	/* Init the PIC */
 	i8259_init();

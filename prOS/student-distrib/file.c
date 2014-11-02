@@ -140,9 +140,6 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t * buf, uint32_t lengt
 		if(bytes_left == 0){ /* case finished the entire file */
 			return 0; 
 		}
-		if (*buf == '\0'){ /* case buffer is full, need to check with later code */
-			return ori_length - length;
-		}
 
 		*buf = curr_data->data[num_skip];
 		buf ++; num_skip ++; bytes_left --;
@@ -235,6 +232,7 @@ int32_t read_sys(int32_t fd, void * buf, int32_t nbytes){
 int32_t read_file( const int8_t* fname, void * buf, uint32_t nbytes){
 	/* case invalid fname and buffer */
 	if( fname == NULL || buf == NULL){
+		printf("failed to read file \n");
 		return -1; 
 	}
 
@@ -242,9 +240,9 @@ int32_t read_file( const int8_t* fname, void * buf, uint32_t nbytes){
 
 	read_dentry_by_name(fname, &file_dentry); /* read dentry by name */
 
-	read_data(file_dentry->inode_num, 0, buf, nbytes); /* read file data into buffer */
+	int ret = read_data(file_dentry.inode_num, 0, buf, nbytes); /* read file data into buffer */
 
-	return 0;
+	return ret;
 }
 
 /** write_sys
