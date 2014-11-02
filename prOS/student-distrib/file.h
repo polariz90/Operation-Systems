@@ -63,7 +63,20 @@ typedef struct
   dentry_t file_entries[63];
 }super_block;
 
+/**
+  * Basic structures for file system:
+  * process control block in file descriptor
+  * (the element of this array)
+  */
+typedef struct 
+{
+  void** file_opt_ptr;  /*4 bytes file operation table pointer*/
+  inode_struct* inode_ptr;  /* 4 bytes inodes ptr */
+  uint32_t file_pos; /* 4 bytes file position */
+  uint32_t flags; /* 4 bytes flags */
+}pcb;
 
+extern pcb file_desc[8];
 extern super_block* s_block;
 
 int32_t read_dentry_by_name (const uint8_t * fname, dentry_t * dentry);

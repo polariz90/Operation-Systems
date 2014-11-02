@@ -12,6 +12,14 @@
 
 #define FOUR_KB 4096 /* 4KB = 4096 bytes */
 
+/*extern var: file descriptor*/
+pcb file_desc[8];
+
+void init_file_desc(void){
+	int i;
+	for(i=0;i<8;i++)
+		file_desc[i].flags=0; /*mark as unused*/
+}
 
 /**	read_dentry_by_name 
   *	DESCRIPTION:	read the dentry from the file system according to the name
@@ -128,35 +136,98 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t * buf, uint32_t lengt
 
 
 
-/** open_dir
-  * DESCRIPTION: 	read up to length bytes stating from position offset
-  *					in the file with inode number inode
-  * INPUT:			inode, offset, buffer and length of bytes need to read
-  * OUTPUT:			# of bytes read and placed in the buffer
-  *					0 when reach end of the file 
-  * SIDE EFFECT:	fill up the buffer with file information
+/** open_file_sys
+  * DESCRIPTION: 	open system call for file system read the file system by given file name
+  *					open the process control block in file descriptor
+  * INPUT:			fname---file name
+  * OUTPUT:			0 when seccess
+  *					-1 when fail: the file descriptor is full or cannot find the file
+  * SIDE EFFECT:	open a new pcb in file_desc
   */
-int32_t open_f(const uint8_t * fname){
+int32_t open_file_sys(const uint8_t * fname){
 
-	int i;	/* loop counter */
+	int i, j;	/* loop counter */
 	uint32_t num_entries = s_block->dir_entries; /* variable hold # of entries */
 	uint32_t length; /* variable to hold fname string length */
 	length = strlen((int8_t*)fname);	
-	//dentry->filename[1] = 1;0
 
 	for(i = 0; i < num_entries; i++){ /* looping through entire entries to find file*/
 		if(strlen(s_block->file_entries[i].filename) == length){/* case 2 names doesnt have the same length*/
 			if(strncmp((int8_t*)fname, s_block->file_entries[i].filename, length) == 0){ /* check if 2 are the same */
 				/* using strncpy from lib to make deep copy*/
+				int type;
+				type= s_block->file_entries[i].file_type;
 				printf("%s", s_block->file_entries[i].filename);
 				printf("	file_type: %d", s_block->file_entries[i].file_type);
 				printf("	inode num: %d\n", s_block->file_entries[i].inode_num);
-
+				for(j=0;j<6;j++){
+					if(file_desc[j+2].flags==0){
+						if(type==0)	//set this pcb to rtc
+						else if(type==1)	//set this pcb to directory
+						else if(type==2)	//set this pcb to regular file
+						file_desc[j+2].flags=1;
+						break;	
+					}
+					else if(j==5&&file_desc[j+2].flags!=0){
+						return -1; 	//array is full
+					}
+				}
+				
 				return 0; /* operation success*/
 			}
 		}
 
 	}
-
 	return -1; /* operation failed */
 }
+
+/** read_sys
+  * DESCRIPTION: 	write system call
+  * INPUT:
+  * OUTPUT:			file, dir: 	return the number of bytes read
+								return 0 if is the end of the file
+					rtc:		return 0
+
+  *					-1 when fail: cannot read
+  * SIDE EFFECT:	
+  */
+int32_t read_sys(int32_t fd, void * buf, int32_t nbytes){
+	//go to the corresponding read function and jump back return;
+	return -1;
+}
+
+/** write_sys
+  * DESCRIPTION: 	write system call
+  * INPUT:
+  * OUTPUT:			0 when seccess
+  *					-1 when fail: cannot write
+  * SIDE EFFECT:	
+  */
+int32_t write_sys(int32_t fd, const void * buf, int32_t nbytes){
+	//go to the corresponding write function and jump back return;
+	return -1;
+}
+
+
+/** write_dir
+  * DESCRIPTION: 	write operation for directory
+  * INPUT:
+  * OUTPUT:			-1 because file sys is read only 
+  * SIDE EFFECT:
+  */
+int32_t write_dir(){
+	//read only return -1
+	return -1;
+}
+
+/** write_file
+  * DESCRIPTION: 	write operation for file
+  * INPUT:
+  * OUTPUT:			-1 because file sys is read only 
+  * SIDE EFFECT:
+  */
+int32_t write_file(){
+	//read only return -1
+	return -1;
+}
+
