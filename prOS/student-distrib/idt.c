@@ -20,7 +20,7 @@
 #include "exception.h"
 #include "terminal.h"
 
-
+volatile int flag;
  unsigned char code_set[0x59];
  unsigned char code_set_shift[0x59];
 
@@ -110,6 +110,7 @@ void rtc_handler()
 	outb(0x0C, RTC_PORT);	// select register C
 	inb(RTC_CMOS_PORT);	
 	send_eoi(RTC_IRQ);
+	flag = 0;
 	sti();
 	asm("popal;leave;iret");
 }

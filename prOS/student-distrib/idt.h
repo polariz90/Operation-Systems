@@ -9,6 +9,7 @@
 #ifndef _IDT_H
 #define _IDT_H
 
+extern volatile int flag;
 /*idt functions*/
 void init_idt();
 void general_handler(); 

@@ -165,7 +165,7 @@ entry (unsigned long magic, unsigned long addr)
 	kb_enable();
 
 	/*initiailize rtc*/
-	//rtc_enable();
+	rtc_enable();
 	
 
 	/*opens the terminal, done by user*/
@@ -180,6 +180,15 @@ entry (unsigned long magic, unsigned long addr)
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
 	sti();
+
+
+	//test rtc_write function, changes frequency
+	test_write(1024, 4); // frequency , nbytes
+
+	//tests rtc_read function
+	test_read();
+
+
 
 	/*testing zone*/
 	printf("clearing screen but scrolling first\n");
