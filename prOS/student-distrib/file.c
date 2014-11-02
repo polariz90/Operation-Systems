@@ -109,7 +109,6 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t * buf, uint32_t lengt
 	/* need more case check for sure */
 	uint32_t inodes_N = s_block->inodes; /* total number of dentries we have in file system */
 	uint32_t dentry_add = (uint32_t)s_block + four_kb; /*first dentry block address */
-	uint32_t data_add = (uint32_t)s_block + (inodes_N+1)*four_kb; /* address for first data block*/
 
 	uint32_t num_block = offset / four_kb;	/* compute number of data block offset is in */
 	uint32_t num_skip = offset % four_kb;	/* compute number of bytes need to skip in initial data block */ 
