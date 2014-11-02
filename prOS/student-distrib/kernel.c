@@ -168,8 +168,8 @@ entry (unsigned long magic, unsigned long addr)
 	printf("num of file dir entry: %d\n", s_block->dir_entries);
 	printf("inode: %d\n", s_block->inodes);
 
-	int i;
-	/*for(i = 0; i<16; i++) {
+	/*int i;
+	for(i = 0; i<16; i++) {
 				printf("name = %s", s_block->file_entries[i].filename);
 				printf("inode = %d\n", s_block->file_entries[i].inode_num);
 	}*/
@@ -178,9 +178,18 @@ entry (unsigned long magic, unsigned long addr)
 	printf("inode = %d\n", s_block->file_entries[0].inode_num);
 	printf("24B reserved%s\n", s_block->file_entries[0].reserved);
 	
-	//char buf[4000];
-	//read_data(0,0,buf,4000);
-	//printf("inode 0: %s\n", buf);
+	char buf[4000];
+//	read_data(16,0,buf,4000);
+//	printf("inode 0: %s\n", buf);
+
+	read_dir(".",buf,1000);
+	printf("%s\n", buf);
+	read_dir(".",buf,1000);
+	printf("%s\n", buf);
+	read_dir(".",buf,1000);
+	printf("%s\n", buf);
+	read_dir(".",buf,1000);
+	printf("%s\n", buf);
 
 	/* Init the PIC */
 	i8259_init();
