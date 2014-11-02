@@ -140,3 +140,37 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t * buf, uint32_t lengt
 	return ori_length - length; 
 }
 
+
+
+/** open_dir
+  * DESCRIPTION: 	read up to length bytes stating from position offset
+  *					in the file with inode number inode
+  * INPUT:			inode, offset, buffer and length of bytes need to read
+  * OUTPUT:			# of bytes read and placed in the buffer
+  *					0 when reach end of the file 
+  * SIDE EFFECT:	fill up the buffer with file information
+  */
+int32_t open_f(const uint8_t * fname){
+
+	int i;	/* loop counter */
+	uint32_t num_entries = s_block->dir_entries; /* variable hold # of entries */
+	uint32_t length; /* variable to hold fname string length */
+	length = strlen((int8_t*)fname);	
+	//dentry->filename[1] = 1;0
+
+	for(i = 0; i < num_entries; i++){ /* looping through entire entries to find file*/
+		if(strlen(s_block->file_entries[i].filename) == length){/* case 2 names doesnt have the same length*/
+			if(strncmp((int8_t*)fname, s_block->file_entries[i].filename, length) == 0){ /* check if 2 are the same */
+				/* using strncpy from lib to make deep copy*/
+				printf("%s", s_block->file_entries[i].filename);
+				printf("	file_type: %d", s_block->file_entries[i].file_type);
+				printf("	inode num: %d\n", s_block->file_entries[i].inode_num);
+
+				return 0; /* operation success*/
+			}
+		}
+
+	}
+
+	return -1; /* operation failed */
+}
