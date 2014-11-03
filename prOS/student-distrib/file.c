@@ -16,10 +16,13 @@
 /*extern var: file descriptor*/
 pcb file_desc[8];
 
+/*set the default value of file descriptor*/
 void init_file_desc(void){
 	int i;
-	for(i=0;i<8;i++)
+	for(i=0;i<8;i++){
 		file_desc[i].flags=0; /*mark as unused*/
+		file_desc[i].file_pos=0; /**/
+	}
 }
 
 /**	read_dentry_by_name 
@@ -256,6 +259,43 @@ int32_t read_file( const int8_t* fname, void * buf, uint32_t nbytes){
 int32_t write_sys(int32_t fd, const void * buf, int32_t nbytes){
 	//go to the corresponding write function and jump back return;
 	return -1;
+}
+
+/** read_dir
+  * DESCRIPTION: 	read the directory from file system
+  * INPUT:			filename, buffer, number of bytes need to read 
+  * OUTPUT:			 0 when success 
+  * 				-1 when failed 
+  * SIDE EFFECT: 	filling the buffer with file chars
+  */
+int32_t read_dir(int8_t* fname, uint8_t * buf, uint32_t nbytes){
+
+	if(*fname!='.') {
+		printf("fail to read directory\n");
+		return -1;
+	}
+
+	int fd;
+	int pos;
+	/*only for this check point, set directory file descriptor fd=2*/
+	fd=2;
+
+	/*pos=0 is the dir entry*/
+	file_desc[fd].file_pos++;
+	pos=file_desc[fd].file_pos;
+	
+	if(nbytes>=strlen(s_block->file_entries[pos].filename)&&pos<=s_block->dir_entries){
+		strcpy(buf, s_block->file_entries[pos].filename);
+		return strlen(s_block->file_entries[pos].filename);
+	}
+	else if(pos>s_block->dir_entries){
+		file_desc[fd].file_pos=0;
+		return 0;
+	}
+	else{
+		printf("fail to read directory\n");
+		return -1;
+	}
 }
 
 

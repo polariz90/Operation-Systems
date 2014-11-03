@@ -181,6 +181,8 @@ entry (unsigned long magic, unsigned long addr)
 		printf("%x", buf[i] );
 	}
 
+	read_dir(".",buf,1000);
+	printf("%s\n", buf);
 
 	/* Init the PIC */
 	i8259_init();

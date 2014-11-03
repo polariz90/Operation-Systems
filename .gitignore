@@ -10,3 +10,5 @@ prOS/student-distrib/boot.o
 *.o
 *.o
 *.o
+prOS/student-distrib/bootimg
+*.o
