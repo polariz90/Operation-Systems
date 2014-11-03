@@ -131,13 +131,12 @@ void rtc_handler()
 void keyboard_handler()
 {
 	asm("pushal");
-	
+	//reading from the keyboard port and sending the end of interrut signal	
 	unsigned char temp = inb(KEYBOARD_PORT); 				//get signal from the keyboard
 	//if((int)temp<=58)	printf("%c", code_set[(int)temp]);	//print a key thay corresponds to the signal
 	send_eoi(KB_IRQ);
 
 	/*checking for the sepecial cases*/
-
 	if(is_special_key((int)temp) == 1)
 	{
 		exe_special_key((int)temp);
@@ -152,7 +151,7 @@ void keyboard_handler()
 			terminal_buffer[curr_terminal_loc] = code_set[(int)temp] - ((caps+shift)%2)*(CAPS_CONV);
 
 		curr_terminal_loc++;
-		write_buf_to_screen();
+	//	write_buf_to_screen();
 	}	
 
 	//send PIC end of interrupt
@@ -190,6 +189,11 @@ unsigned char code_set[0x59] = {
 	'\0',		// F12
 };
 
+
+/* Description:
+ * Code set table of keyboard keys when shift is held down.
+ * Signals recieved from keyboard will be converted via the table below.
+ */
 unsigned char code_set_shift[0x59] = {
 	'\0','\e','!','@','#','$','%','^','&','*','(',')','_','+','\b',
 	'\t','Q','W','E','R','T','Y','U','I','O','P','{','}','\n',

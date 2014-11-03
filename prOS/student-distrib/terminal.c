@@ -4,9 +4,9 @@
 #define NUM_COLS 80
 #define NUM_ROWS 25
 
-/* Opens the terminal
-  *
-  *
+ /* Opens the terminal
+  * Initializes important variables
+  *	returns 0
   */ 
 int terminal_open()
 {
@@ -14,13 +14,13 @@ int terminal_open()
 	caps = 0; 
 	shift = 0;
 	ctrl = 0;
+	written = 0;
 	return 0;
 }
 
 /* Reads count bytes from the terminal 
-  *
-  * Returns the number of bytes read
-  */ 
+ * returns number of bytes sucessfully read
+ */ 
 int terminal_read(char *buf, uint32_t count )
 {
 	if(count == 0)
@@ -37,9 +37,9 @@ int terminal_read(char *buf, uint32_t count )
 	return curr_index;
 }
 
+
 /* Writes count bytes to the buffer 
-  *
-  *
+  * returns number of bytes written to the terminal
   */ 
 int terminal_write(char *buf, uint32_t count )
 {
@@ -56,6 +56,8 @@ int terminal_write(char *buf, uint32_t count )
 		curr_terminal_loc++;
 		curr_index++;
 	}
+
+	write_buf_to_screen();
 	return curr_index;
 
 }
@@ -63,8 +65,7 @@ int terminal_write(char *buf, uint32_t count )
 
 
 /* Clears the buffer and closes it
-  *
-  * Should return 0
+  *  returns 0
   */ 
 int terminal_close()
 {
@@ -72,53 +73,70 @@ int terminal_close()
 	return 0;
 }
 
+
+/* Clears the current line and writes the buffer to the screen
+ * actions change if the buffer is longer than the screen width	
+ *
+ */
 int write_buf_to_screen()
 {
 	//may need to change 
 	int i;
+	
+	//tests vertical position
+	if(get_screen_y() == NUM_ROWS-1)
+	{
+			vert_scroll(1);
+			move_screen_x();
+			clear_line();
+	}
+	else if(written == 0 )
+	{
+	}
+	else
+	{
+		putc('\n');
+	}
+
+	written = 1;
 
 	/*still on the first line*/
 	if(curr_terminal_loc < NUM_COLS)
 	{
-		clear_line();
+		//clear_line();
 		for(i = 0; i<curr_terminal_loc; i++)
 		{
 			printf("%c",terminal_buffer[i]);
 		}
-		move_screen_xy(-1*curr_terminal_loc);
+
 	}
 	
 	/*The case where we are just going into the second line*/
-	else if( curr_terminal_loc == NUM_COLS)
+	else if( curr_terminal_loc > NUM_COLS)
 	{
-		clear_line();
-		for(i = 0; i<curr_terminal_loc; i++)
+		//clear_line();
+		//printing on the first line
+		for(i = 0; i< NUM_COLS; i++)
 		{
 			printf("%c",terminal_buffer[i]);
 		}
 		if(get_screen_y() == NUM_ROWS-1)
 		{
-				vert_scroll(1);
-				move_screen_xy(-1*curr_terminal_loc);
+			vert_scroll(1);
+			move_screen_x();
 		}
-		else 
+		else
 		{
-				putc('\n');
+			putc('\n');
 		}
-	}
 
-	/*The case where we are deep into the second line */
-	else
-	{
-		clear_line();
-		for(i = NUM_COLS; i<curr_terminal_loc; i++)
+		//printing the rest of ther characters 
+		for(i=NUM_COLS; i < curr_terminal_loc; i++)
 		{
 			printf("%c",terminal_buffer[i]);
 		}
-		move_screen_xy(-1*(curr_terminal_loc- NUM_COLS));
-
 	}
-		
+
 
 	return 0;
 }
@@ -127,6 +145,11 @@ int write_buf_to_screen()
 //vertical scrolling function moved to lib.h
 
 
+
+/* 	Simple function that has a logic to check if the key pressed is a special case that should not be printed to the screen
+ *
+ *	returns 1 of it is a special key 0 otherwise
+ */
 int is_special_key(int key)
 {
 
@@ -187,7 +210,9 @@ int is_special_key(int key)
 }
 
 
-
+/*	This function executes the function that the special key denotes when called
+ * 	returns nothing
+ */
 void exe_special_key(int key)
 {
 	switch(key)
@@ -248,6 +273,7 @@ void exe_special_key(int key)
 			break;
 
 		case Lp :
+			written = 0;
 			clear();
 			break;
 
@@ -256,7 +282,7 @@ void exe_special_key(int key)
 	}	
 }
 
-
+/* these function simply toggle the vaule of the keys when called*/
 void toggle_caps()
 {
 	if(caps == 1)
