@@ -119,7 +119,7 @@ asm (
 int set_same_virtual_addr(int physical_addr, int mem_size, int wr)
 {
 	int pd_offset=physical_addr>>22;
-	int pt_offset=(physical_addr>>12)&0x000003FF;
+	//int pt_offset=(physical_addr>>12)&0x000003FF;
 
 	if(mem_size<=4096){
 		/*****map to 4KB not complete yet, don't know how to create a new page table...******/

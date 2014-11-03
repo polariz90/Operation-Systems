@@ -42,14 +42,14 @@ int32_t read_dentry_by_name(const uint8_t * fname, dentry_t * dentry){
 
 	int8_t * input_arr[name_length]; /* new input string */
 	if (length >= name_length){/* case too long */
-		strncpy(input_arr, fname, name_length-1);
+		strncpy((int8_t*)input_arr, (int8_t*)fname, name_length-1);
 		input_arr[name_length] = '\0';
 	}
 	else{
-		strncpy(input_arr, fname, name_length);
+		strncpy((int8_t*)input_arr, (int8_t*)fname, name_length);
 	}
 	
-	uint32_t input_length = strlen(input_arr); /* cutted array length */
+	uint32_t input_length = strlen((int8_t*)input_arr); /* cutted array length */
 
 	for(i = 0; i < num_entries; i++){ /* looping through entire entries to find file*/
 		if(strlen(s_block->file_entries[i].filename) == input_length){/* case 2 names doesnt have the same length*/
@@ -242,7 +242,7 @@ int32_t read_file( const int8_t* fname, void * buf, uint32_t nbytes){
 
 	dentry_t file_dentry; /* dentry to hold inofrmation of this file */
 
-	read_dentry_by_name(fname, &file_dentry); /* read dentry by name */
+	read_dentry_by_name((uint8_t*)fname, &file_dentry); /* read dentry by name */
 
 	int ret = read_data(file_dentry.inode_num, 0, buf, nbytes); /* read file data into buffer */
 
@@ -285,7 +285,7 @@ int32_t read_dir(int8_t* fname, uint8_t * buf, uint32_t nbytes){
 	pos=file_desc[fd].file_pos;
 	
 	if(nbytes>=strlen(s_block->file_entries[pos].filename)&&pos<=s_block->dir_entries){
-		strcpy(buf, s_block->file_entries[pos].filename);
+		strcpy((int8_t*)buf, s_block->file_entries[pos].filename);
 		return strlen(s_block->file_entries[pos].filename);
 	}
 	else if(pos>s_block->dir_entries){
