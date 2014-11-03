@@ -18,8 +18,12 @@
 #include "i8259.h"
 #include "rtc.h"
 #include "exception.h"
+#include "terminal.h"
 
+volatile int flag;
  unsigned char code_set[0x59];
+ unsigned char code_set_shift[0x59];
+
 
 /*
  * This function initializes every interrupt descriptor table to enter 
@@ -106,252 +110,9 @@ void rtc_handler()
 	outb(0x0C, RTC_PORT);	// select register C
 	inb(RTC_CMOS_PORT);	
 	send_eoi(RTC_IRQ);
+	flag = 0;
 	sti();
 	asm("popal;leave;iret");
-}
-
-/* Description:
- * Divisor operand is zero
- *
- * Exception Class:
- * Fault
- *
- * Exception Error Code:
- * None
- *
- * Saved Instruction Pointer:
- * Saved contents fo CS and EIP registers point to the instruction that generated the exeption
- *
- * Program State Change:
- * No state change
- */
-void divide_error_exception()
-{
-	//asm("pushad");
-	asm("leave;iret");
-}
-
-
-
-/* Description:
- * Debug exception has occurred
- *
- * Exception Class:
- * Trap
- *
- * Exception Error Code:
- * None 
- *
- * Saved Instruction Pointer:
- * Fault- Saved contents of the CS and EIP registers point to function that generated the exception
- * Trap- Saved contents of the CS and EIP registers point to following function that generated the exception
- *
- * Program State Change:
- * Fault- No program change
- * Trap- No program change 
- */
-void debug_exception()
-{
-	printf("Debug exception\n");
-	asm("leave;iret");
-	return;
-}
-
-
-
-/* Description:
- * A nonmaskable interrupt has been generated
- *
- * Exception Class:
- * N/a
- *
- * Exception Error Code:
- * None
- *
- * Saved Instruction Pointer:
- * 
- *
- * Program State Change:
- * 
- */
-void nmi()
-{
-	printf("Nonmaskable interrupt\n");
-	asm("leave;iret");
-	return;	
-}
-
-
-
-/* Description:
- * Break point exception has been generated. INT 3 was called
- *
- * Exception Class:
- * Trap
- *
- * Exception Error Code:
- * None
- *
- * Saved Instruction Pointer:
- * Saved contents of CS and EIP point to the instruction after INT 3
- *
- * Program State Change:
- * Essentially unchanged
- */
-void breakpoint_exception()
-{
-	printf("Breakpoint Exception\n");
-	asm("leave;iret");
-	return;	
-}
-
-
-
-/* Description:
- * Overflow trap occurred when an INTO instruction was executed
- *
- * Exception Class:
- * Trap
- *
- * Exception Error Code:
- * None
- *
- * Saved Instruction Pointer:
- * Saved contents fo the CS and EIP point to the instruction following hte INTO
- *
- * Program State Change:
- * Essentially unchanged
- */
-void overflow_exception()
-{
-	printf("Overflow exception\n");
-	asm("leave;iret");
-	return;	
-}
-
-
-
-
-/* Description:
- * Bound range fault occurred when a BOUND instruction was executed
- *
- * Exception Class:
- * Fault
- *
- * Exception Error Code:
- * None
- *
- * Saved Instruction Pointer:
- * Saved contents fo the CS and EIP point to the BOUND instruction that generated teh exception
- *
- * Program State Change:
- * None
- */
-void bound_range_exception()
-{
-	printf("Bound range exception\n");
-	asm("leave;iret");
-	return;	
-}
-
-
-
-
-/* Description:
- * Attempted to execute invalid or reserved opcode
- * Attempted to execute an instruction with an operand type that is invalid
- * A variety of other reasons(see p.171 manual)
- *
- * Exception Class:
- * Fault
- *
- * Exception Error Code:
- * None 
- *
- * Saved Instruction Pointer:
- * Saved contents fo the CS and EIP point to the instruction that generated the exception 
- *
- * Program State Change:
- * None
- */
-void invalid_opcode()
-{
-	printf("Invalid opcode\n");
-	asm("leave;iret");
-	return;	
-}
-
-
-/* Description:
- * Device not availble 
- *
- * Exception Class:
- * Fault
- *
- * Exception Error Code:
- * None 
- *
- * Saved Instruction Pointer:
- * Saved contents fo the CS and EIP point to the instruction or the WAIT/FWAIT that generated the exception
- *
- * Program State Change:
- * None
- */
-void device_not_availible()
-{
-	printf("Device not availible\n");
-	asm("leave;iret");
-	return;	
-}
-
-
-
-/* Description:
- * A second exception was generated during the handling of the first
- *
- * Exception Class:
- * Abort
- *
- * Exception Error Code:
- * Zero is pushed onto the stack
- *
- * Saved Instruction Pointer:
- * Saved contents fo the CS and EIP are undefined 
- *
- * Program State Change:
- * Undefined 
- */
-void double_fault_exception()
-{
-	printf("Double fault exception\n");
-	asm("leave;iret");
-	//should push zero on the stack here
-	
-	return;	
-}
-
-
-
-/* Description:
- * 
- *
- * Exception Class:
- *
- *
- * Exception Error Code:
- * 
- *
- * Saved Instruction Pointer:
- * Saved contents fo the CS and EIP point to the instruction
- *
- * Program State Change:
- * 
- */
-void invalid_tss_exception()
-{
-	printf("\n");
-	asm("leave;iret");
-	return;	
 }
 
 
@@ -373,10 +134,30 @@ void keyboard_handler()
 	asm("pushal");
 	
 	unsigned char temp = inb(KEYBOARD_PORT); 				//get signal from the keyboard
-	if((int)temp<=58)	printf("%c", code_set[(int)temp]);	//print a key thay corresponds to the signal
-	send_eoi(KB_IRQ);										//send PIC end of interrupt
-	
-	asm("popal;leave;iret");
+	//if((int)temp<=58)	printf("%c", code_set[(int)temp]);	//print a key thay corresponds to the signal
+	send_eoi(KB_IRQ);
+
+	/*checking for the sepecial cases*/
+
+	if(is_special_key((int)temp) == 1)
+	{
+		exe_special_key((int)temp);
+	}
+
+	/*Writing to the buffer if it is a valid character*/
+	else if(curr_terminal_loc < BUF_SIZE && (int) temp <= 58)
+	{
+		if (shift ==1)
+			terminal_buffer[curr_terminal_loc] = code_set_shift[(int)temp] ; 
+		else 
+			terminal_buffer[curr_terminal_loc] = code_set[(int)temp] - ((caps+shift)%2)*(CAPS_CONV);
+
+		curr_terminal_loc++;
+		write_buf_to_screen();
+	}	
+
+	//send PIC end of interrupt
+ 	asm("popal;leave;iret");
 }
 
 
@@ -410,22 +191,33 @@ unsigned char code_set[0x59] = {
 	'\0',		// F12
 };
 
+unsigned char code_set_shift[0x59] = {
+	'\0','\e','!','@','#','$','%','^','&','*','(',')','_','+','\b',
+	'\t','Q','W','E','R','T','Y','U','I','O','P','{','}','\n',
+	'\0','A','S','D','F','G','H','J','K','L',':','\'','`',
+	'\0','\\','Z','X','C','V','B','N','M','<','>','?','\0',	
+	'*','\0',' ','\0',
+	'\0',		// F1
+	'\0',		// F2
+	'\0',		// F3
+	'\0',		// F4
+	'\0',		// F5
+	'\0',		// F6
+	'\0',		// F7
+	'\0',		// F8
+	'\0',		// F9
+	'\0',		// F10
+	'\0',		// num lock
+	'\0',		// scroll lock
+	'7','8','9','-','4','5','6','+','1','2','3','0','.',//keypad
+	'\0',
+	'\0',
+	'\0',
+	'\0',		// F11
+	'\0',		// F12
+};
 
 
 
-/* Description:
- * 
- *
- * Exception Class:
- *
- *
- * Exception Error Code:
- * 
- *
- * Saved Instruction Pointer:
- * Saved contents fo the CS and EIP point to the instruction
- *
- * Program State Change:
- * 
- */
+
 

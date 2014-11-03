@@ -12,6 +12,9 @@
 #include "keyboard.h"
 #include "rtc.h"
 #include "file.h"
+#include "terminal.h"
+
+
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -186,13 +189,17 @@ entry (unsigned long magic, unsigned long addr)
 
 	/* Init the PIC */
 	i8259_init();
-
+	
 
 	/*initilize keyboard*/
 	kb_enable();
 
 	/*initiailize rtc*/
 	rtc_enable();
+	
+
+	/*opens the terminal, done by user*/
+	terminal_open();
 
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
@@ -202,9 +209,21 @@ entry (unsigned long magic, unsigned long addr)
 	/* Do not enable the following until after you have set up your
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
-	/*printf("Enabling Interrupts\n");
-	sti();*/
+	printf("Enabling Interrupts\n");
+	sti();
 
+	//test rtc_write function, changes frequency
+	test_write(1024, 4); // frequency , nbytes
+
+	//tests rtc_read function
+	test_read();
+
+
+
+	/*testing zone*/
+	printf("clearing screen but scrolling first\n");
+	vert_scroll(1);
+	clear();
 	/* Execute the first program (`shell') ... */
 
 	/* Spin (nicely, so we don't chew up cycles) */
