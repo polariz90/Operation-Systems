@@ -12,6 +12,7 @@ int terminal_open()
 {
 	curr_terminal_loc = 0;
 	caps = 0; 
+	shift = 0;
 	ctrl = 0;
 	return 0;
 }
@@ -67,6 +68,7 @@ int terminal_write(char *buf, uint32_t count )
   */ 
 int terminal_close()
 {
+	curr_terminal_loc = 0;
 	return 0;
 }
 

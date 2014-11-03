@@ -169,24 +169,33 @@ entry (unsigned long magic, unsigned long addr)
 
 	/* test file system functions */
 	/* read text file */
-	char buf[4000];
-	int i;
-	read_file("frame0.txt", buf, 300);
-	printf("%s\n", buf);
+//	char buf[4000];
+//	int i;
+//	read_file("frame0.txt", buf, 300);
+//	printf("test for read text file \n\n");
+//	printf("%s\n", buf);
 
 	/* read text with long names */
-	read_file("verylargetxtwithverylongname.txt", buf, 500);
-	printf("%s\n", buf);
-
-	/* read non text file */
-	read_file("shell", buf, 500);
-	for(i = 0; i < 500; i++){
-		printf("%x", buf[i] );
-	}
-
-	read_dir(".",(uint8_t*)buf,1000);
-	printf("%s\n", buf);
-
+//	read_file("verylargetxtwithverylongname.txt", buf, 500);
+//	printf("read very long name file \n\n");
+//	printf("%s\n", buf);
+//
+//	/* read non text file */
+//	read_file("shell", buf, 5);
+//	printf("read non text file \n\n");
+//	for(i = 0; i < 5; i++){
+//		if(i%80 == 0){
+//			printf("\n");
+//		}
+//		printf("%x", buf[i] );
+//	}
+//
+//	/* read directory test */
+//	printf("read directory test \n\n");
+//	while(0!=read_dir(".",(uint8_t*)buf,1000)){
+//		printf("%s\n", buf);
+//	}
+//
 	/* Init the PIC */
 	i8259_init();
 	
@@ -196,10 +205,35 @@ entry (unsigned long magic, unsigned long addr)
 
 	/*initiailize rtc*/
 	rtc_enable();
-	
 
 	/*opens the terminal, done by user*/
 	terminal_open();
+
+	/* //read test terminal
+	char buffer[5];
+	terminal_buffer[0]= 'p'; 
+	terminal_buffer[1]= 'r';
+	terminal_buffer[2]= '0';
+	terminal_buffer[3]= 'S';
+	terminal_buffer[4]= 'p';
+	curr_terminal_loc = 5;
+	terminal_read(buffer,3);
+	printf("%c", buffer[0]);
+	*/
+
+	/*// write test terminal 
+	char buffer[5];
+	buffer[0]= 'G'; 
+	buffer[1]= 'r';
+	buffer[2]= '0';
+	buffer[3]= 'S';
+	buffer[4]= 'p';
+	terminal_write(buffer,3);
+	printf("%c", terminal_buffer[0]);
+	*/
+
+
+
 
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
@@ -209,22 +243,15 @@ entry (unsigned long magic, unsigned long addr)
 	/* Do not enable the following until after you have set up your
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
-	printf("Enabling Interrupts\n");
 	sti();
 
 	//test rtc_write function, changes frequency
-	test_write(1024, 4); // frequency , nbytes
+	//test_write(32, 4); // frequency , nbytes
+	//rtc_open();
 
 	//tests rtc_read function
-	test_read();
+	//test_read();
 
-
-
-	/*testing zone*/
-	printf("clearing screen but scrolling first\n");
-	vert_scroll(1);
-	clear();
-	/* Execute the first program (`shell') ... */
 
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
