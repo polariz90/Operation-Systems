@@ -620,12 +620,13 @@ void vert_scroll(uint32_t count)
 	}
 	return;
 }
-
+/*moves the current screen position of the x value by the passed in integer*/
 void move_screen_xy(int chars)
 {
 	screen_x += chars;
 }
 
+/*clears the current line based on the current screen y position*/
 void clear_line()
 {
 	int i;
@@ -639,6 +640,7 @@ void clear_line()
 }
 
 
+/*returns the screen_y()*/
 int get_screen_y()
 {
 	return screen_y;

@@ -38,9 +38,17 @@ int8_t* strncpy(int8_t* dest, const int8_t*src, uint32_t n);
 void test_interrupts();
 
 /*more functions added from terminal*/
+
+/*scrolls the screen count times*/
 void vert_scroll(uint32_t count);
+
+/*moves the current screen position of the x value by the passed in integer*/
 void move_screen_xy(int chars); 
+
+/*clears the current line based on the current screen y position*/
 void clear_line();
+
+/*returns the screen_y()*/
 int get_screen_y();
 
 

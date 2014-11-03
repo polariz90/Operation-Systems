@@ -4,9 +4,9 @@
 #define NUM_COLS 80
 #define NUM_ROWS 25
 
-/* Opens the terminal
-  *
-  *
+ /* Opens the terminal
+  * Initializes important variables
+  *	returns 0
   */ 
 int terminal_open()
 {
@@ -18,9 +18,8 @@ int terminal_open()
 }
 
 /* Reads count bytes from the terminal 
-  *
-  * Returns the number of bytes read
-  */ 
+ * returns number of bytes sucessfully read
+ */ 
 int terminal_read(char *buf, uint32_t count )
 {
 	if(count == 0)
@@ -37,9 +36,9 @@ int terminal_read(char *buf, uint32_t count )
 	return curr_index;
 }
 
+
 /* Writes count bytes to the buffer 
-  *
-  *
+  * returns number of bytes written to the terminal
   */ 
 int terminal_write(char *buf, uint32_t count )
 {
@@ -63,8 +62,7 @@ int terminal_write(char *buf, uint32_t count )
 
 
 /* Clears the buffer and closes it
-  *
-  * Should return 0
+  *  returns 0
   */ 
 int terminal_close()
 {
@@ -72,6 +70,11 @@ int terminal_close()
 	return 0;
 }
 
+
+/* Clears the current line and writes the buffer to the screen
+ * actions change if the buffer is longer than the screen width	
+ *
+ */
 int write_buf_to_screen()
 {
 	//may need to change 
@@ -127,6 +130,11 @@ int write_buf_to_screen()
 //vertical scrolling function moved to lib.h
 
 
+
+/* 	Simple function that has a logic to check if the key pressed is a special case that should not be printed to the screen
+ *
+ *	returns 1 of it is a special key 0 otherwise
+ */
 int is_special_key(int key)
 {
 
@@ -187,7 +195,9 @@ int is_special_key(int key)
 }
 
 
-
+/*	This function executes the function that the special key denotes when called
+ * 	returns nothing
+ */
 void exe_special_key(int key)
 {
 	switch(key)
@@ -256,7 +266,7 @@ void exe_special_key(int key)
 	}	
 }
 
-
+/* these function simply toggle the vaule of the keys when called*/
 void toggle_caps()
 {
 	if(caps == 1)
