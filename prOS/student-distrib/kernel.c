@@ -169,20 +169,31 @@ entry (unsigned long magic, unsigned long addr)
 
 	/* test file system functions */
 	/* read text file */
-//	char buf[4000];
-//	int i;
+	char buf[4000];
+	
+	/* filling the booting image buffer */
+	char boot_img[2000];
+	read_file("verylargetxtwithverylongname.txt", boot_img, 2000);
+	terminal_write(boot_img, 2000);
+	while(1){};
+
+
+
+
 //	read_file("frame0.txt", buf, 300);
 //	printf("test for read text file \n\n");
 //	printf("%s\n", buf);
 
 	/* read text with long names */
-//	read_file("verylargetxtwithverylongname.txt", buf, 500);
+//	read_file("verylargetxtwithverylongname.txt", buf, 4000);
 //	printf("read very long name file \n\n");
+//	terminal_write(buf, 4000);
 //	printf("%s\n", buf);
 //
 //	/* read non text file */
 //	read_file("shell", buf, 5);
 //	printf("read non text file \n\n");
+//	terminal_write(buf, -5);
 //	for(i = 0; i < 5; i++){
 //		if(i%80 == 0){
 //			printf("\n");
