@@ -20,6 +20,9 @@
 #include "exception.h"
 #include "terminal.h"
 
+#define NUM_COLS 80
+#define NUM_ROWS 25
+
 volatile int flag;
  unsigned char code_set[0x59];
  unsigned char code_set_shift[0x59];
@@ -146,12 +149,37 @@ void keyboard_handler()
 	else if(curr_terminal_loc < BUF_SIZE && (int) temp <= 58)
 	{
 		if (shift ==1)
-			terminal_buffer[curr_terminal_loc] = code_set_shift[(int)temp] ; 
-		else 
+		{
+			terminal_buffer[curr_terminal_loc] = code_set_shift[(int)temp] ;
+
+			if(curr_terminal_loc == NUM_COLS )
+			{
+				new_line();
+		  		printf("%c",code_set_shift[(int)temp]);
+			}
+			else
+			{
+		  		printf("%c",code_set_shift[(int)temp]);
+			}
+
+		}
+		else
+		{	
 			terminal_buffer[curr_terminal_loc] = code_set[(int)temp] - ((caps+shift)%2)*(CAPS_CONV);
 
+			if(curr_terminal_loc == NUM_COLS )
+			{
+				new_line();
+		  		printf("%c",code_set[(int)temp]);
+			}
+			else
+			{
+		  		printf("%c",code_set[(int)temp]);
+			}
+
+		}
+
 		curr_terminal_loc++;
-	//	write_buf_to_screen();
 	}	
 
 	//send PIC end of interrupt

@@ -42,8 +42,8 @@ void test_interrupts();
 /*scrolls the screen count times*/
 void vert_scroll(uint32_t count);
 
-/*moves the current screen position of  0*/
-void move_screen_x(); 
+/*moves the current screen position of  loc*/
+void move_screen_x(int loc); 
 
 /*clears the current line based on the current screen y position*/
 void clear_line();

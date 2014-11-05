@@ -39,6 +39,9 @@ uint8_t ctrl; 						/*0 if not pressed, one if pressed*/
 uint8_t written;
 
 
+volatile uint8_t reading;
+
+
 
 
 
@@ -53,12 +56,12 @@ int terminal_open( );
 /* Reads count bytes from the terminal 
  * returns number of bytes sucessfully read
  */ 
-int terminal_read(char *buf, uint32_t count );
+int terminal_read(char *buf, int32_t count );
 
 /* Writes count bytes to the buffer 
   * returns number of bytes written to the terminal
   */ 
-int terminal_write(char *buf, uint32_t count );
+int terminal_write(char *buf, int32_t count );
 
 
 
@@ -75,6 +78,12 @@ int terminal_close();
  */
 int write_buf_to_screen();
 
+/* Clears the current line and writes the buffer to the screen in hex
+ * actions change if the buffer is longer than the screen width	
+ *
+ */
+int write_buf_to_screen_hex();
+
 
 /* 	Simple function that has a logic to check if the key pressed is a special case that should not be printed to the screen
  *
@@ -87,6 +96,10 @@ int is_special_key(int key);
  * 	returns nothing
  */
 void exe_special_key(int key);
+
+
+void new_line();
+
 
 /* these function simply toggle the vaule of the keys when called*/
 void toggle_caps();

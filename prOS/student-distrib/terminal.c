@@ -21,19 +21,34 @@ int terminal_open()
 /* Reads count bytes from the terminal 
  * returns number of bytes sucessfully read
  */ 
-int terminal_read(char *buf, uint32_t count )
+int terminal_read(char *buf, int32_t count )
 {
+	if(buf == NULL)
+		return -1;
+		
 	if(count == 0)
-	{
 		return 0;
+
+	reading = 1;
+	//need to wait until the buffer has been terminated with a \n or the buffer fills up
+	while( reading != 0 )
+	{
+		//do the dew
 	}
 
 	int curr_index = 0;
+	//codes for the cases 
+	//1.reading count bytes
+	//2.until null terminaled
+	//3.or until buffer is done
 	while(curr_index < count && terminal_buffer[curr_index] != '\n' && curr_index < curr_terminal_loc )
 	{
 		buf[curr_index] =  terminal_buffer[curr_index];
 		curr_index++;
 	}
+	
+	buf[curr_index] = '\n';
+	curr_terminal_loc = 0;
 	return curr_index;
 }
 
@@ -41,25 +56,101 @@ int terminal_read(char *buf, uint32_t count )
 /* Writes count bytes to the buffer 
   * returns number of bytes written to the terminal
   */ 
-int terminal_write(char *buf, uint32_t count )
+int terminal_write(char *buf, int32_t count )
 {
-	curr_terminal_loc = 0;
+
+	int buf_size =  strlen(buf);
+	int temp = count;
+	//curr_terminal_loc = 0;
+
+	if(buf_size < count )
+		count = buf_size;
+		
+	if(buf == NULL)
+		return -1;
+
+	
 	if(count == 0)
 	{
 		return 0;
 	}
 
-	int curr_index = 0;
-	while(curr_index < count && buf[curr_index] != '\n' )
-	{  
-		terminal_buffer[curr_index] = buf[curr_index];
-		curr_terminal_loc++;
-		curr_index++;
+	if(count <0)
+	{
+		count *= -1;
 	}
 
-	write_buf_to_screen();
-	return curr_index;
 
+	int i;
+	if(temp <0)
+	{
+		int j =0;
+		//write_buf_to_screen_hex();
+		for(i =0; i < count ; i++)
+		{
+			if( j == NUM_COLS  )
+			{
+				if(get_screen_y() ==  NUM_ROWS-1)
+				{
+					vert_scroll(1);
+					move_screen_x(0);
+
+				}
+				else
+				{
+					putc('\n');
+				}
+
+				j=0;
+			}
+			j++;	
+			printf("%x",buf[i]);
+		}
+	}
+	else
+	{
+		int j =0;
+		for(i =0; i < count ; i++)
+		{
+			if( j == NUM_COLS )
+			{
+				if(get_screen_y() ==  NUM_ROWS-1)
+				{
+					vert_scroll(1);
+					move_screen_x(0);
+
+				}
+				else
+				{
+					putc('\n');
+				}
+				j=0;
+			}	  
+			else if(buf[i] == '\n')
+			{
+				if(get_screen_y() ==  NUM_ROWS-1)
+				{
+					vert_scroll(1);
+					move_screen_x(0);
+				}
+				else
+				{
+					putc('\n');
+				}
+				j=0;
+			}
+
+			if(buf[i] != '\n')
+			{
+				j++;
+				printf("%c",buf[i]);
+			}
+		}
+	
+	}
+
+	//return curr_index;
+	return count;
 }
 
 
@@ -74,77 +165,8 @@ int terminal_close()
 }
 
 
-/* Clears the current line and writes the buffer to the screen
- * actions change if the buffer is longer than the screen width	
- *
- */
-int write_buf_to_screen()
-{
-	//may need to change 
-	int i;
-	
-	//tests vertical position
-	if(get_screen_y() == NUM_ROWS-1)
-	{
-			vert_scroll(1);
-			move_screen_x();
-			clear_line();
-	}
-	else if(written == 0 )
-	{
-	}
-	else
-	{
-		putc('\n');
-	}
 
-	written = 1;
-
-	/*still on the first line*/
-	if(curr_terminal_loc < NUM_COLS)
-	{
-		//clear_line();
-		for(i = 0; i<curr_terminal_loc; i++)
-		{
-			printf("%c",terminal_buffer[i]);
-		}
-
-	}
-	
-	/*The case where we are just going into the second line*/
-	else if( curr_terminal_loc > NUM_COLS)
-	{
-		//clear_line();
-		//printing on the first line
-		for(i = 0; i< NUM_COLS; i++)
-		{
-			printf("%c",terminal_buffer[i]);
-		}
-		if(get_screen_y() == NUM_ROWS-1)
-		{
-			vert_scroll(1);
-			move_screen_x();
-		}
-		else
-		{
-			putc('\n');
-		}
-
-		//printing the rest of ther characters 
-		for(i=NUM_COLS; i < curr_terminal_loc; i++)
-		{
-			printf("%c",terminal_buffer[i]);
-		}
-	}
-
-
-	return 0;
-}
-
-
-//vertical scrolling function moved to lib.h
-
-
+//vertical scroll gone to lib.c
 
 /* 	Simple function that has a logic to check if the key pressed is a special case that should not be printed to the screen
  *
@@ -236,24 +258,36 @@ void exe_special_key(int key)
 		case BSP :
 			if(curr_terminal_loc != 0 )
 			{
-				terminal_buffer[curr_terminal_loc] = ' ';
+				//terminal_buffer[curr_terminal_loc] = ' ';
 				curr_terminal_loc--;
-				write_buf_to_screen();
+				move_screen_x(curr_terminal_loc);
+				putc(' ');
+				move_screen_x(curr_terminal_loc);
 			}
+
 			break;
 
 		case ENTP :
-			if(get_screen_y() == NUM_ROWS-1)
+
+			//currenly executing terminal read
+			if( reading == 1)
 			{
-				vert_scroll(1);
-				clear_line();
-				curr_terminal_loc = 0;
+				new_line();
+				terminal_buffer[curr_terminal_loc] = '\n';
+				reading =0;
 			}
-			else 
+
+			//now im just printing
+			else
 			{
-				putc('\n');
-				curr_terminal_loc = 0;
-			}	
+				//checking the case if at the bottom of the screen
+				new_line();
+				curr_terminal_loc = 0;	
+			}
+
+
+
+
 			break;
 
 		case RSHFTP :
@@ -274,6 +308,7 @@ void exe_special_key(int key)
 
 		case Lp :
 			written = 0;
+			curr_terminal_loc =  0;
 			clear();
 			break;
 
@@ -307,3 +342,19 @@ void toggle_ctrl()
 		ctrl = 1;
 
 }	
+
+
+
+
+void new_line()
+{
+		if( get_screen_y() == NUM_ROWS -1)
+		{
+			move_screen_x(0);
+			vert_scroll(1);
+		}
+		else
+		{
+			putc('\n');
+		}
+}
