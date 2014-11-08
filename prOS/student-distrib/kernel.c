@@ -189,9 +189,14 @@ entry (unsigned long magic, unsigned long addr)
 //	printf("read very long name file \n\n");
 //	terminal_write(buf, 4000);
 //	printf("%s\n", buf);
+
+//	read_file("verylargetxtwithverylongname.txt", buf, 2400);
+//	printf("read very long name file \n\n");
+//	terminal_write(buf,2400);
+
 //
 //	/* read non text file */
-//	read_file("shell", buf, 5);
+//	read_file("shell", buf,3000);
 //	printf("read non text file \n\n");
 //	terminal_write(buf, -5);
 //	for(i = 0; i < 5; i++){
@@ -200,6 +205,8 @@ entry (unsigned long magic, unsigned long addr)
 //		}
 //		printf("%x", buf[i] );
 //	}
+//
+//	terminal_write(buf,-3000);
 //
 //	/* read directory test */
 //	printf("read directory test \n\n");
@@ -264,11 +271,17 @@ entry (unsigned long magic, unsigned long addr)
 	//test_read();
 
 
+	//testing terminal read 
+	
+	clear();
+	printf("Testing terminal print \n\n\n\n");
+	char buffer[300];
+	terminal_read(buffer,300);
+	terminal_write(buffer,128);
+
+
+
+
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
 }
-
-
-
-
-

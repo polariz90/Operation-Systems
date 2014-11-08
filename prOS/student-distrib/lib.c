@@ -620,10 +620,15 @@ void vert_scroll(uint32_t count)
 	}
 	return;
 }
-/*moves the current screen position of  0*/
-void move_screen_x()
+/*moves the current screen position of  char
+ * enter zero for zero*/
+void move_screen_x(int loc)
 {
-	screen_x = 0;
+
+	screen_x = loc;
+	
+
+
 }
 
 /*clears the current line based on the current screen y position*/
