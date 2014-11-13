@@ -19,6 +19,7 @@
 #include "rtc.h"
 #include "exception.h"
 #include "terminal.h"
+#include "clock.h"
 
 #define NUM_COLS 80
 #define NUM_ROWS 25
@@ -113,6 +114,9 @@ void rtc_handler()
 	inb(RTC_CMOS_PORT);	
 	send_eoi(RTC_IRQ);
 	flag = 0;
+	/* timer implementation */
+	update_time();
+
 	sti();
 	asm("popal;leave;iret");
 }

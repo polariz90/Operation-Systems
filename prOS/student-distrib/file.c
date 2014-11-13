@@ -7,7 +7,6 @@
 
 #include "multiboot.h"
 #include "file.h"
-//#include "kernel.c"
 #include "lib.h"
 
 #define four_kb 4096 /* 4KB = 4096 bytes */

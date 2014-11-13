@@ -13,6 +13,7 @@
 #include "rtc.h"
 #include "file.h"
 #include "terminal.h"
+#include "pros_img.h"
 
 
 
@@ -165,55 +166,9 @@ entry (unsigned long magic, unsigned long addr)
 	/* initializing paging */
 	init_paging();
 
-	clear();
+	/* printing out booting image */
+	booting_img();
 
-	/* test file system functions */
-	/* read text file */
-	char buf[4000];
-	
-	/* filling the booting image buffer */
-	char boot_img[2000];
-	read_file("verylargetxtwithverylongname.txt", boot_img, 2000);
-	terminal_write(boot_img, 2000);
-	while(1){};
-
-
-
-
-//	read_file("frame0.txt", buf, 300);
-//	printf("test for read text file \n\n");
-//	printf("%s\n", buf);
-
-	/* read text with long names */
-//	read_file("verylargetxtwithverylongname.txt", buf, 4000);
-//	printf("read very long name file \n\n");
-//	terminal_write(buf, 4000);
-//	printf("%s\n", buf);
-
-//	read_file("verylargetxtwithverylongname.txt", buf, 2400);
-//	printf("read very long name file \n\n");
-//	terminal_write(buf,2400);
-
-//
-//	/* read non text file */
-//	read_file("shell", buf,3000);
-//	printf("read non text file \n\n");
-//	terminal_write(buf, -5);
-//	for(i = 0; i < 5; i++){
-//		if(i%80 == 0){
-//			printf("\n");
-//		}
-//		printf("%x", buf[i] );
-//	}
-//
-//	terminal_write(buf,-3000);
-//
-//	/* read directory test */
-//	printf("read directory test \n\n");
-//	while(0!=read_dir(".",(uint8_t*)buf,1000)){
-//		printf("%s\n", buf);
-//	}
-//
 	/* Init the PIC */
 	i8259_init();
 	
@@ -227,31 +182,6 @@ entry (unsigned long magic, unsigned long addr)
 	/*opens the terminal, done by user*/
 	terminal_open();
 
-	/* //read test terminal
-	char buffer[5];
-	terminal_buffer[0]= 'p'; 
-	terminal_buffer[1]= 'r';
-	terminal_buffer[2]= '0';
-	terminal_buffer[3]= 'S';
-	terminal_buffer[4]= 'p';
-	curr_terminal_loc = 5;
-	terminal_read(buffer,3);
-	printf("%c", buffer[0]);
-	*/
-
-	/*// write test terminal 
-	char buffer[5];
-	buffer[0]= 'G'; 
-	buffer[1]= 'r';
-	buffer[2]= '0';
-	buffer[3]= 'S';
-	buffer[4]= 'p';
-	terminal_write(buffer,3);
-	printf("%c", terminal_buffer[0]);
-	*/
-
-
-
 
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
@@ -262,25 +192,8 @@ entry (unsigned long magic, unsigned long addr)
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
 	sti();
-
-	//test rtc_write function, changes frequency
-	//test_write(32, 4); // frequency , nbytes
-	//rtc_open();
-
-	//tests rtc_read function
-	//test_read();
-
-
-	//testing terminal read 
 	
 	clear();
-	printf("Testing terminal print \n\n\n\n");
-	char buffer[300];
-	terminal_read(buffer,300);
-	terminal_write(buffer,128);
-
-
-
 
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
