@@ -13,6 +13,9 @@
 #define STACK_OFF	 	0x2000		/*size of a process block 8KB*/
 
 
+#define four_kb 4096 /* 4KB = 4096 bytes */
+#define name_length 32 /* length of the name string */
+
 
 /**
   * Basic structure for file system:
@@ -119,6 +122,6 @@ int32_t open_dir(const uint8_t *filename);
 void init_pcb(pcb* curr_pcb);
 void add_process_stack(uint8_t num );
 
-int32_t read_file_img(const int8_t * fname, uint8_t* buffer);
+
 
 #endif

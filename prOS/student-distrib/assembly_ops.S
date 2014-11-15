@@ -44,9 +44,9 @@ _sys_call_jmptable:
 	.long write
 	.long open
 	.long close
-	.long get_args
+	.long getargs
 	.long vidmap
 	.long set_handler
-	.long sig_return
+	.long sigreturn
 
 

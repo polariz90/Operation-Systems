@@ -10,9 +10,6 @@
 #include "x86_desc.h"
 #include "lib.h"
 
-#define four_kb 4096 /* 4KB = 4096 bytes */
-#define name_length 32 /* length of the name string */
-
 /*extern var: file descriptor*/
 file_entry file_desc[8];
 
@@ -416,8 +413,8 @@ int32_t read_file_img(const int8_t * fname, uint8_t* buffer)
 	dentry_t file_dentry;
 
 	if( (fname == NULL) ||
-		(read_dentry_by_name((uint8_t *) fname, file_dentry) == -1 ) ||
-		( read_data(file_dentry.inode_num, 0, (uint8_t*) buffer, inodes[file_dentry.inode_num].size) ))
+		(read_dentry_by_name((uint8_t *) fname, &file_dentry) == -1 ) ||
+		( read_data(file_dentry.inode_num, 0, (uint8_t*) buffer, four_kb) ))
 	{
 		return -1;
 	}
