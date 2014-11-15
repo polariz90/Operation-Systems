@@ -396,3 +396,31 @@ void add_process_stack(uint8_t num )
 	
 
 }
+
+/*
+ * load_file()
+ *
+ * Description:
+ * Loads an executable file into memory and prepares to begin the new process.
+ *
+ * Inputs:
+ * fname: name of file
+ * buffer: buffer
+ *
+ * Retvals:
+ * -1: failure
+ * 0: success
+ */
+int32_t read_file_img(const int8_t * fname, uint8_t*` buffer)
+{
+	dentry_t file_dentry;
+
+	if( (fname == NULL) ||
+		(read_dentry_by_name((uint8_t *) fname, file_dentry) == -1 ) ||
+		( read_data(file_dentry.inode_num, 0, (uint8_t*) buffer, inodes[file_dentry.inode_num].size) ))
+	{
+		return -1;
+	}
+	
+	return 0;
+}
