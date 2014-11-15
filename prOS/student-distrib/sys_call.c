@@ -1,5 +1,6 @@
 #include "lib.h"
 #include "sys_call.h"
+#include "file.h"
 
 /* Description:
  * system call halt.
@@ -18,6 +19,25 @@ int32_t halt(uint8_t status){
  * 
  */
 int32_t execute(const uint8_t* command){
+	
+	uint8_t buf[four_kb];
+	read_file_img(command, buf);
+	/*Parse*/
+
+	/*Excutable check*/
+
+	/*Paging*/
+
+	/*File loader*/
+
+	/*new PCB*/
+
+	/*context switch*/
+	uint8_t entry_point[4];
+	memcpy(entry_point, buf+23, 4);
+	//asm("movl %eip, %eax\n\t" "pushl %eax\n\t");
+	asm("push %eax");
+
 	return 0;
 }
 
