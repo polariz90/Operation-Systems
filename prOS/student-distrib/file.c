@@ -398,10 +398,10 @@ void add_process_stack(uint8_t num )
 }
 
 /*
- * load_file()
+ * read_file_img()
  *
  * Description:
- * Loads an executable file into memory and prepares to begin the new process.
+ * Reads an executable file into buffer.
  *
  * Inputs:
  * fname: name of file
@@ -416,11 +416,69 @@ int32_t read_file_img(const int8_t * fname, uint8_t* buffer)
 	dentry_t file_dentry;
 
 	if( (fname == NULL) ||
-		(read_dentry_by_name((uint8_t *) fname, file_dentry) == -1 ) ||
-		( read_data(file_dentry.inode_num, 0, (uint8_t*) buffer, inodes[file_dentry.inode_num].size) ))
+		(read_dentry_by_name((uint8_t *) fname, &file_dentry) == -1 ) ||
+		( read_data(file_dentry.inode_num, 0, (uint8_t*) buffer, four_kb) ))
 	{
 		return -1;
 	}
 	
 	return 0;
+}
+
+/*
+ * load_file_img()
+ *
+ * Description:
+ * Loads an executable file into memory and prepares to begin the new process.
+ *
+ * Inputs:
+ * fname: name of file
+ *
+ * Retvals:
+ */
+void load_file_img(int8_t* fname)
+{
+
+	dentry_t file_denty;
+	uint32_t offset = 0; 
+	uint32_t last_chunk = 0;
+	uint8_t buffer[20] ;
+	uint8_t* load_ptr; 
+	int output;
+	int i;
+
+	load_ptr = SIZE_128MB;
+	read_dentry_by_name((uint8_t *) fname, &file_dentry);
+
+
+	uint32_t dentry_add = (uint32_t)s_block + four_kb; /*first dentry block address */
+	inode_struct * curr_inode =(inode_struct*)(dentry_add + file_dentry.inode_num*four_kb);
+
+	
+	output = read_data(file_dentry.inode_num, offset, (uint8_t*) buffer, 20);
+	
+	while(output != 0)
+	{
+		for(i=0;i<20;i++)
+		{
+			*load_ptr = buff[i];
+		}
+		offset += 20;
+		output = read_data(file_dentry.inode_num, offset, (uint8_t*) buffer, 20);
+		
+		if(output = -1)
+		{
+			offset -= 20;
+			last_chunk = curr_inode.length - offset;
+			read_data(file_dentry.inode_num, offset, (uint8_t*) buffer, last_chunk);
+			
+			for(i=0;i<last_chunk;i++)
+			{
+				*load_ptr = buff[i];
+			}
+		}
+
+
+	}
+	
 }
