@@ -9,6 +9,10 @@
 #define PROS_FILE_H
 
 
+#define BOT_KERNEL_MEM 	0x800000	/*third page in memory.8MB FIXME*/
+#define STACK_OFF	 	0x2000		/*size of a process block 8KB*/
+
+
 
 /**
   * Basic structure for file system:
@@ -63,20 +67,39 @@ typedef struct
   dentry_t file_entries[63];
 }super_block;
 
+
+
 /**
-  * Basic structures for file system:
-  * process control block in file descriptor
+  * Basic entry for file system:
+  * will form a file descriptor which is an array of these size 8 
   * (the element of this array)
   */
 typedef struct 
 {
-  void** file_opt_ptr;  /*4 bytes file operation table pointer*/
+  void * file_opt_ptr;  /*4 bytes file operation table pointer*/
   inode_struct* inode_ptr;  /* 4 bytes inodes ptr */
   uint32_t file_pos; /* 4 bytes file position */
   uint32_t flags; /* 4 bytes flags */
+}file_entry;
+
+/* Process control block
+ * contains:
+ * filedescriptors,
+ * pointers to page table and page dir
+ * parent_process , unsure what eactly what it is pointing to
+ * debug info, what ever we want
+ */
+
+typedef struct
+{
+	file_entry file_descriptor[8];
+	void* page_dir_ptr;
+	void* page_table_ptr;
+	void* parent_process;
+	uint32_t debug_info;
 }pcb;
 
-extern pcb file_desc[8];
+//extern pcb file_desc[8];
 extern super_block* s_block;
 
 int32_t read_dentry_by_name (const uint8_t * fname, dentry_t * dentry);
@@ -91,6 +114,10 @@ int32_t write_dir();
 int32_t write_file();
 int32_t open_file(const uint8_t *filename);
 int32_t open_dir(const uint8_t *filename);
+
+/*added for pcb */
+void init_pcb(pcb* curr_pcb);
+void add_process_stack(uint8_t num );
 
 
 

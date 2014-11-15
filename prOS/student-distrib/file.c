@@ -7,21 +7,43 @@
 
 #include "multiboot.h"
 #include "file.h"
+#include "x86_desc.h"
 #include "lib.h"
 
 #define four_kb 4096 /* 4KB = 4096 bytes */
 #define name_length 32 /* length of the name string */
 
 /*extern var: file descriptor*/
-pcb file_desc[8];
+file_entry file_desc[8];
 
 /*set the default value of file descriptor*/
+
+/* NOT SURE IF WE NEED THIS ANYMORE
 void init_file_desc(void){
 	int i;
 	for(i=0;i<8;i++){
-		file_desc[i].flags=0; /*mark as unused*/
-		file_desc[i].file_pos=0; /**/
+		file_desc[i].flags=0; //mark as unused
+		file_desc[i].file_pos=0; 
 	}
+}
+  */
+
+
+/* init_pcb
+ * Description:		Initializes a process control block with initial values
+ * 					sets up the stdin and stdout
+ *					May need to be expaned later to add more initilization features
+ *	Input:			Pointer to pcb
+ *	Output:			None
+ *
+ */
+void init_pcb(pcb* curr_pcb)
+{
+	/* intilizing the stdin and stdout*/
+//	curr_pcb->file_descriptor[0].file_opt_ptr = stdin_ops;
+//	curr_pcb->file_descriptor[1].file_opt_ptr = stdout_ops;
+
+	return;	
 }
 
 /**	read_dentry_by_name 
@@ -352,4 +374,25 @@ int32_t open_file( const uint8_t * filename){
   */
 int32_t open_dir( const uint8_t * filename){
 	return 0;
+}
+
+/* add process stack
+ * description:		creates space on the kernel stack for the pcb and the individual process, stack
+ * input:			process number
+ * 					may need to add details(pt and pd tables, parent process information)
+ * output:			none
+ *
+ *
+ *
+ */
+void add_process_stack(uint8_t num )
+{
+	
+	//Finds location of current pcb in kernel memory
+	//pcb* curr_pcb = BOT_KERNEL_MEM - num*STACK_OFF;
+
+//	initilizes current_pcb
+//	init_pcb(curr_pcb);
+	
+
 }
