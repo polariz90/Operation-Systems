@@ -38,12 +38,10 @@ void init_paging( ){
 		kernel_page_dir[i].cache_disabled = 0;
 		kernel_page_dir[i].accessed = 0;
 		kernel_page_dir[i].reserved = 0;
-		//kernel_page_dir[i].dirty = 0;
 		kernel_page_dir[i].page_size = 0;
 		kernel_page_dir[i].global_page = 0;
 		kernel_page_dir[i].avail = 0;
 		kernel_page_dir[i].PT_base_add = i*1024;
-		//kernel_page_dir[i].page_base_add = i;
 	}
 
 	for(i = 0; i < PAGE_TABLE_SIZE; i++){
@@ -115,4 +113,47 @@ asm (
 	"movl %%eax, %%cr0                ;"
 	: : : "eax", "memory" ,"cc" );
 
+}
+
+/*wr=0 -> read_only*/
+int set_same_virtual_addr(int physical_addr, int mem_size, int wr)
+{
+	int pd_offset=physical_addr>>22;
+	//int pt_offset=(physical_addr>>12)&0x000003FF;
+
+	if(mem_size<=4096){
+		/*****map to 4KB not complete yet, don't know how to create a new page table...******/
+		kernel_page_dir[pd_offset].present = 1; /* enable page entry */
+		kernel_page_dir[pd_offset].read_write = wr; /* read and write enable*/
+		kernel_page_dir[pd_offset].user_supervisor = 0; /* 0 for supervisor privilege lvl */
+		kernel_page_dir[pd_offset].write_through = 0; /* set to one, pass control to CR0 */
+		kernel_page_dir[pd_offset].cache_disabled = 0; /* set to one, pass control to CR0*/
+		kernel_page_dir[pd_offset].accessed = 0; /* set to one to access it */
+		kernel_page_dir[pd_offset].reserved = 0; /* set to 0 */
+		kernel_page_dir[pd_offset].page_size = 0; /* 1 indicate 4 MB pages */
+		kernel_page_dir[pd_offset].global_page = 1; /* set to global*/
+		kernel_page_dir[pd_offset].avail = 0; /* set to 0 */
+		kernel_page_dir[pd_offset].PT_base_add = physical_addr>>22;
+		printf("set 4KB page at virtual memory address 0x%x\n", physical_addr);
+		printf("memory size %d\n", mem_size);	
+		}
+	else if(mem_size<=4096*1024){
+		kernel_page_dir[pd_offset].present = 1; /* enable page entry */
+		kernel_page_dir[pd_offset].read_write = wr; /* read and write enable*/
+		kernel_page_dir[pd_offset].user_supervisor = 0; /* 0 for supervisor privilege lvl */
+		kernel_page_dir[pd_offset].write_through = 0; /* set to one, pass control to CR0 */
+		kernel_page_dir[pd_offset].cache_disabled = 0; /* set to one, pass control to CR0*/
+		kernel_page_dir[pd_offset].accessed = 0; /* set to one to access it */
+		kernel_page_dir[pd_offset].reserved = 0; /* set to 0 */
+		kernel_page_dir[pd_offset].page_size = 1; /* 1 indicate 4 MB pages */
+		kernel_page_dir[pd_offset].global_page = 1; /* set to global*/
+		kernel_page_dir[pd_offset].avail = 0; /* set to 0 */
+		kernel_page_dir[pd_offset].PT_base_add = physical_addr>>22;
+		printf("set 4MB page at virtual memory address 0x%x\n", kernel_page_dir[pd_offset].PT_base_add<<22);
+		printf("memory size %d\n", mem_size);
+	}
+	else{
+		return -1;
+	}
+	return 0;
 }

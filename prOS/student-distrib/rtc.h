@@ -25,7 +25,7 @@ extern void rtc_disable();
 
 extern int32_t rtc_read();
 extern int32_t rtc_write(const int32_t* buf, int32_t nbytes);
-extern int32_t rtc_open(const uint8_t* filesname);
+extern int32_t rtc_open();
 extern int32_t rtc_close(int32_t fd);
 
 extern void test_read();

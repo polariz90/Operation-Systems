@@ -11,12 +11,16 @@
 #include "idt.h"
 #include "keyboard.h"
 #include "rtc.h"
+#include "file.h"
 #include "terminal.h"
+#include "pros_img.h"
+
 
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags,bit)   ((flags) & (1 << (bit)))
+super_block* s_block;
 
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
@@ -24,6 +28,7 @@ void
 entry (unsigned long magic, unsigned long addr)
 {
 	multiboot_info_t *mbi;
+	//super_block* s_block; /* you may want to put this as global, need access in file.c*/
 
 	/* Clear the screen. */
 	clear();
@@ -66,6 +71,11 @@ entry (unsigned long magic, unsigned long addr)
 				printf("0x%x ", *((char*)(mod->mod_start+i)));
 			}
 			printf("\n");
+			
+			s_block= (super_block*)mod->mod_start;
+			/*map same address to paging*/
+			if(set_same_virtual_addr((unsigned int)mod->mod_start,(unsigned int)mod->mod_end-(unsigned int)mod->mod_start+1,0))	printf("set filesystem mem fail!\n");
+
 			mod_count++;
 			mod++;
 		}
@@ -156,6 +166,8 @@ entry (unsigned long magic, unsigned long addr)
 	/* initializing paging */
 	init_paging();
 
+	/* printing out booting image */
+	booting_img();
 
 	/* Init the PIC */
 	i8259_init();
@@ -166,10 +178,10 @@ entry (unsigned long magic, unsigned long addr)
 
 	/*initiailize rtc*/
 	rtc_enable();
-	
 
 	/*opens the terminal, done by user*/
 	terminal_open();
+
 
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
@@ -180,27 +192,12 @@ entry (unsigned long magic, unsigned long addr)
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
 	sti();
-
-
-	//test rtc_write function, changes frequency
-	test_write(1024, 4); // frequency , nbytes
-
-	//tests rtc_read function
-	test_read();
-
-
-
-	/*testing zone*/
-	printf("clearing screen but scrolling first\n");
-	vert_scroll(1);
+	
 	clear();
-	/* Execute the first program (`shell') ... */
+
+	//use to test system call
+	//asm("int $0x80");
 
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
 }
-
-
-
-
-

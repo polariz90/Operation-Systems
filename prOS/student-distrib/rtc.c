@@ -82,7 +82,7 @@ extern int32_t rtc_write(const int32_t* buf, int32_t nbytes)
 		if(new_buf == 8) {freq = F8HZ;}
 		if(new_buf == 4) {freq = F4HZ;}
 		if(new_buf == 2) {freq = F2HZ;}
-		if(new_buf == 0) {freq = F0HZ;}
+		if(new_buf == 0) {freq = NONE;}
 	}
 
 	outb(RTC_A, RTC_PORT);
@@ -101,11 +101,11 @@ extern int32_t rtc_write(const int32_t* buf, int32_t nbytes)
  * Inputs: 
  * Outputs:
  */
-extern int32_t rtc_open(const uint8_t* filesname)
+extern int32_t rtc_open()
 {
-	outb(RTC_B, RTC_PORT);
+	outb(RTC_A, RTC_PORT);
 	char prev_b = inb(RTC_CMOS_PORT);
-	outb(RTC_B, RTC_PORT);
+	outb(RTC_A, RTC_PORT);
 	outb((0xF0 & prev_b) | F2HZ, RTC_CMOS_PORT);
 	return 0;
 }
@@ -120,6 +120,7 @@ extern int32_t rtc_open(const uint8_t* filesname)
  */
 extern int32_t rtc_close(int32_t fd)
 {
+	rtc_disable();
 	return 0;
 }
 
@@ -136,7 +137,7 @@ extern void test_read()
 {
 	// set RTC speed
 int counter = 0;
-//int ret_val = 1024;
+//int ret_val = 32;
 //rtc_write(&ret_val, 4);
 	while(1) {
 		// read the rtc
@@ -144,10 +145,10 @@ int counter = 0;
 		rtc_read();
 		//clear();
 		counter++;
-		if (counter % 50 == 0) {
+		if (counter % 10 == 0) {
 			// do something visible on the screen
 			
-			clear();
+			//clear();
 			printf("<3");
 			
 		}

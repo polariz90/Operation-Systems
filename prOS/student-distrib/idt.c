@@ -19,6 +19,11 @@
 #include "rtc.h"
 #include "exception.h"
 #include "terminal.h"
+#include "clock.h"
+#include "sys_call.h"
+
+#define NUM_COLS 80
+#define NUM_ROWS 25
 
 volatile int flag;
  unsigned char code_set[0x59];
@@ -73,7 +78,7 @@ void init_idt()
 
 	SET_IDT_ENTRY(idt[33], keyboard_handler);     			//keyboard 
 	SET_IDT_ENTRY(idt[40], rtc_handler);     				//rtc 
-
+	SET_IDT_ENTRY(idt[128], sys_call_handler);
 }
 
 /*
@@ -106,14 +111,17 @@ void general_handler()
 void rtc_handler()
 {
 	asm("pushal");
-	test_interrupts();
 	outb(0x0C, RTC_PORT);	// select register C
 	inb(RTC_CMOS_PORT);	
 	send_eoi(RTC_IRQ);
 	flag = 0;
+	/* timer implementation */
+	update_time();
+
 	sti();
 	asm("popal;leave;iret");
 }
+
 
 
 /* Description:
@@ -132,13 +140,12 @@ void rtc_handler()
 void keyboard_handler()
 {
 	asm("pushal");
-	
+	//reading from the keyboard port and sending the end of interrut signal	
 	unsigned char temp = inb(KEYBOARD_PORT); 				//get signal from the keyboard
 	//if((int)temp<=58)	printf("%c", code_set[(int)temp]);	//print a key thay corresponds to the signal
 	send_eoi(KB_IRQ);
 
 	/*checking for the sepecial cases*/
-
 	if(is_special_key((int)temp) == 1)
 	{
 		exe_special_key((int)temp);
@@ -148,12 +155,37 @@ void keyboard_handler()
 	else if(curr_terminal_loc < BUF_SIZE && (int) temp <= 58)
 	{
 		if (shift ==1)
-			terminal_buffer[curr_terminal_loc] = code_set_shift[(int)temp] ; 
-		else 
+		{
+			terminal_buffer[curr_terminal_loc] = code_set_shift[(int)temp] ;
+
+			if(curr_terminal_loc == NUM_COLS )
+			{
+				new_line();
+		  		printf("%c",code_set_shift[(int)temp]);
+			}
+			else
+			{
+		  		printf("%c",code_set_shift[(int)temp]);
+			}
+
+		}
+		else
+		{	
 			terminal_buffer[curr_terminal_loc] = code_set[(int)temp] - ((caps+shift)%2)*(CAPS_CONV);
 
+			if(curr_terminal_loc == NUM_COLS )
+			{
+				new_line();
+		  		printf("%c",code_set[(int)temp]);
+			}
+			else
+			{
+		  		printf("%c",code_set[(int)temp]);
+			}
+
+		}
+
 		curr_terminal_loc++;
-		write_buf_to_screen();
 	}	
 
 	//send PIC end of interrupt
@@ -191,6 +223,11 @@ unsigned char code_set[0x59] = {
 	'\0',		// F12
 };
 
+
+/* Description:
+ * Code set table of keyboard keys when shift is held down.
+ * Signals recieved from keyboard will be converted via the table below.
+ */
 unsigned char code_set_shift[0x59] = {
 	'\0','\e','!','@','#','$','%','^','&','*','(',')','_','+','\b',
 	'\t','Q','W','E','R','T','Y','U','I','O','P','{','}','\n',
