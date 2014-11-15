@@ -411,7 +411,7 @@ void add_process_stack(uint8_t num )
  * -1: failure
  * 0: success
  */
-int32_t read_file_img(const int8_t * fname, uint8_t*` buffer)
+int32_t read_file_img(const int8_t * fname, uint8_t* buffer)
 {
 	dentry_t file_dentry;
 
