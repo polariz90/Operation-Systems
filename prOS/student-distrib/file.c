@@ -10,9 +10,6 @@
 #include "x86_desc.h"
 #include "lib.h"
 
-#define four_kb 4096 /* 4KB = 4096 bytes */
-#define name_length 32 /* length of the name string */
-
 /*extern var: file descriptor*/
 file_entry file_desc[8];
 

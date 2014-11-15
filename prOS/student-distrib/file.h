@@ -13,6 +13,9 @@
 #define STACK_OFF	 	0x2000		/*size of a process block 8KB*/
 #define SIZE_128MB  0x8000000 /*size of 128mb*/
 
+#define four_kb 4096 /* 4KB = 4096 bytes */
+#define name_length 32 /* length of the name string */
+
 
 /**
   * Basic structure for file system:
@@ -121,4 +124,5 @@ void add_process_stack(uint8_t num );
 
 int32_t read_file_img(const int8_t * fname, uint8_t* buffer);
 void load_file_img(int8_t* fname);
+
 #endif
