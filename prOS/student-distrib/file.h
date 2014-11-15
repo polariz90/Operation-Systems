@@ -9,9 +9,9 @@
 #define PROS_FILE_H
 
 
-#define BOT_KERNEL_MEM 	0x800000	/*third page in memory.8MB FIXME*/
+#define BOT_KERNEL_MEM 	0x800000	/*third page in memory.8MB*/
 #define STACK_OFF	 	0x2000		/*size of a process block 8KB*/
-
+#define SIZE_128MB  0x8000000 /*size of 128mb*/
 
 
 /**
@@ -120,5 +120,5 @@ void init_pcb(pcb* curr_pcb);
 void add_process_stack(uint8_t num );
 
 int32_t read_file_img(const int8_t * fname, uint8_t* buffer);
-
+void load_file_img(int8_t* fname);
 #endif
