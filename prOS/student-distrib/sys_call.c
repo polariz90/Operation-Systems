@@ -33,7 +33,7 @@ int32_t halt(uint8_t status){
  * 
  */
 int32_t execute(const uint8_t* command){
-
+	int i,j; /* loop counter */
 	/* getting new pid for processes */
 	int pid = get_next_pid();
 	if(pid == -1){
@@ -43,31 +43,28 @@ int32_t execute(const uint8_t* command){
 	/*Parse*/
 	uint8_t com_arr[128];
 	uint8_t arg_arr[128];
-	int i; /* loop counter */
 	/* special case check */
-	if(*command == NULL){
+	if(command == NULL){
 		/* case empty string */
 		return -1;
 	}
-	if(*command == space_char){
+	if(command[0] == space_char){
 		/* case single space string */
 		return -1; 
 	}
 	i = 0;
-	while(*command != space_char){/* copying command */
-		com_arr[i] = *command;
-		command ++;
+	while(command[i] != space_char){/* copying command */
+		com_arr[i] = command[i];
 		i++;
 	}
-	i = 0;
-	while(*command != '\0'){/* copying argument */
-		arg_arr[i] = *command;
-		command ++;
-		i++;
+	com_arr[i+1] = '\0';
+	j = 0; i++;
+	while(command[i] != NULL){/* copying argument */
+		arg_arr[j] = command[i];
+		i++; j++;
 	}
+	arg_arr[j+1] = '\0';
 
-	printf("%s \n", com_arr);
-	printf("%s\n", arg_arr);
 
 	/*Excutable check*/
 	uint8_t buf[four_kb];
@@ -227,8 +224,8 @@ void sys_call_handler(){
 	asm("pushal");
 	printf("system call handle!!\n");
 	int32_t temp;
-	//temp = execute("shell varhaha");
-	temp = execute("shell varhaha");
+	temp = execute("shell arghaha");
+	printf("execute finished, and returned into the wrong palce \n");
 	asm("popal;leave;iret");
 }
 
