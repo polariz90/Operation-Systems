@@ -60,6 +60,8 @@ int32_t execute(const uint8_t* command){
 		command ++;
 	}
 
+
+
 	/*Excutable check*/
 	uint8_t buf[four_kb];
 	read_file_img(com_arr, buf);
@@ -206,7 +208,7 @@ void sys_call_handler(){
 	asm("pushal");
 	printf("system call handle!!\n");
 	int32_t temp;
-	temp = execute("ls");
+	temp = execute("shell arghaha");
 	asm("popal;leave;iret");
 }
 
