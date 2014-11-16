@@ -16,6 +16,8 @@
 #define four_kb 4096 /* 4KB = 4096 bytes */
 #define name_length 32 /* length of the name string */
 
+#include "x86_desc.h"
+
 /**
   * Basic structure for file system:
   * data_block for file system
@@ -98,6 +100,7 @@ typedef struct
 	void* page_table_ptr;
 	void* parent_process;
 	uint32_t debug_info;
+  tss_t tss;
 }pcb;
 
 //extern pcb file_desc[8];

@@ -23,3 +23,5 @@ prOS/student-distrib/bootimg
 *.o
 >>>>>>> 070ccc856cacaaafa60bfb634bba54ca13827ffa
 *.o
+*.o
+*.o
