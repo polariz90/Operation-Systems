@@ -200,6 +200,19 @@ int map_4KB_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32_t priv
 			new_page_dir->dir_arr[0].avail = 0;
 			new_page_dir->dir_arr[0].PT_base_add = ((int)video_page_table >> 12);
 
+		/* set up kernel page entries */
+			new_page_dir->dir_arr[1].present = 1; /* enable page entry */
+			new_page_dir->dir_arr[1].read_write = 1; /* read and write enable*/
+			new_page_dir->dir_arr[1].user_supervisor = 0; /* 0 for supervisor privilege lvl */
+			new_page_dir->dir_arr[1].write_through = 0; /* set to one, pass control to CR0 */
+			new_page_dir->dir_arr[1].cache_disabled = 0; /* set to one, pass control to CR0*/
+			new_page_dir->dir_arr[1].accessed = 0; /* set to one to access it */
+			new_page_dir->dir_arr[1].reserved = 0; /* set to 0 */
+			new_page_dir->dir_arr[1].page_size = 1; /* 1 indicate 4 MB pages */
+			new_page_dir->dir_arr[1].global_page = 1; /* set to global*/
+			new_page_dir->dir_arr[1].avail = 0; /* set to 0 */
+			new_page_dir->dir_arr[1].PT_base_add = 1024;
+
 				/* set up video page table entries*/
 			video_page_table[VIDEO_TABLE_IDX].present = 1;
 			video_page_table[VIDEO_TABLE_IDX].read_write = 1;

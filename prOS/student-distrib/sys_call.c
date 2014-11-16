@@ -10,7 +10,7 @@
 #define four_mb 0x200000
 
 /* array to keep in check of process number */
-uint32_t occupied[7] = {0,0,0,0,0,0,0};
+uint32_t occupied[7] = {1,0,0,0,0,0,0};
 
 /* Description:
  * system call halt.
@@ -53,14 +53,17 @@ int32_t execute(const uint8_t* command){
 	while(*command != space_char){/* copying command */
 		com_arr[i] = *command;
 		command ++;
+		i++;
 	}
 	i = 0;
-	while(*command != '\n'){/* copying argument */
+	while(*command != '\0'){/* copying argument */
 		arg_arr[i] = *command;
 		command ++;
+		i++;
 	}
 
-
+	printf("%s \n", com_arr);
+	printf("%s\n", arg_arr);
 
 	/*Excutable check*/
 	uint8_t buf[four_kb];
@@ -70,13 +73,21 @@ int32_t execute(const uint8_t* command){
 	ELF[1]=0x45;
 	ELF[2]=0x4c;
 	ELF[3]=0x46;
-	if(strncmp((uint8_t*)buf, (uint8_t*)ELF, 4)) {printf("not Excutable!!\n");}
+	if(strncmp((uint8_t*)buf, (uint8_t*)ELF, 4)){
+		printf("not Excutable!!\n");
+		return -1;
+	}
+	else{
+		printf("this is executable\n");
+	}
 
 	/*Paging*/
 	map_4KB_page(pid, vir_mem_add, phy_mem_add+(pid-1)*four_mb, 1);
 
 	/*File loader*/
-	load_file_img(com_arr);
+	if(load_file_img(com_arr) == -1){
+		return -1;
+	}
 
 	/*new PCB*/
 	pcb* new_pcb = add_process_stack(pid);

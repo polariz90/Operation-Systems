@@ -131,6 +131,6 @@ void init_pcb(pcb* curr_pcb);
 pcb* add_process_stack(uint8_t num );
 
 int32_t read_file_img(const int8_t * fname, uint8_t* buffer);
-void load_file_img(int8_t* fname);
+int load_file_img(int8_t* fname);
 
 #endif

@@ -407,9 +407,9 @@ pcb* add_process_stack(uint8_t num )
 {
 	
 	//Finds location of current pcb in kernel memory
-	pcb* curr_pcb = BOT_KERNEL_MEM - num*STACK_OFF;
+	pcb* curr_pcb = BOT_KERNEL_MEM - (num+1)*STACK_OFF;
 
-//	initilizes current_pcb
+	//initilizes current_pcb
 	init_pcb(curr_pcb);
 	
 	return curr_pcb;
@@ -454,7 +454,7 @@ int32_t read_file_img(const int8_t * fname, uint8_t* buffer)
  *
  * Retvals:
  */
-void load_file_img(int8_t* fname)
+int load_file_img(int8_t* fname)
 {
 
 	dentry_t file_dentry;
@@ -473,31 +473,31 @@ void load_file_img(int8_t* fname)
 	inode_struct * curr_inode =(inode_struct*)(dentry_add + file_dentry.inode_num*four_kb);
 
 	
-	output = read_data(file_dentry.inode_num, offset, (uint8_t*) buff, 20);
-	
-	while(output != 0)
-	{
-		for(i=0;i<20;i++)
-		{
-			*load_ptr = buff[i];
-		}
-		offset += 20;
+
+	do{
 		output = read_data(file_dentry.inode_num, offset, (uint8_t*) buff, 20);
-		
-		if(output = -1)
-		{
-			offset -= 20;
-			last_chunk = curr_inode->length - offset;
-			read_data(file_dentry.inode_num, offset, (uint8_t*) buff, last_chunk);
-			
-			for(i=0;i<last_chunk;i++)
-			{
+
+		if(output == 0){/* case hit the end of the file */
+			printf("check pt 1\n");
+			last_chunk = curr_inode->length - offset; 
+			for(i = 0; i < last_chunk; i++){
 				*load_ptr = buff[i];
 			}
 		}
+		else if (output == -1){
+			printf("File load failed \n");
+			return -1;
+		}
+		else{ /* else case, load 20 */
+			for(i=0;i<20;i++)
+			{
+			*load_ptr = buff[i];
+			}
+			offset += 20;
+		}
+	}while(output != 0);
 
-
-	}
+	return 0;
 	
 }
 
