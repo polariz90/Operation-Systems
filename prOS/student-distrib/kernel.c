@@ -14,7 +14,7 @@
 #include "file.h"
 #include "terminal.h"
 #include "pros_img.h"
-
+#include "assembly_ops.h"
 
 
 /* Macros. */
@@ -194,6 +194,8 @@ entry (unsigned long magic, unsigned long addr)
 	sti();
 	
 	clear();
+
+	asm("int $0x80");
 
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
