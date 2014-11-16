@@ -5,6 +5,8 @@
 #ifndef ASM_SYS
 
 
+extern uint32_t occupied[7];
+
 
 extern void sys_call_handler();
 
@@ -17,6 +19,8 @@ extern int32_t getargs(uint8_t* buf, int32_t nbytes);
 extern int32_t vidmap(uint8_t** screen_start);
 extern int32_t set_handler(int32_t signum, void* handler_address);
 extern int32_t sigreturn(void);
+	   uint32_t get_next_pid(void); 
+
 #endif /* ASM_SYS*/
 #endif
 

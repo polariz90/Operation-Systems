@@ -5,6 +5,7 @@
 .text
 
 .globl sys_call_jmptable
+.globl stdin_ops, stdout_ops
 # unsure if I need this, included it due to its location in x86_desc.S
 
 

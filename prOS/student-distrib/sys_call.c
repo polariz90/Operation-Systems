@@ -5,7 +5,12 @@
 
 
 #define space_char 32
+#define vir_mem_add 0x08000000
+#define phy_mem_add 0x800000
+#define four_mb 0x200000
 
+/* array to keep in check of process number */
+uint32_t occupied[7] = {0,0,0,0,0,0,0};
 
 /* Description:
  * system call halt.
@@ -24,9 +29,13 @@ int32_t halt(uint8_t status){
  * 
  */
 int32_t execute(const uint8_t* command){
-	
-	uint8_t buf[four_kb];
-	read_file_img(command, buf);
+
+	/* getting new pid for processes */
+	int pid = get_next_pid();
+	if(pid == -1){
+		return -1; /* fail execute */
+	}
+
 	/*Parse*/
 	uint8_t com_arr[128];
 	uint8_t arg_arr[128];
@@ -52,6 +61,8 @@ int32_t execute(const uint8_t* command){
 	}
 
 	/*Excutable check*/
+	uint8_t buf[four_kb];
+	read_file_img(com_arr, buf);
 	uint8_t ELF[4];
 	ELF[0]=0x7f;
 	ELF[1]=0x45;
@@ -60,12 +71,18 @@ int32_t execute(const uint8_t* command){
 	if(strncmp((uint8_t*)buf, (uint8_t*)ELF, 4)) {printf("not Excutable!!\n");}
 
 	/*Paging*/
-
+	map_4KB_page(pid, vir_mem_add, phy_mem_add+(pid-1)*four_mb, 1);
 
 	/*File loader*/
-	//load_file_img(buf, pid, nbyte);
+	load_file_img(com_arr);
 
 	/*new PCB*/
+	pcb* new_pcb = add_process_stack(pid);
+
+	/* filling PCB with stuff */
+	new_pcb->pid = pid;
+	strcpy((int8_t*)new_pcb->arg, (int8_t*)arg_arr);
+
 
 	/*context switch*/
 	uint32_t entry_point;
@@ -85,6 +102,10 @@ int32_t execute(const uint8_t* command){
 			: "eax" );
 
 	asm("iret");
+/*	asm("pushl %%ebx	;
+		pushl %%ebx"
+		 : :  : "eax" );
+*/
 	asm("popal");
 
 	return 0;
@@ -184,7 +205,27 @@ int32_t sigreturn(void){
 void sys_call_handler(){
 	asm("pushal");
 	printf("system call handle!!\n");
-	int temp;
-	temp=execute("shell");
+	int32_t temp;
+	temp = execute("ls");
 	asm("popal;leave;iret");
+}
+
+/**
+  * get next pid
+  * INPUT: none
+  * OUTPUT: pid for the new process
+  * SIDE EFFECT: none
+  */
+uint32_t get_next_pid(void){
+	int i = 0; /* loop counter */
+	while(i < 7){
+		if(occupied[i] == 0){/* case avaliable*/
+			occupied[i] = 1;
+			return i;
+		}
+		else{
+			i++;
+		}
+	}
+	return -1;
 }

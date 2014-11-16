@@ -37,8 +37,8 @@ void init_file_desc(void){
 void init_pcb(pcb* curr_pcb)
 {
 	/* intilizing the stdin and stdout*/
-//	curr_pcb->file_descriptor[0].file_opt_ptr = stdin_ops;
-//	curr_pcb->file_descriptor[1].file_opt_ptr = stdout_ops;
+	curr_pcb->file_descriptor[0].file_opt_ptr = stdin_ops;
+	curr_pcb->file_descriptor[1].file_opt_ptr = stdout_ops;
 
 	return;	
 }
@@ -373,6 +373,27 @@ int32_t open_dir( const uint8_t * filename){
 	return 0;
 }
 
+/** close file
+  * DESCRIPTION: 	close a file from file system
+  * INPUT: 			file name
+  * OUTPUT:         none
+  * SIDE EFFECT:    none
+  */
+int32_t close_file(const uint8_t * filename){
+	return 0;
+}
+
+/** close directory
+  * DESCRIPTION:   close a directory in file system
+  * INPUT: 		   file name
+  * OUTPUT:		   none
+  * SIDE EFFECT:   none
+  */
+int32_t close_dir(const uint8_t * filename){
+	return 0;
+}
+
+
 /* add process stack
  * description:		creates space on the kernel stack for the pcb and the individual process, stack
  * input:			process number
@@ -382,16 +403,16 @@ int32_t open_dir( const uint8_t * filename){
  *
  *
  */
-void add_process_stack(uint8_t num )
+pcb* add_process_stack(uint8_t num )
 {
 	
 	//Finds location of current pcb in kernel memory
-	//pcb* curr_pcb = BOT_KERNEL_MEM - num*STACK_OFF;
+	pcb* curr_pcb = BOT_KERNEL_MEM - num*STACK_OFF;
 
 //	initilizes current_pcb
-//	init_pcb(curr_pcb);
+	init_pcb(curr_pcb);
 	
-
+	return curr_pcb;
 }
 
 /*
@@ -433,7 +454,7 @@ int32_t read_file_img(const int8_t * fname, uint8_t* buffer)
  *
  * Retvals:
  */
-/*void load_file_img(int8_t* fname)
+void load_file_img(int8_t* fname)
 {
 
 	dentry_t file_dentry;
@@ -446,10 +467,10 @@ int32_t read_file_img(const int8_t * fname, uint8_t* buffer)
 
 	load_ptr = SIZE_128MB;
 	read_dentry_by_name((uint8_t *) fname, &file_dentry);
-*/
 
-//	uint32_t dentry_add = (uint32_t)s_block + four_kb; /*first dentry block address */
-/*	inode_struct * curr_inode =(inode_struct*)(dentry_add + file_dentry.inode_num*four_kb);
+
+	uint32_t dentry_add = (uint32_t)s_block + four_kb; /*first dentry block address */
+	inode_struct * curr_inode =(inode_struct*)(dentry_add + file_dentry.inode_num*four_kb);
 
 	
 	output = read_data(file_dentry.inode_num, offset, (uint8_t*) buff, 20);
@@ -479,4 +500,4 @@ int32_t read_file_img(const int8_t * fname, uint8_t* buffer)
 	}
 	
 }
-*/
+
