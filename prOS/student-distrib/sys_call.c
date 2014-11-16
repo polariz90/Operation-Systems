@@ -7,7 +7,10 @@
 #define space_char 32
 #define vir_mem_add 0x08000000
 #define phy_mem_add 0x800000
-#define four_mb 0x200000
+//#define four_mb 0x200000
+#define four_mb 0x400000
+#define eight_mb 0x800000
+#define eight_kb 0x8000
 
 /* array to keep in check of process number */
 uint32_t occupied[7] = {1,0,0,0,0,0,0};
@@ -98,28 +101,32 @@ int32_t execute(const uint8_t* command){
 	new_pcb->parent_eip=tss.eip;
 
 	/*context switch*/
+	//set up tss.esp0, ss0
+	tss.esp0= eight_mb- eight_kb -4;
+	tss.ss0= KERNEL_DS;
+
 	uint32_t entry_point;
 	memcpy(&entry_point, buf+23, 4);
 	//printf("%s\n", entry_point);
-	asm("pushal");
+	//asm("pushal");
 
 	//asm("movl %eip, %eax\n\t" "pushl %eax\n\t");
 	//asm("pushl %%eax" : : : "eax");
-	asm volatile("pushl %%ebx        \n      \
-			pushl %%ecx        \n      \
+	asm volatile("pushl %%eax        \n      \
+			pushl $0x083FFFFC        \n      \
 			pushl %%edx        \n      \
-			pushl $0x00c00000        \n      \
-			pushl %%ecx"                    \
+			pushl %%ecx        \n      \
+			pushl %%ebx"                    \
 			: 
-			: "b"(entry_point), "c"(USER_CS), "d"(tss.eflags)
-			: "eax" );
+			: "b"(entry_point), "c"(USER_CS), "d"(tss.eflags|0x00004000), "a"(USER_DS) 
+			: "memory", "cc" );	\
 
 	asm("iret");
 /*	asm("pushl %%ebx	;
 		pushl %%ebx"
 		 : :  : "eax" );
 */
-	asm("popal");
+	//asm("popal");
 
 	return 0;
 }
@@ -219,7 +226,8 @@ void sys_call_handler(){
 	asm("pushal");
 	printf("system call handle!!\n");
 	int32_t temp;
-	temp = execute("shell arghaha");
+	//temp = execute("shell varhaha");
+	temp = execute("shell varhaha");
 	asm("popal;leave;iret");
 }
 
