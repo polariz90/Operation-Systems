@@ -21,7 +21,8 @@ uint32_t occupied[7] = {1,0,0,0,0,0,0};
  * 
  */
 int32_t halt(uint8_t status){
-	return 0;
+	asm("movl $0, %eax");
+	asm("iret");
 }
 
 
