@@ -3,6 +3,10 @@
 #include "file.h"
 #include "x86_desc.h"
 
+
+#define space_char 32
+
+
 /* Description:
  * system call halt.
  *
@@ -24,6 +28,28 @@ int32_t execute(const uint8_t* command){
 	uint8_t buf[four_kb];
 	read_file_img(command, buf);
 	/*Parse*/
+	uint8_t com_arr[128];
+	uint8_t arg_arr[128];
+	int i; /* loop counter */
+	/* special case check */
+	if(*command == NULL){
+		/* case empty string */
+		return -1;
+	}
+	if(*command == space_char){
+		/* case single space string */
+		return -1; 
+	}
+	i = 0;
+	while(*command != space_char){/* copying command */
+		com_arr[i] = *command;
+		command ++;
+	}
+	i = 0;
+	while(*command != '\n'){/* copying argument */
+		arg_arr[i] = *command;
+		command ++;
+	}
 
 	/*Excutable check*/
 	uint8_t ELF[4];

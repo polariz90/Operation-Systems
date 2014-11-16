@@ -436,10 +436,10 @@ int32_t read_file_img(const int8_t * fname, uint8_t* buffer)
 void load_file_img(int8_t* fname)
 {
 
-	dentry_t file_denty;
+	dentry_t file_dentry;
 	uint32_t offset = 0; 
 	uint32_t last_chunk = 0;
-	uint8_t buffer[20] ;
+	uint8_t buff[20] ;
 	uint8_t* load_ptr; 
 	int output;
 	int i;
@@ -452,7 +452,7 @@ void load_file_img(int8_t* fname)
 	inode_struct * curr_inode =(inode_struct*)(dentry_add + file_dentry.inode_num*four_kb);
 
 	
-	output = read_data(file_dentry.inode_num, offset, (uint8_t*) buffer, 20);
+	output = read_data(file_dentry.inode_num, offset, (uint8_t*) buff, 20);
 	
 	while(output != 0)
 	{
@@ -461,13 +461,13 @@ void load_file_img(int8_t* fname)
 			*load_ptr = buff[i];
 		}
 		offset += 20;
-		output = read_data(file_dentry.inode_num, offset, (uint8_t*) buffer, 20);
+		output = read_data(file_dentry.inode_num, offset, (uint8_t*) buff, 20);
 		
 		if(output = -1)
 		{
 			offset -= 20;
-			last_chunk = curr_inode.length - offset;
-			read_data(file_dentry.inode_num, offset, (uint8_t*) buffer, last_chunk);
+			last_chunk = curr_inode->length - offset;
+			read_data(file_dentry.inode_num, offset, (uint8_t*) buff, last_chunk);
 			
 			for(i=0;i<last_chunk;i++)
 			{
