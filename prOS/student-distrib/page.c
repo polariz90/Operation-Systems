@@ -15,6 +15,7 @@
   #define max_process_num 6
   #define size_of_pagedir 4096
 
+  /* variable to hold the process page directory address for inline assembly */
   uint32_t new_page_dir_add;
 
   /*Function to initializing paging*/
