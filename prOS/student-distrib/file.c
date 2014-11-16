@@ -433,7 +433,7 @@ int32_t read_file_img(const int8_t * fname, uint8_t* buffer)
  *
  * Retvals:
  */
-void load_file_img(int8_t* fname)
+/*void load_file_img(int8_t* fname)
 {
 
 	dentry_t file_denty;
@@ -446,10 +446,10 @@ void load_file_img(int8_t* fname)
 
 	load_ptr = SIZE_128MB;
 	read_dentry_by_name((uint8_t *) fname, &file_dentry);
+*/
 
-
-	uint32_t dentry_add = (uint32_t)s_block + four_kb; /*first dentry block address */
-	inode_struct * curr_inode =(inode_struct*)(dentry_add + file_dentry.inode_num*four_kb);
+//	uint32_t dentry_add = (uint32_t)s_block + four_kb; /*first dentry block address */
+/*	inode_struct * curr_inode =(inode_struct*)(dentry_add + file_dentry.inode_num*four_kb);
 
 	
 	output = read_data(file_dentry.inode_num, offset, (uint8_t*) buffer, 20);
@@ -479,3 +479,4 @@ void load_file_img(int8_t* fname)
 	}
 	
 }
+*/

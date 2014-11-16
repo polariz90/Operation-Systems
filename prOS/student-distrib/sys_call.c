@@ -59,10 +59,6 @@ int32_t execute(const uint8_t* command){
 			: "eax" );
 
 	asm("iret");
-/*	asm("pushl %%ebx	;
-		pushl %%ebx"
-		 : :  : "eax" );
-*/
 	asm("popal");
 
 	return 0;
@@ -163,6 +159,6 @@ void sys_call_handler(){
 	asm("pushal");
 	printf("system call handle!!\n");
 	int temp;
-	temp=execute("ls");
+	temp=execute("shell");
 	asm("popal;leave;iret");
 }
