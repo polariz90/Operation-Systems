@@ -47,3 +47,24 @@ _stdout_ops:
 	.long 0x0
 stdout_ops_bot:
 
+# need to add other operations here
+
+sys_call_linkage:
+_sys_call_linkage:
+	pushal
+	jmp *sys_call_jmptable(,%eax,4)
+
+sys_call_jmptable:
+_sys_call_jmptable:
+	.long halt
+	.long execute
+	.long read
+	.long write
+	.long open
+	.long close
+	.long getargs
+	.long vidmap
+	.long set_handler
+	.long sigreturn
+
+
