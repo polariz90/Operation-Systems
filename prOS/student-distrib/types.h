@@ -10,6 +10,7 @@
 #define NULL 0
 
 #ifndef ASM
+#ifndef ASM_SYS
 
 /* Types defined here just like in <stdint.h> */
 typedef int int32_t;
@@ -21,6 +22,7 @@ typedef unsigned short uint16_t;
 typedef char int8_t;
 typedef unsigned char uint8_t;
 
+#endif /* ASM_SYS  */
 #endif /* ASM */
 
 #endif /* _TYPES_H */
