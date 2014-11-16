@@ -7,12 +7,8 @@
 
 #include "multiboot.h"
 #include "file.h"
-#include "x86_desc.h"
 #include "lib.h"
-#include "assembly_ops.h"
 
-#define four_kb 4096 /* 4KB = 4096 bytes */
-#define name_length 32 /* length of the name string */
 
 /*extern var: file descriptor*/
 file_entry file_desc[8];
@@ -41,8 +37,8 @@ void init_file_desc(void){
 void init_pcb(pcb* curr_pcb)
 {
 	/* intilizing the stdin and stdout*/
-	curr_pcb->file_descriptor[0].file_opt_ptr = stdin_ops;
-	curr_pcb->file_descriptor[1].file_opt_ptr = stdout_ops;
+//	curr_pcb->file_descriptor[0].file_opt_ptr = stdin_ops;
+//	curr_pcb->file_descriptor[1].file_opt_ptr = stdout_ops;
 
 	return;	
 }
@@ -377,28 +373,26 @@ int32_t open_dir( const uint8_t * filename){
 	return 0;
 }
 
+/* add process stack
+ * description:		creates space on the kernel stack for the pcb and the individual process, stack
+ * input:			process number
+ * 					may need to add details(pt and pd tables, parent process information)
+ * output:			none
+ *
+ *
+ *
+ */
+void add_process_stack(uint8_t num )
+{
+	
+	//Finds location of current pcb in kernel memory
+	//pcb* curr_pcb = BOT_KERNEL_MEM - num*STACK_OFF;
 
-/** open file
-  * DESCRIPTION:   close a file in file system
-  * INPUT: 		   file name
-  * OUTPUT:		   none
-  * SIDE EFFECT:   none
-  */
-int32_t close_file( const uint8_t * filename){
-	return 0;
+//	initilizes current_pcb
+//	init_pcb(curr_pcb);
+	
+
 }
-
-/** close directory
-  * DESCRIPTION:   close a directory in file system
-  * INPUT: 		   file name
-  * OUTPUT:		   none
-  * SIDE EFFECT:   none
-  */
-int32_t close_dir( const uint8_t * filename){
-	return 0;
-}
-
-
 
 /*
  * read_file_img()
@@ -442,64 +436,46 @@ int32_t read_file_img(const int8_t * fname, uint8_t* buffer)
 void load_file_img(int8_t* fname)
 {
 
-	dentry_t file_dentry; /* pointer point at file dentry */
-	uint32_t offset = 0; /* offset for file reading */
-	uint32_t last_chunk = 0; /* track last chunk of file reading */
-	uint8_t buff[20] ; /* buffer performing loading */
-	uint8_t* load_ptr; /* memory pointer of loading */
-	int output; /* contain outputs of read_data */
-	int i; /* loop counter */
+	dentry_t file_denty;
+	uint32_t offset = 0; 
+	uint32_t last_chunk = 0;
+	uint8_t buffer[20] ;
+	uint8_t* load_ptr; 
+	int output;
+	int i;
 
-	load_ptr = (int) SIZE_128MB; /* set memory pointer */
-	/* getting file dentry */
+	load_ptr = SIZE_128MB;
 	read_dentry_by_name((uint8_t *) fname, &file_dentry);
 
-	/* getting file inode structure */
+
 	uint32_t dentry_add = (uint32_t)s_block + four_kb; /*first dentry block address */
 	inode_struct * curr_inode =(inode_struct*)(dentry_add + file_dentry.inode_num*four_kb);
 
 	
-	output = read_data(file_dentry.inode_num, offset, (uint8_t*) buff, 20);
+	output = read_data(file_dentry.inode_num, offset, (uint8_t*) buffer, 20);
 	
-	do{
-		output = read_data(file_dentry.inode_num, offset, (uint8_t*) buff, 20); /* read data */
-		if(output == -1) /* check if offset off bound */
+	while(output != 0)
+	{
+		for(i=0;i<20;i++)
+		{
+			*load_ptr = buff[i];
+		}
+		offset += 20;
+		output = read_data(file_dentry.inode_num, offset, (uint8_t*) buffer, 20);
+		
+		if(output = -1)
 		{
 			offset -= 20;
-			last_chunk = (curr_inode->length) - offset;
-			read_data(file_dentry.inode_num, offset, (uint8_t*) buff, last_chunk);
+			last_chunk = curr_inode.length - offset;
+			read_data(file_dentry.inode_num, offset, (uint8_t*) buffer, last_chunk);
 			
 			for(i=0;i<last_chunk;i++)
 			{
 				*load_ptr = buff[i];
 			}
 		}
-		for(i=0;i<20;i++)
-		{
-			*load_ptr = buff[i];
-		}
-		offset += 20;
-	}while(output != 0);
 
 
-/* add process stack
- * description:		creates space on the kernel stack for the pcb and the individual process, stack
- * input:			process number
- * 					may need to add details(pt and pd tables, parent process information)
- * output:			none
- *
- *
- *
- */
-void add_process_stack(uint8_t num )
-{
+	}
 	
-	//Finds location of current pcb in kernel memory
-	pcb* curr_pcb = (pcb *)(BOT_KERNEL_MEM - (num + 1)*STACK_OFF);
-
-	//initilizes current_pcb
-	init_pcb(curr_pcb);
-	
-
-
 }

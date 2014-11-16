@@ -9,15 +9,12 @@
 #define PROS_FILE_H
 
 
-
-#define BOT_KERNEL_MEM  0x800000  /*third page in memory.8MB*/
-#define STACK_OFF   0x2000    /*size of a process block 8KB*/
+#define BOT_KERNEL_MEM 	0x800000	/*third page in memory.8MB*/
+#define STACK_OFF	 	0x2000		/*size of a process block 8KB*/
 #define SIZE_128MB  0x8000000 /*size of 128mb*/
 
 #define four_kb 4096 /* 4KB = 4096 bytes */
 #define name_length 32 /* length of the name string */
-
-
 
 /**
   * Basic structure for file system:
@@ -73,7 +70,6 @@ typedef struct
 }super_block;
 
 
-
 /**
   * Basic entry for file system:
   * will form a file descriptor which is an array of these size 8 
@@ -100,13 +96,12 @@ typedef struct
 	file_entry file_descriptor[8];
 	void* page_dir_ptr;
 	void* page_table_ptr;
-	char args[128];
-	uint32_t eip;
 	void* parent_process;
 	uint32_t debug_info;
 }pcb;
 
 //extern pcb file_desc[8];
+
 extern super_block* s_block;
 
 int32_t read_dentry_by_name (const uint8_t * fname, dentry_t * dentry);
@@ -121,18 +116,12 @@ int32_t write_dir();
 int32_t write_file();
 int32_t open_file(const uint8_t *filename);
 int32_t open_dir(const uint8_t *filename);
-int32_t close_file(const uint8_t *filename);
-int32_t close_dir(const uint8_t *filename);
 
 /*added for pcb */
 void init_pcb(pcb* curr_pcb);
 void add_process_stack(uint8_t num );
 
-
+int32_t read_file_img(const int8_t * fname, uint8_t* buffer);
+void load_file_img(int8_t* fname);
 
 #endif
-
-
-
-
-

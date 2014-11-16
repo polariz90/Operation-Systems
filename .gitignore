@@ -16,4 +16,10 @@ prOS/student-distrib/bootimg
 prOS/student-distrib/bootimg
 *.o
 *.o
+<<<<<<< HEAD
+prOS/student-distrib/bootimg
+prOS/student-distrib/bootimg
+=======
+*.o
+>>>>>>> 070ccc856cacaaafa60bfb634bba54ca13827ffa
 *.o
