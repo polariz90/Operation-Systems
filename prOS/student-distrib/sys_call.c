@@ -82,7 +82,7 @@ int32_t execute(const uint8_t* command){
 	/* filling PCB with stuff */
 	new_pcb->pid = pid;
 	strcpy((int8_t*)new_pcb->arg, (int8_t*)arg_arr);
-
+	new_pcb->parent_eip=tss.eip;
 
 	/*context switch*/
 	uint32_t entry_point;

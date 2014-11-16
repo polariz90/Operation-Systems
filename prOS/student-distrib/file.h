@@ -100,6 +100,7 @@ typedef struct
 	void* page_dir_ptr;
 	void* page_table_ptr;
 	void* parent_process;
+  uint32_t parent_eip;
 	uint32_t debug_info;
   uint32_t pid;
   uint8_t arg[128];
