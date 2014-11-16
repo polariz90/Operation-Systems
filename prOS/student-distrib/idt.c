@@ -20,6 +20,7 @@
 #include "exception.h"
 #include "terminal.h"
 #include "clock.h"
+#include "assembly_ops.h"
 #include "sys_call.h"
 
 #define NUM_COLS 80
@@ -76,9 +77,10 @@ void init_idt()
 	SET_IDT_ENTRY(idt[18],machine_chk_excpn_18);
 	SET_IDT_ENTRY(idt[19],SIMD_F_P_excpn_19);
 
+	//initilizing the other idt 
 	SET_IDT_ENTRY(idt[33], keyboard_handler);     			//keyboard 
 	SET_IDT_ENTRY(idt[40], rtc_handler);     				//rtc 
-	SET_IDT_ENTRY(idt[128], sys_call_handler);
+	SET_IDT_ENTRY(idt[128], sys_call_linkage);			//sys call jumptable
 }
 
 /*
@@ -116,7 +118,7 @@ void rtc_handler()
 	send_eoi(RTC_IRQ);
 	flag = 0;
 	/* timer implementation */
-	update_time();
+	//update_time();
 
 	sti();
 	asm("popal;leave;iret");

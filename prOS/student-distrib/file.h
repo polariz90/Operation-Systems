@@ -95,6 +95,8 @@ typedef struct
 	file_entry file_descriptor[8];
 	void* page_dir_ptr;
 	void* page_table_ptr;
+	char args[128];
+	uint32_t eip;
 	void* parent_process;
 	uint32_t debug_info;
 }pcb;
@@ -122,3 +124,8 @@ void add_process_stack(uint8_t num );
 
 
 #endif
+
+
+
+
+

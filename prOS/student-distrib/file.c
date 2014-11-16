@@ -9,6 +9,7 @@
 #include "file.h"
 #include "x86_desc.h"
 #include "lib.h"
+#include "assembly_ops.h"
 
 #define four_kb 4096 /* 4KB = 4096 bytes */
 #define name_length 32 /* length of the name string */
@@ -40,8 +41,8 @@ void init_file_desc(void){
 void init_pcb(pcb* curr_pcb)
 {
 	/* intilizing the stdin and stdout*/
-//	curr_pcb->file_descriptor[0].file_opt_ptr = stdin_ops;
-//	curr_pcb->file_descriptor[1].file_opt_ptr = stdout_ops;
+	curr_pcb->file_descriptor[0].file_opt_ptr = stdin_ops;
+	curr_pcb->file_descriptor[1].file_opt_ptr = stdout_ops;
 
 	return;	
 }
@@ -389,10 +390,10 @@ void add_process_stack(uint8_t num )
 {
 	
 	//Finds location of current pcb in kernel memory
-	//pcb* curr_pcb = BOT_KERNEL_MEM - num*STACK_OFF;
+	pcb* curr_pcb = (pcb *)(BOT_KERNEL_MEM - (num + 1)*STACK_OFF);
 
-//	initilizes current_pcb
-//	init_pcb(curr_pcb);
+	//initilizes current_pcb
+	init_pcb(curr_pcb);
 	
 
 }
