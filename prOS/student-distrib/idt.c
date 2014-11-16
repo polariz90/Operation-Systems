@@ -116,7 +116,7 @@ void rtc_handler()
 	send_eoi(RTC_IRQ);
 	flag = 0;
 	/* timer implementation */
-	update_time();
+	//update_time();
 
 	sti();
 	asm("popal;leave;iret");
