@@ -377,7 +377,7 @@ int32_t open_dir( const uint8_t * filename){
 	return 0;
 }
 
-<<<<<<< HEAD
+
 /** open file
   * DESCRIPTION:   close a file in file system
   * INPUT: 		   file name
@@ -480,7 +480,8 @@ void load_file_img(int8_t* fname)
 		}
 		offset += 20;
 	}while(output != 0);
-=======
+
+
 /* add process stack
  * description:		creates space on the kernel stack for the pcb and the individual process, stack
  * input:			process number
@@ -499,6 +500,6 @@ void add_process_stack(uint8_t num )
 	//initilizes current_pcb
 	init_pcb(curr_pcb);
 	
->>>>>>> origin/master
+
 
 }
