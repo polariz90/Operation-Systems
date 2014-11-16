@@ -159,6 +159,19 @@ int map_4KB_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32_t priv
 			new_page_dir->dir_arr[i].avail = 0;
 			new_page_dir->dir_arr[i].PT_base_add = i*1024;
 		}
+		for(i = 0; i < PAGE_TABLE_SIZE; i++){
+			video_page_table[i].present = 0;
+			video_page_table[i].read_write = 0;
+			video_page_table[i].user_supervisor = 0;
+			video_page_table[i].write_through = 0;
+			video_page_table[i].cache_disabled = 0;
+			video_page_table[i].accessed = 0;
+			video_page_table[i].dirty = 0;
+			video_page_table[i].PT_attribute_idx = 0;
+			video_page_table[i].global_page = 0;
+			video_page_table[i].avail = 0;
+			video_page_table[i].page_base_add = i;
+		}
 
 		/*initialize the 4MB memory, at Virtual 128MB, physical 4MB+pid*4MB */
 			new_page_dir->dir_arr[vir_address].present = 1; /* enable page entry */
@@ -172,6 +185,32 @@ int map_4KB_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32_t priv
 			new_page_dir->dir_arr[vir_address].global_page = 0; /* process not global page */
 			new_page_dir->dir_arr[vir_address].avail = 0; /* set to 0*/
 			new_page_dir->dir_arr[vir_address].PT_base_add = 1024*(pid+1); /*set to physcial address */
+
+			/* set up video page directory  entries */
+
+			new_page_dir->dir_arr[0].present = 1;
+			new_page_dir->dir_arr[0].read_write = 1;
+			new_page_dir->dir_arr[0].user_supervisor = 0;
+			new_page_dir->dir_arr[0].write_through = 0;
+			new_page_dir->dir_arr[0].cache_disabled = 0;
+			new_page_dir->dir_arr[0].accessed = 0;
+			new_page_dir->dir_arr[0].reserved =0;
+			new_page_dir->dir_arr[0].page_size =0;
+			new_page_dir->dir_arr[0].global_page = 1;
+			new_page_dir->dir_arr[0].avail = 0;
+			new_page_dir->dir_arr[0].PT_base_add = ((int)video_page_table >> 12);
+
+				/* set up video page table entries*/
+			video_page_table[VIDEO_TABLE_IDX].present = 1;
+			video_page_table[VIDEO_TABLE_IDX].read_write = 1;
+			video_page_table[VIDEO_TABLE_IDX].user_supervisor = 0;
+			video_page_table[VIDEO_TABLE_IDX].write_through = 0;
+			video_page_table[VIDEO_TABLE_IDX].cache_disabled = 0;
+			video_page_table[VIDEO_TABLE_IDX].accessed = 0;
+			video_page_table[VIDEO_TABLE_IDX].dirty = 0;
+			video_page_table[VIDEO_TABLE_IDX].PT_attribute_idx = 0;
+			video_page_table[VIDEO_TABLE_IDX].global_page = 1;
+			video_page_table[VIDEO_TABLE_IDX].avail = 0;
 
 		asm (
 			"movl new_page_dir_add, %%eax     ;"

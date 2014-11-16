@@ -17,6 +17,7 @@
 #define name_length 32 /* length of the name string */
 
 #include "x86_desc.h"
+#include "assembly_ops.h"
 
 /**
   * Basic structure for file system:
@@ -99,7 +100,10 @@ typedef struct
 	void* page_dir_ptr;
 	void* page_table_ptr;
 	void* parent_process;
+  uint32_t parent_eip;
 	uint32_t debug_info;
+  uint32_t pid;
+  uint8_t arg[128];
   tss_t tss;
 }pcb;
 
@@ -119,10 +123,12 @@ int32_t write_dir();
 int32_t write_file();
 int32_t open_file(const uint8_t *filename);
 int32_t open_dir(const uint8_t *filename);
+int32_t close_file(const uint8_t *filename);
+int32_t close_dir(const uint8_t *filename);
 
 /*added for pcb */
 void init_pcb(pcb* curr_pcb);
-void add_process_stack(uint8_t num );
+pcb* add_process_stack(uint8_t num );
 
 int32_t read_file_img(const int8_t * fname, uint8_t* buffer);
 void load_file_img(int8_t* fname);
