@@ -465,7 +465,7 @@ int load_file_img(int8_t* fname)
 	int output;
 	int i;
 
-	load_ptr = SIZE_128MB;
+	load_ptr = file_vir_addr;
 	read_dentry_by_name((uint8_t *) fname, &file_dentry);
 
 

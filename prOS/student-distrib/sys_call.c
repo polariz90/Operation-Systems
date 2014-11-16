@@ -14,6 +14,8 @@
 
 /* array to keep in check of process number */
 uint32_t occupied[7] = {1,0,0,0,0,0,0};
+uint32_t entry_point;
+
 
 /* Description:
  * system call halt.
@@ -103,9 +105,15 @@ int32_t execute(const uint8_t* command){
 	tss.esp0= eight_mb- eight_kb -4;
 	tss.ss0= KERNEL_DS;
 
-	uint32_t entry_point;
-	memcpy(&entry_point, buf+23, 4);
-	//printf("%s\n", entry_point);
+	printf("esp0: %x\n", tss.esp0);
+	printf("ss0: %x\n", tss.ss0);
+
+	//uint32_t entry_point;
+
+	for(i=0;i<10;i++)
+		printf("%d: 0x%x\n", i, buf[20+i]);
+	memcpy(&entry_point, buf+24, 4);
+	printf("entry point: %x\n", entry_point);
 	//asm("pushal");
 
 	//asm("movl %eip, %eax\n\t" "pushl %eax\n\t");
@@ -117,7 +125,7 @@ int32_t execute(const uint8_t* command){
 			pushl %%ebx"                    \
 			: 
 			: "b"(entry_point), "c"(USER_CS), "d"(tss.eflags|0x00004000), "a"(USER_DS) 
-			: "memory", "cc" );	\
+			: "memory", "cc" );
 
 	asm("iret");
 /*	asm("pushl %%ebx	;
@@ -222,6 +230,9 @@ int32_t sigreturn(void){
  */
 void sys_call_handler(){
 	asm("pushal");
+	int i;
+	i=0;
+
 	printf("system call handle!!\n");
 	int32_t temp;
 	temp = execute("shell arghaha");
