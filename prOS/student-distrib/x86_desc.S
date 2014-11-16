@@ -12,6 +12,7 @@
 .globl  gdt_ptr
 .globl  idt_desc_ptr, idt
 .globl  kernel_page_dir, video_page_table
+.globl  processes_page_dir
 
 .align 4
 
@@ -136,3 +137,11 @@ _video_page_table:
 	.endr
 video_page_table_bottom:
 
+# initializing page directories for processes
+	.align 4096 #4KB aligned
+processes_page_dir:
+_processes_page_dir:
+	.rept PAGE_DIRECTORY_ARR_SIZE
+	.quad 0
+	.endr
+processes_page_dir_bottom:

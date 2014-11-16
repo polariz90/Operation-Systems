@@ -74,7 +74,7 @@ entry (unsigned long magic, unsigned long addr)
 			
 			s_block= (super_block*)mod->mod_start;
 			/*map same address to paging*/
-			if(set_same_virtual_addr((unsigned int)mod->mod_start,(unsigned int)mod->mod_end-(unsigned int)mod->mod_start+1,0))	printf("set filesystem mem fail!\n");
+		//	if(set_same_virtual_addr((unsigned int)mod->mod_start,(unsigned int)mod->mod_end-(unsigned int)mod->mod_start+1,0))	printf("set filesystem mem fail!\n");
 
 			mod_count++;
 			mod++;

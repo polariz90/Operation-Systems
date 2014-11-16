@@ -9,6 +9,12 @@
 #define PROS_FILE_H
 
 
+#define BOT_KERNEL_MEM  0x800000  /*third page in memory.8MB*/
+#define STACK_OFF   0x2000    /*size of a process block 8KB*/
+#define SIZE_128MB  0x8000000 /*size of 128mb*/
+
+#define four_kb 4096 /* 4KB = 4096 bytes */
+#define name_length 32 /* length of the name string */
 
 /**
   * Basic structure for file system:
@@ -91,6 +97,8 @@ int32_t write_dir();
 int32_t write_file();
 int32_t open_file(const uint8_t *filename);
 int32_t open_dir(const uint8_t *filename);
+int32_t close_file(const uint8_t *filename);
+int32_t close_dir(const uint8_t *filename);
 
 
 
