@@ -12,7 +12,10 @@
   #include "page.h"
 
 
+  #define max_process_num 6
+  #define size_of_pagedir 4096
 
+  uint32_t new_page_dir_add;
 
   /*Function to initializing paging*/
   /**
@@ -115,45 +118,73 @@ asm (
 
 }
 
-/*wr=0 -> read_only*/
-int set_same_virtual_addr(int physical_addr, int mem_size, int wr)
-{
-	int pd_offset=physical_addr>>22;
-	//int pt_offset=(physical_addr>>12)&0x000003FF;
+ /*Function to set up new pages for processes */
+  /**
+    * map_4KB_page
+    *	INPUT: process id, virtual address, physical address, user_superviser
+    *	OUTPUT: none
+    *	RETURN: none
+    *	SIDE EFFECTS: initilizing new page directories for process, allocate 4MB
+    *					memory locations depending on the process id.
+    */
+int map_4KB_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32_t privilage){
 
-	if(mem_size<=4096){
-		/*****map to 4KB not complete yet, don't know how to create a new page table...******/
-		kernel_page_dir[pd_offset].present = 1; /* enable page entry */
-		kernel_page_dir[pd_offset].read_write = wr; /* read and write enable*/
-		kernel_page_dir[pd_offset].user_supervisor = 0; /* 0 for supervisor privilege lvl */
-		kernel_page_dir[pd_offset].write_through = 0; /* set to one, pass control to CR0 */
-		kernel_page_dir[pd_offset].cache_disabled = 0; /* set to one, pass control to CR0*/
-		kernel_page_dir[pd_offset].accessed = 0; /* set to one to access it */
-		kernel_page_dir[pd_offset].reserved = 0; /* set to 0 */
-		kernel_page_dir[pd_offset].page_size = 0; /* 1 indicate 4 MB pages */
-		kernel_page_dir[pd_offset].global_page = 1; /* set to global*/
-		kernel_page_dir[pd_offset].avail = 0; /* set to 0 */
-		kernel_page_dir[pd_offset].PT_base_add = physical_addr>>22;
-		printf("set 4KB page at virtual memory address 0x%x\n", physical_addr);
-		printf("memory size %d\n", mem_size);	
+		int i; /* loop counter for initialize page directory */
+		int vir_address = 32;
+
+		/* check for valid pid number */
+		if( pid < 0 || pid > max_process_num){
+			return -1; /* case pid out of bound */
 		}
-	else if(mem_size<=4096*1024){
-		kernel_page_dir[pd_offset].present = 1; /* enable page entry */
-		kernel_page_dir[pd_offset].read_write = wr; /* read and write enable*/
-		kernel_page_dir[pd_offset].user_supervisor = 0; /* 0 for supervisor privilege lvl */
-		kernel_page_dir[pd_offset].write_through = 0; /* set to one, pass control to CR0 */
-		kernel_page_dir[pd_offset].cache_disabled = 0; /* set to one, pass control to CR0*/
-		kernel_page_dir[pd_offset].accessed = 0; /* set to one to access it */
-		kernel_page_dir[pd_offset].reserved = 0; /* set to 0 */
-		kernel_page_dir[pd_offset].page_size = 1; /* 1 indicate 4 MB pages */
-		kernel_page_dir[pd_offset].global_page = 1; /* set to global*/
-		kernel_page_dir[pd_offset].avail = 0; /* set to 0 */
-		kernel_page_dir[pd_offset].PT_base_add = physical_addr>>22;
-		printf("set 4MB page at virtual memory address 0x%x\n", kernel_page_dir[pd_offset].PT_base_add<<22);
-		printf("memory size %d\n", mem_size);
-	}
-	else{
-		return -1;
-	}
-	return 0;
+
+		/* page directory pointer which point at the new page directory */
+		page_directory * new_page_dir;
+		new_page_dir = (page_directory*) &processes_page_dir[pid]; 
+
+		new_page_dir_add = (uint32_t)(&processes_page_dir[pid]);
+
+
+		/* initialize entire page directory   */
+		for( i = 0; i < PAGE_DIRECTORY_SIZE; i++){
+			new_page_dir->dir_arr[i].present = 0;
+			new_page_dir->dir_arr[i].read_write = 0;
+			new_page_dir->dir_arr[i].user_supervisor = 0;
+			new_page_dir->dir_arr[i].write_through = 0;
+			new_page_dir->dir_arr[i].cache_disabled = 0;
+			new_page_dir->dir_arr[i].accessed = 0;
+			new_page_dir->dir_arr[i].reserved = 0;
+			new_page_dir->dir_arr[i].page_size = 0;
+			new_page_dir->dir_arr[i].global_page = 0;
+			new_page_dir->dir_arr[i].avail = 0;
+			new_page_dir->dir_arr[i].PT_base_add = i*1024;
+		}
+
+		/*initialize the 4MB memory, at Virtual 128MB, physical 4MB+pid*4MB */
+			new_page_dir->dir_arr[vir_address].present = 1; /* enable page entry */
+			new_page_dir->dir_arr[vir_address].read_write = 1; /* read and write enable */
+			new_page_dir->dir_arr[vir_address].user_supervisor = privilage; /* set to user privilage */
+			new_page_dir->dir_arr[vir_address].write_through = 0; /* disable write through*/
+			new_page_dir->dir_arr[vir_address].cache_disabled = 0; /* disable cache */
+			new_page_dir->dir_arr[vir_address].accessed = 0; /* set to one to access it */
+			new_page_dir->dir_arr[vir_address].reserved = 0; /* reserved set to 0 */
+			new_page_dir->dir_arr[vir_address].page_size = 1; /* 1 indicate to 4MB pages */
+			new_page_dir->dir_arr[vir_address].global_page = 0; /* process not global page */
+			new_page_dir->dir_arr[vir_address].avail = 0; /* set to 0*/
+			new_page_dir->dir_arr[vir_address].PT_base_add = 1024*(pid+1); /*set to physcial address */
+
+		asm (
+			"movl new_page_dir_add, %%eax     ;"
+			"movl %%eax, %%cr3                ;"
+			"movl %%cr4, %%eax				  ;"
+			"andl $0xFFFFFFDF, %%eax          ;"
+			"orl $0x00000010, %%eax			  ;"
+			"movl %%eax, %%cr4 				  ;"
+			"movl %%cr0, %%eax                ;"
+			"orl $0x80000000, %%eax 	      ;"
+			"movl %%eax, %%cr0                ;"
+			: : : "eax" ,"cc" );	
+
+		return 0;
+
 }
+

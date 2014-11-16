@@ -14,7 +14,9 @@
   void init_paging();
 
 /*function to map the vertual memery address to the same physical memery address*/
-int set_same_virtual_addr(int physical_addr, int mem_size, int wr);
+//int set_same_virtual_addr(int physical_addr, int mem_size, int wr);
 
+/* function to map the virtual memory addess to physical memory address */
+int map_4KB_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32_t privilage);
 
 #endif

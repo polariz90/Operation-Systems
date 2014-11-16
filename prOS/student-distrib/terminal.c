@@ -75,7 +75,7 @@ int terminal_write(char *buf, int32_t count )
 		return 0;
 	}
 
-	if(count <0)
+	if(count < 0)
 	{
 		count *= -1;
 	}
@@ -86,7 +86,7 @@ int terminal_write(char *buf, int32_t count )
 	{
 		int j =0;
 		//write_buf_to_screen_hex();
-		for(i =0; i < count ; i++)
+		for(i = 0; i < count ; i++)
 		{
 			if( j == NUM_COLS  )
 			{

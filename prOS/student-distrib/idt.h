@@ -1,13 +1,11 @@
 /*H file containing the functions and relevent material for idt
  *
  *
- *
- *
- *
  */
 
 #ifndef _IDT_H
 #define _IDT_H
+
 
 extern volatile int flag;
 /*idt functions*/
@@ -21,5 +19,9 @@ void rtc_handler();
 
 
 
-
 #endif /* _IDT_H  */
+
+
+
+
+

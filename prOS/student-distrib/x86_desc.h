@@ -25,6 +25,7 @@
 /* Variables for paging, include PT size and PD size */
 #define PAGE_TABLE_SIZE 	1024
 #define PAGE_DIRECTORY_SIZE 1024 
+#define PAGE_DIRECTORY_ARR_SIZE 6144
 
 #ifndef ASM
 
@@ -229,7 +230,13 @@ typedef union page_pte_t{
 	}__attribute__((packed));
 }page_pte_t;
 
+/* page-directory, which holds 1024 page directory entries */
+typedef	struct page_directory{
+	page_pde_t dir_arr[1024];
+}page_directory;
 
+/* declare array of 6 page tables for processes use only */
+extern page_directory processes_page_dir[6];
 
 /* declare kernel page directory */
 extern page_pde_t kernel_page_dir[PAGE_DIRECTORY_SIZE];
@@ -284,3 +291,7 @@ do {                                    \
 #endif /* ASM */
 
 #endif /* _x86_DESC_H */
+
+
+
+
