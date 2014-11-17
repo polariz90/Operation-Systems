@@ -117,6 +117,14 @@ int32_t execute(const uint8_t* command){
 	//set up tss.esp0, ss0
 	tss.esp0= eight_mb- eight_kb -4;
 	tss.ss0= KERNEL_DS;
+	//tss.prev_task_link=KERNEL_TSS;
+	//tss.eflags = 0x00004000;
+	//tss_desc_ptr.dpl=0x3;
+
+	asm("movw %%ax, %%ds"
+		: 
+		: "a"(USER_DS)
+		: "memory", "cc");
 
 	printf("esp0: %x\n", tss.esp0);
 	printf("ss0: %x\n", tss.ss0);
@@ -128,10 +136,11 @@ int32_t execute(const uint8_t* command){
 	memcpy(&entry_point, buf+24, 4);
 	printf("entry point: %x\n", entry_point);
 
-	uint32_t eflag;
+	uint32_t eflag =0;
 	cli_and_save(eflag);
 	restore_flags(eflag|0x00004000);
-	sti();
+
+	//sti();
 
 
 	asm volatile("pushl %%eax        \n      \
@@ -243,7 +252,7 @@ void sys_call_handler(){
 	asm("pushal");
 	printf("system call handle!!\n");
 	int32_t temp;
-	temp = execute("testprint arghaha");
+	temp = execute("testprint");
 	printf("execute finished, and returned into the wrong palce \n");
 	asm("popal;leave;iret");
 }
