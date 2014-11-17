@@ -201,17 +201,10 @@ entry (unsigned long magic, unsigned long addr)
 
 
 
-	test_execute();
+	//test_execute();
 
-//	asm("pushal");
-
-/*	uint8_t * filename="terminal";
-
-	asm("movl $5, %%eax"
-		: : "b"(filename)
-		:"eax", "cc");
-*/
-/*	uint8_t buf[]="if you see this, terminal write sys call success!!!";
+/*	//WRITE SYSTEM CALL TEST(terminal)
+	uint8_t buf[]="if you see this, terminal write sys call success!!!";
 	int fd;
 	int nbyte=100;
 	fd=1;
@@ -221,6 +214,20 @@ entry (unsigned long magic, unsigned long addr)
 
 	asm("int $0x80");
 */
+
+/*	//READ SYSTEM CALL TEST(terminal)
+	uint8_t buf[100];
+	int fd;
+	int nbyte=100;
+	fd=0;
+	asm("movl $3, %%eax"
+		: : "b"(fd), "c"(buf), "d"(nbyte)
+		:"eax", "cc");
+	asm("int $0x80");
+	printf("finish terminal read!\n");
+	printf("keyboard buffer= %s\n", buf);
+*/
+
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
 }

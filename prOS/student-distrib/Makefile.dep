@@ -3,7 +3,8 @@ boot.o: boot.S multiboot.h x86_desc.h types.h
 x86_desc.o: x86_desc.S x86_desc.h types.h
 clock.o: clock.c clock.h lib.h types.h terminal.h
 exception.o: exception.c exception.h lib.h types.h
-file.o: file.c multiboot.h types.h file.h x86_desc.h assembly_ops.h lib.h
+file.o: file.c multiboot.h types.h file.h x86_desc.h assembly_ops.h lib.h \
+  terminal.h
 i8259.o: i8259.c i8259.h types.h lib.h
 idt.o: idt.c idt.h x86_desc.h types.h lib.h keyboard.h i8259.h rtc.h \
   exception.h terminal.h clock.h assembly_ops.h sys_call.h file.h

@@ -120,8 +120,8 @@ int32_t execute(const uint8_t* command){
 	printf("filename: %s\n", com_arr);
 
 	/*Excutable check*/
-	uint8_t buf[four_kb];
-	read_file_img((int8_t*)com_arr,(uint8_t*) buf);
+	uint8_t buf[100];
+	read_file_img((int8_t*)com_arr,(uint8_t*) buf, 100);
 	uint8_t ELF[4];
 	ELF[0]=0x7f;
 	ELF[1]=0x45;
