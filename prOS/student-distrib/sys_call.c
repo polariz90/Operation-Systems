@@ -67,7 +67,6 @@ int32_t execute(const uint8_t* command){
 	}
 	arg_arr[j+1] = '\0';
 
-
 	/*Excutable check*/
 	uint8_t buf[four_kb];
 	read_file_img(com_arr, buf);
@@ -86,6 +85,9 @@ int32_t execute(const uint8_t* command){
 
 	/*Paging*/
 	map_4KB_page(pid, vir_mem_add, phy_mem_add+(pid-1)*four_mb, 1);
+	/* paging test */
+
+
 
 	/*File loader*/
 	if(load_file_img(com_arr) == -1){
