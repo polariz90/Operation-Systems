@@ -59,6 +59,7 @@ int32_t halt(uint8_t status){
 		: "memory", "cc"
 		);
 
+		stil();
 	asm volatile(
 				"movl $0,  %%eax;"
 				"leave			;"
@@ -223,8 +224,9 @@ void test_execute(){
 
 /* Description:
  * system call read.
- *
- * 
+ *	Read system call: passing in fd with read buffer and number of bytes need to 
+ * be read. return number of bytes that read, or return 0 when reach the end of 
+ * of the file
  */
 int32_t read(int32_t fd, void* buf, int32_t nbytes){
 	sti();
@@ -246,8 +248,8 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 
 /* Description:
  * system call write.
- *
- * 
+ *  Write system call: passing in fd with buffer and number of bytes need to 
+ * be write. Return number of bytes that write to the terminal. 
  */
 int32_t write(int32_t fd, void* buf, int32_t nbytes){
 
@@ -269,12 +271,12 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
 
 /* Description:
  * system call open.
- *
- * 
+ *  Open system call: passing in with a filename, and allocate fd location for the 
+ * file, if fd is full, return -1. else return 0 with side effect of a functional 
+ *  file descriptor 
  */
 int32_t open(const uint8_t* filename){
 	if(!strncmp(filename, "terminal", 9)){
-	//	printf("get terminal argument\n");
 	}
 	
 	asm("movl $0, %eax");  //comment this line after add the function
@@ -284,8 +286,9 @@ int32_t open(const uint8_t* filename){
 
 /* Description:
  * system call close.
- *
- * 
+ *   Close system call: passing in with fd, close the corresponding fd for the file
+ * let it free to be used by other process. return -1 for fail operation, and return 
+ * 0 when success
  */
 int32_t close(int32_t fd){
 	
@@ -296,7 +299,7 @@ int32_t close(int32_t fd){
 
 /* Description:
  * system call getargs.
- *
+ *  Getarg system call: 
  * 
  */
 int32_t getargs(uint8_t* buf, int32_t nbytes){
