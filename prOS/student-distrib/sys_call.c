@@ -67,6 +67,7 @@ int32_t halt(uint8_t status){
 				);
 
 	return 0;
+
 }
 
 
@@ -85,8 +86,12 @@ int32_t execute(const uint8_t* command){
 	/* getting new pid for processes */
 	int pid = get_next_pid();
 	if(pid == -1){
-		return -1; /* fail execute */
+		
+		asm("movl $-1, %eax");
+		asm("leave;ret"); /* fail execute */
 	}
+
+	printf("command: %s\n", command);
 
 	/*Parse*/
 	uint8_t com_arr[128];
@@ -94,14 +99,18 @@ int32_t execute(const uint8_t* command){
 	/* special case check */
 	if(command == NULL){
 		/* case empty string */
-		return -1;
+		
+		asm("movl $-1, %eax");
+		asm("leave;ret");
 	}
 	if(command[0] == space_char){
 		/* case single space string */
-		return -1; 
+		
+		asm("movl $-1, %eax");
+		asm("leave;ret");
 	}
 	i = 0;
-	while(command[i] != space_char){/* copying command */
+	while(!((command[i] == space_char)||(command[i] == NULL))){/* copying command */
 		com_arr[i] = command[i];
 		i++;
 	}
@@ -125,7 +134,9 @@ int32_t execute(const uint8_t* command){
 	ELF[3]=0x46;
 	if(strncmp((int8_t*)buf, (int8_t*)ELF, (uint32_t)4)){
 		printf("not Excutable!!\n");
-		return -1;
+		
+		asm("movl $-1, %eax");
+		asm("leave;ret");
 	}
 	else{
 		printf("this is executable\n");
@@ -143,7 +154,9 @@ int32_t execute(const uint8_t* command){
 
 	/*File loader*/
 	if(load_file_img((int8_t*)com_arr) == -1){
-		return -1;
+		
+		asm("movl $-1, %eax");
+		asm("leave;ret");
 	}
 
 	/*new PCB*/
@@ -187,11 +200,7 @@ int32_t execute(const uint8_t* command){
 
 	uint32_t eflag = 0;
 	cli_and_save(eflag);
-//	restore_flags(eflag|0x00004000);
-
-	//sti();
-
-
+	sti();
 
 	asm volatile(
 			"pushl %%eax     		;"
@@ -210,7 +219,8 @@ int32_t execute(const uint8_t* command){
 
 	asm ("iret");
 
-	return 0;
+	asm("movl $0, %eax");
+	asm("leave;ret");
 }
 
 
@@ -226,34 +236,19 @@ void test_execute(){
  */
 int32_t read(int32_t fd, void* buf, int32_t nbytes){
 	sti();
-	int bytesread;
-	int pid = get_next_pid();
 
-	pcb * new_pcb = add_process_stack(pid);
+	uint32_t fun_addr=(uint32_t)kernel_pcb_ptr->file_descriptor[fd].file_opt_ptr[1];
+	asm volatile("pushal \n \
+		pushl %%ebx \n \
+		pushl %%eax \n \
+		call %%ecx	\n \
+		addl $8, %%esp"
+		:
+		: "a"(buf), "b"(nbytes), "c"(fun_addr)
+		: "cc", "memory");
 
-	if( fd < 0 || fd > 7 || buf == NULL || new_pcb->file_descriptor[fd].flags == 0 )
-	{
-			return -1;
-	}
-
-/*	uint8_t* filename = new_pcb->filenames[fd];
-	uint32_t fileposition = new_pcb->file_descriptor[fd].file_pos;
-
-	asm volatile("pushl %0          ;"
-				 "pushl %1              ;"
-				 "pushl %2              ;"
-				 "pushl %3              ;"
-				 "call  *%4             ;"
-				 :
-				 : "g" (fileposition), "g" ((int32_t)filename), "g" (nbytes), "g" ((int32_t)buf),
-				   "g" (new_pcb->file_descriptor[fd].file_opt_ptr[1]));
-							 
-	asm volatile("movl %%eax, %0":"=g"(bytesread));
-	asm volatile("addl $16, %esp    ;");
-
-	new_pcb->file_descriptor[fd].file_pos += bytesread;
-*/	
-	return bytesread;
+	/*return 0*/
+	asm("leave;ret");
 }
 
 
@@ -264,7 +259,6 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
  */
 int32_t write(int32_t fd, void* buf, int32_t nbytes){
 
-	asm("pushal");
 
 	uint32_t fun_addr=(uint32_t)kernel_pcb_ptr->file_descriptor[fd].file_opt_ptr[2];
 	asm volatile("pushal \n \
@@ -275,10 +269,8 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
 		:
 		: "a"(buf), "b"(nbytes), "c"(fun_addr)
 		: "cc", "memory");
-	asm("popal");
 
 	/*return 0*/
-	asm("movl $0, %eax");
 	asm("leave;ret");
 }
 
@@ -293,7 +285,8 @@ int32_t open(const uint8_t* filename){
 	//	printf("get terminal argument\n");
 	}
 	
-	return 0;
+	asm("movl $0, %eax");  //comment this line after add the function
+	asm("leave;ret");
 }
 
 
@@ -303,7 +296,9 @@ int32_t open(const uint8_t* filename){
  * 
  */
 int32_t close(int32_t fd){
-	return 0;
+	
+	asm("movl $0, %eax");  //comment this line after add the function
+	asm("leave;ret");
 }
 
 
@@ -313,7 +308,9 @@ int32_t close(int32_t fd){
  * 
  */
 int32_t getargs(uint8_t* buf, int32_t nbytes){
-	return 0;
+	
+	asm("movl $0, %eax");  //comment this line after add the function
+	asm("leave;ret");
 }
 
 
@@ -323,7 +320,9 @@ int32_t getargs(uint8_t* buf, int32_t nbytes){
  * 
  */
 int32_t vidmap(uint8_t** screen_start){
-	return 0;
+	
+	asm("movl $0, %eax");  //comment this line after add the function
+	asm("leave;ret");
 }
 
 
@@ -333,7 +332,9 @@ int32_t vidmap(uint8_t** screen_start){
  * 
  */
 int32_t set_handler(int32_t signum, void* handler_address){
-	return 0;
+	
+	asm("movl $0, %eax"); //comment this line after add the function
+	asm("leave;ret");
 }
 
 
@@ -343,7 +344,10 @@ int32_t set_handler(int32_t signum, void* handler_address){
  * 
  */
 int32_t sigreturn(void){
-	return 0;
+	
+
+	asm("movl $0, %eax"); //comment this line after add the function
+	asm("leave;ret");
 }
 
 /* Description:
@@ -364,7 +368,7 @@ void sys_call_handler(){
 	int32_t temp;
 	temp = execute("testprint arg");
 	printf("execute finished, and returned into the wrong palce \n");
-//	asm("popal;leave;iret");
+//	asm("leave;iret");
 }
 
 /**
