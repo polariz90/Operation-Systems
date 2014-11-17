@@ -170,6 +170,7 @@ entry (unsigned long magic, unsigned long addr)
 
 	/* printing out booting image */
 	booting_img();
+	clear();
 
 	/* Init the PIC */
 	i8259_init();
@@ -192,6 +193,12 @@ entry (unsigned long magic, unsigned long addr)
 	kernel_pcb_ptr->parent_esp = 0; 
 	kernel_pcb_ptr->parent_ebp = 0;
 	kernel_pcb_ptr->parent_pid = 0;
+
+
+
+	test_execute();
+
+
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */

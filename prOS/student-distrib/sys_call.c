@@ -13,6 +13,8 @@
 #define four_mb 0x400000
 #define eight_mb 0x800000
 #define eight_kb 0x2000
+#define size_of_occupied 7
+#define buffer_size 128
 
 
 /* array to keep in check of process number */
@@ -59,7 +61,7 @@ int32_t halt(uint8_t status){
 		: "memory", "cc"
 		);
 
-		stil();
+		sti();
 
 	asm volatile(
 				"movl $0,  %%eax;"
@@ -96,8 +98,8 @@ int32_t execute(const uint8_t* command){
 	printf("command input : %s\n", command);
 
 	/*Parse*/
-	uint8_t com_arr[128];
-	uint8_t arg_arr[128];
+	uint8_t com_arr[buffer_size];
+	uint8_t arg_arr[buffer_size];
 	/* special case check */
 	if(command == NULL){
 		/* case empty string */
@@ -112,13 +114,13 @@ int32_t execute(const uint8_t* command){
 		asm("leave;ret");
 	}
 	i = 0;
-	while(!((command[i] == space_char)||(command[i] == NULL))){/* copying command */
+	while(!((command[i] == space_char)||(command[i] == '\0'))){/* copying command */
 		com_arr[i] = command[i];
 		i++;
 	}
 	com_arr[i] = '\0';
 	j = 0; i++;
-	while(command[i] != NULL){/* copying argument */
+	while(command[i] != '\0'){/* copying argument */
 		arg_arr[j] = command[i];
 		i++; j++;
 	}
@@ -127,10 +129,10 @@ int32_t execute(const uint8_t* command){
 	printf("filename: %s\n", com_arr);
 
 	/*Excutable check*/
-	uint8_t buf[100];
-	read_file_img((int8_t*)com_arr,(uint8_t*) buf, 100);
+	uint8_t buf[buffer_size];
+	read_file_img((int8_t*)com_arr,(uint8_t*) buf, buffer_size);
 	uint8_t ELF[4];
-	ELF[0]=0x7f;
+	ELF[0]=0x7f; /* executable check for magic number ELF*/
 	ELF[1]=0x45;
 	ELF[2]=0x4c;
 	ELF[3]=0x46;
@@ -217,7 +219,9 @@ int32_t execute(const uint8_t* command){
 	asm("leave;ret");
 }
 
-
+/**
+  * test function to call execute system call
+  */
 void test_execute(){
 	int i = 0;
 	execute("shell abc");
@@ -355,9 +359,9 @@ int32_t sigreturn(void){
   */
 uint32_t get_next_pid(void){
 	int i = 0; /* loop counter */
-	while(i < 7){
-		if(occupied[i] == 0){/* case avaliable*/
-			occupied[i] = 1;
+	while(i < size_of_occupied){
+		if(occupied[i] == N_USED){/* case avaliable*/
+			occupied[i] = USED;
 			return i;
 		}
 		else{

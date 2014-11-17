@@ -502,9 +502,10 @@ int load_file_img(int8_t* fname)
 {
 
 	dentry_t file_dentry; /* file_dentry to hold file */
+	int buffer_size = 20; /* size of buffer to read each time*/
 	uint32_t offset = 0; /* offset of read file */
 	uint32_t last_chunk = 0; /* last chunk of space to copy*/
-	uint8_t buff[20] ; /* buffer to hold copy data */
+	uint8_t buff[buffer_size] ; /* buffer to hold copy data */
 	void* load_ptr; /* memory address pointer */
 	int output; /* hold output value */
 	int i;
@@ -519,7 +520,7 @@ int load_file_img(int8_t* fname)
 	
 
 	do{
-		output = read_data(file_dentry.inode_num, offset, (uint8_t*) buff, 20);
+		output = read_data(file_dentry.inode_num, offset, (uint8_t*) buff, buffer_size);
 
 		if(output == 0){/* case hit the end of the file */
 			last_chunk = curr_inode->length - offset;
@@ -531,10 +532,10 @@ int load_file_img(int8_t* fname)
 		}
 		else{ /* else case, load 20 */
 
-			memcpy(load_ptr, buff, 20);
+			memcpy(load_ptr, buff, buffer_size);
 
-			offset += 20;
-			load_ptr += 20;
+			offset += buffer_size;
+			load_ptr += buffer_size;
 		}
 	}while(output != 0);
 
