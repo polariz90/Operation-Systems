@@ -457,13 +457,13 @@ int32_t read_file_img(const int8_t * fname, uint8_t* buffer)
 int load_file_img(int8_t* fname)
 {
 
-	dentry_t file_dentry;
-	uint32_t offset = 0; 
-	uint32_t last_chunk = 0;
-	uint8_t buff[20] ;
-	uint8_t* load_ptr; 
-	int output;
-	int i;
+	dentry_t file_dentry; /* file_dentry to hold file */
+	uint32_t offset = 0; /* offset of read file */
+	uint32_t last_chunk = 0; /* last chunk of space to copy*/
+	uint8_t buff[20] ; /* buffer to hold copy data */
+	void* load_ptr; /* memory address pointer */
+	int output; /* hold output value */
+	int i; /* loop counter */
 
 	load_ptr = file_vir_addr;
 	read_dentry_by_name((uint8_t *) fname, &file_dentry);
@@ -479,21 +479,17 @@ int load_file_img(int8_t* fname)
 
 		if(output == 0){/* case hit the end of the file */
 			printf("check pt 1\n");
-			last_chunk = curr_inode->length - offset; 
-			for(i = 0; i < last_chunk; i++){
-				*load_ptr = buff[i];
-			}
+			last_chunk = curr_inode->length - offset;
+			memcpy(load_ptr, buff, last_chunk); 
 		}
 		else if (output == -1){
 			printf("File load failed \n");
 			return -1;
 		}
 		else{ /* else case, load 20 */
-			for(i=0;i<20;i++)
-			{
-			*load_ptr = buff[i];
-			}
+			memcpy(load_ptr, buff, 20);
 			offset += 20;
+			load_ptr += 20*8;
 		}
 	}while(output != 0);
 

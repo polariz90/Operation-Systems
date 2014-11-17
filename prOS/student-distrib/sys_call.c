@@ -95,6 +95,9 @@ int32_t execute(const uint8_t* command){
 			: 
 			: "memory", "cc" );
 	map_4KB_page(pid, vir_mem_add, phy_mem_add+(pid-1)*four_mb, 1);
+	/* paging test */
+
+
 
 	/*File loader*/
 	if(load_file_img(com_arr) == -1){
@@ -132,17 +135,11 @@ int32_t execute(const uint8_t* command){
 			pushl $0x083FFFFC        \n      \
 			pushl %%edx        \n      \
 			pushl %%ecx        \n      \
-			pushl %%ebx"                    \
+			pushl %%ebx        \n           \
+			iret"				\
 			: 
 			: "b"(entry_point), "c"(USER_CS), "d"(tss.eflags|0x00004000), "a"(USER_DS) 
 			: "memory", "cc" );
-
-	asm("iret");
-/*	asm("pushl %%ebx	;
-		pushl %%ebx"
-		 : :  : "eax" );
-*/
-	//asm("popal");
 
 	return 0;
 }
@@ -245,7 +242,7 @@ void sys_call_handler(){
 
 	printf("system call handle!!\n");
 	int32_t temp;
-	temp = execute("shell arghaha");
+	temp = execute("testprint arghaha");
 	printf("execute finished, and returned into the wrong palce \n");
 	asm("popal;leave;iret");
 }
