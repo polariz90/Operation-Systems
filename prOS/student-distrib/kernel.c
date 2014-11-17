@@ -186,7 +186,12 @@ entry (unsigned long magic, unsigned long addr)
 
 	//set up current pcb
 	int pid= get_next_pid();
-	kernel_pcb_ptr= add_process_stack(pid);
+	kernel_pcb_ptr = add_process_stack(pid); /* creating kernel pcb*/
+	kernel_pcb_ptr->parent_page_dir_ptr = NULL; /* kernel doesn't have parent process */
+	kernel_pcb_ptr->pid = 0; /* kernel is the 0 process always */
+	kernel_pcb_ptr->parent_esp = 0; 
+	kernel_pcb_ptr->parent_ebp = 0;
+	kernel_pcb_ptr->parent_pid = 0;
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */

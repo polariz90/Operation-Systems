@@ -32,14 +32,7 @@ int32_t halt(uint8_t status){
 	/*restore parent's esp/ebp and anything else you need*/
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
-	asm(
-		"movl %%eax, %%esp 			;"
-		"movl %%ebx, %%ebp 			;"
-		:
-		: "a"(current_pcb->parent_esp), "b"(current_pcb->parent_ebp)
-		: "memory", "cc"
-		);
-
+	/*may want to prevent user to close the last shell*/
 
 	/*restore parent's paging*/
 	asm(
@@ -48,6 +41,20 @@ int32_t halt(uint8_t status){
 		: "a"(current_pcb->parent_page_dir_ptr) 
 		: "memory","cc"
 		);
+
+	/* set TSS back to point at parent's kernel stack */
+	tss.esp0 = eight_mb - (eight_kb*current_pcb->parent_pid) - 4;
+
+	/* transfer back to parent stack */
+	asm(
+		"movl %%eax, %%esp 			;"
+		"movl %%ebx, %%ebp 			;"
+		"pushl %%ecx 				;"
+		:
+		: "a"(current_pcb->parent_esp), "b"(current_pcb->parent_ebp), "c"(status)
+		: "memory", "cc"
+		);
+
 
 	/* reset current processes mask for other process use */
 	occupied[current_pcb->pid] = 0;
@@ -59,8 +66,6 @@ int32_t halt(uint8_t status){
 				: : :"eax","memory","cc"
 				);
 
-//	asm("movl $0, %eax");
-//	asm("iret");
 	return 0;
 }
 
