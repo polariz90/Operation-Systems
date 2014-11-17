@@ -148,39 +148,7 @@ sys_call_jumptable_bot:
 
 
 
-# to_the_user_space()
-# Description: In order to jump back to the user space we must return from
-# the user level syscall interruption and rebuild the stack as shown below
-# in  order to fake the return from interruption
-#----TOP OF STACK----#
-		#EIP
-		#USER_CS
-		#EFLAGS
-		#USER_DS
-# Inputs   :none
-# Outputs  :none
-# Registers: %EBX, %EAX
-test_out:
 
-	cli
-	
-	movl 4(%esp),%ebx 		# Extended Instruction Pointer -> ebx
 
-	movl $USER_DS, %eax 	# Load segement selectors
-	movw %ax, %gs 
-	movw %ax, %fs  
-	movw %ax, %ds 
-	movw %ax, %es
 
-	pushl %eax              # push the USER_DS to the top of the stack
 
-	pushl $0x83FFFF0 		# push the User Space Extended Stack Pointer to the top of the stack
-
-	pushf 					# push the flags to the stack
-	popl %eax 				# pull them back down to...
-	orl $0x4200, %eax 		# be altered appropriately
-	pushl %eax 				# push the altered flags back onto the stack
-	pushl $USER_CS 			# push the USER_CS to the top of the stack
-	pushl %ebx 				# push the Extended Instruction Pointer to the top of the stack
-
-	iret					#Return from interruption
