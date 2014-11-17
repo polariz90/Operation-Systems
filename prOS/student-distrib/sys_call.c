@@ -42,6 +42,14 @@ int32_t halt(uint8_t status){
 	/* reset current processes mask for other process use */
 	occupied[current_pcb->pid] = 0;
 
+		/*restore parent's paging*/
+	asm(
+		"movl %%eax, %%cr3			;"
+		: 
+		: "a"(parent_page) 
+		: "memory","cc"
+		);
+
 	/* transfer back to parent stack */
 	asm(
 		"movl %%eax, %%esp 			;"
@@ -50,14 +58,6 @@ int32_t halt(uint8_t status){
 		:
 		: "a"(current_pcb->parent_esp), "b"(current_pcb->parent_ebp), "c"(status)
 		: "memory", "cc"
-		);
-
-		/*restore parent's paging*/
-	asm(
-		"movl %%eax, %%cr3			;"
-		: 
-		: "a"(parent_page) 
-		: "memory","cc"
 		);
 
 	asm volatile(
