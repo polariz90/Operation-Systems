@@ -138,7 +138,7 @@ void init_pcb(pcb* curr_pcb);
 pcb* add_process_stack(uint8_t num );
 pcb* getting_to_know_yourself();
 
-int32_t read_file_img(const int8_t * fname, uint8_t* buffer);
+int32_t read_file_img(const int8_t * fname, uint8_t* buffer, int nbytes);
 int load_file_img(int8_t* fname);
 
 #endif

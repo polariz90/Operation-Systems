@@ -473,13 +473,13 @@ pcb* getting_to_know_yourself(){
  * -1: failure
  * 0: success
  */
-int32_t read_file_img(const int8_t * fname, uint8_t* buffer)
+int32_t read_file_img(const int8_t * fname, uint8_t* buffer, int nbytes)
 {
 	dentry_t file_dentry;
 
 	if( (fname == NULL) ||
 		(read_dentry_by_name((uint8_t *) fname, &file_dentry) == -1 ) ||
-		( read_data(file_dentry.inode_num, 0, (uint8_t*) buffer, four_kb) ))
+		( read_data(file_dentry.inode_num, 0, (uint8_t*) buffer, nbytes)))
 	{
 		return -1;
 	}
