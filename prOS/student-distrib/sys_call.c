@@ -38,7 +38,7 @@ int32_t halt(uint8_t status){
 	/* set TSS back to point at parent's kernel stack */
 	tss.esp0 = eight_mb - (eight_kb*current_pcb->parent_pid) - 4;
 
-	int parent_page = current_pcb->parent_page_dir_ptr;
+	int parent_page = (int)current_pcb->parent_page_dir_ptr;
 
 	/* reset current processes mask for other process use */
 	occupied[current_pcb->pid] = 0;
