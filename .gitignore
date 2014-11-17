@@ -36,3 +36,9 @@ prOS/student-distrib/bootimg
 *.o
 *.o
 *.o
+<<<<<<< HEAD
+=======
+*.o
+*.o
+>>>>>>> origin/master
+*.o

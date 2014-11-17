@@ -8,6 +8,7 @@
 #include "multiboot.h"
 #include "file.h"
 #include "lib.h"
+#include "assembly_ops.h"
 
 
 /*extern var: file descriptor*/
@@ -46,6 +47,7 @@ void init_pcb(pcb* curr_pcb)
 	}
 //	curr_pcb->file_descriptor[0].file_opt_ptr = stdin_ops;
 //	curr_pcb->file_descriptor[1].file_opt_ptr = stdout_ops;
+
 
 	return;	
 }
@@ -414,7 +416,9 @@ pcb* add_process_stack(uint8_t num )
 {
 	
 	//Finds location of current pcb in kernel memory
+
 	pcb* curr_pcb = (pcb*)(BOT_KERNEL_MEM - (num+1)*STACK_OFF);
+
 
 	//initilizes current_pcb
 	init_pcb(curr_pcb);
@@ -470,9 +474,8 @@ int load_file_img(int8_t* fname)
 	uint8_t buff[20] ; /* buffer to hold copy data */
 	void* load_ptr; /* memory address pointer */
 	int output; /* hold output value */
-	int i; /* loop counter */
 
-	load_ptr = file_vir_addr;
+	load_ptr = (void*)file_vir_addr;
 	read_dentry_by_name((uint8_t *) fname, &file_dentry);
 
 
