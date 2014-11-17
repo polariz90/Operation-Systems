@@ -18,7 +18,6 @@
  */
 void div_err_excpn_0()
 {
-	clear();
 	printf("Invalid divisor operand(#0)");
 	asm("leave;iret");
 }
@@ -42,7 +41,6 @@ void div_err_excpn_0()
  */
 void debug_excpn_1()
 {
-	clear();
 	printf("One or more debug-exception conditions detected(#1)");
 	asm("leave;iret");
 	return;
@@ -65,7 +63,6 @@ void debug_excpn_1()
  */
 void NMI_excpn_2()
 {
-	clear();
 	printf("Nonmaskable interrupt generated(#2)");
 	asm("leave;iret");
 	return;
@@ -88,7 +85,6 @@ void NMI_excpn_2()
  */
 void brkpnt_excpn_3()
 {
-	clear();
 	printf("breakpoint instruction executed(#3)");
 	asm("leave;iret");
 	return;
@@ -111,7 +107,6 @@ void brkpnt_excpn_3()
  */
 void overflow_excpn_4()
 {
-	clear();
 	printf("Overflow trap occured(#4)");
 	asm("leave;iret");
 	return;
@@ -134,7 +129,6 @@ void overflow_excpn_4()
  */
 void bound_range_exceed_excpn_5()
 {
-	clear();
 	printf("Bound-range-exceeded fault occurred(#5)");
 	asm("leave;iret");
 	return;
@@ -159,7 +153,6 @@ void bound_range_exceed_excpn_5()
  */
 void invalid_opcode_excpn_6()
 {
-	clear();
 	printf("Invalide opcode(#6)");
 	asm("leave;iret");
 	return;
@@ -182,7 +175,6 @@ void invalid_opcode_excpn_6()
  */
 void device_unvailable_excpn_7()
 {
-	clear();
 	printf("Devide is not available(#7)");
 	asm("leave;iret");
 	return;
@@ -205,7 +197,6 @@ void device_unvailable_excpn_7()
  */
 void dbl_fault_excpn_8()
 {
-	clear();
 	printf("Second exception detected(#8)");
 	asm("leave;iret");
 	return;
@@ -228,7 +219,6 @@ void dbl_fault_excpn_8()
  */
 void coproc_sgmt_excpn_9()
 {
-	clear();
 	printf("Page or segment violation(#9)");
 	asm("leave;iret");
 	return;
@@ -237,28 +227,24 @@ void coproc_sgmt_excpn_9()
 
 void invalid_TSS_excpn_10()
 {
-	clear();
 	printf("TSS error(#10)");
 	asm("leave;iret");
 	return;
 }
 void sgmt_not_present_excpn_11()
 {
-	clear();
-	printf("Present flag of a segment or gate descriptor is clear(#11)");
+	printf("Present flag of a segment or gate descriptor i1)");
 	asm("leave;iret");
 	return;
 }
 void stack_fault_excpn_12()
 {
-	clear();
 	printf("Stack fault condition detected(#12)");
 	asm("leave;iret");
 	return;
 }
 void gen_protection_excpn_13()
 {
-	clear();
 	printf("General protection violation detected(#13)");
 
 	asm("leave;iret");
@@ -266,7 +252,6 @@ void gen_protection_excpn_13()
 }
 void page_fault_excpn_14()
 {
-	clear();
 	printf("Page fault detected(#14)");
 	while(1){}
 	asm("leave;iret");
@@ -274,28 +259,24 @@ void page_fault_excpn_14()
 }
 void FPU_F_P_excpn_16()
 {
-	clear();
 	printf("Floating point error detected(#16)");
 	asm("leave;iret");
 	return;
 }
 void algnmnt_chk_excpn_17()
 {
-	clear();
 	printf("Unaligned memory operand detected(#17)");
 	asm("leave;iret");
 	return;
 }
 void machine_chk_excpn_18()
 {
-	clear();
 	printf("Internal machine or bus error detected(#18)");
 	asm("leave;iret");
 	return;
 }
 void SIMD_F_P_excpn_19()
 {
-	clear();
 	printf("SSE/SSE2/SSE3 SIMD floating-point exception detected(#19)");
 	asm("leave;iret");
 	return;

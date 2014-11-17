@@ -17,7 +17,6 @@ _sys_call_linkage:
 	pushl	%ebp
 	movl	%esp,	%ebp
 # /* save all registers */
-	pushl   %eax
 	pushl   %ecx
 	pushl   %edx
 	pushl	%ebx
@@ -123,7 +122,6 @@ LINK_RET:
 	popl	%ebx
 	popl   %edx
 	popl   %ecx
-	popl   %eax
 
 	leave;
 	iret;
