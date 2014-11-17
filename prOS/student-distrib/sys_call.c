@@ -60,6 +60,7 @@ int32_t halt(uint8_t status){
 		);
 
 		stil();
+
 	asm volatile(
 				"movl $0,  %%eax;"
 				"leave			;"
@@ -345,26 +346,6 @@ int32_t sigreturn(void){
 	asm("leave;ret");
 }
 
-/* Description:
- * Handler for the system call. This should be a jump table
- *
- * Exception Class:
- *
- *
- * Exception Error Code:
- * 
- *
- * Saved Instruction Pointer:
- * 
- */
-void sys_call_handler(){
-//	asm("pushal");
-	printf("system call handle!!\n");
-	int32_t temp;
-	temp = execute("testprint arg");
-	printf("execute finished, and returned into the wrong palce \n");
-//	asm("leave;iret");
-}
 
 /**
   * get next pid
