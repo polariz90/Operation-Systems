@@ -479,7 +479,7 @@ int32_t read_file_img(const int8_t * fname, uint8_t* buffer, int nbytes)
 
 	if( (fname == NULL) ||
 		(read_dentry_by_name((uint8_t *) fname, &file_dentry) == -1 ) ||
-		( read_data(file_dentry.inode_num, 0, (uint8_t*) buffer, nbytes)))
+		!( read_data(file_dentry.inode_num, 0, (uint8_t*) buffer, nbytes)))
 	{
 		return -1;
 	}
