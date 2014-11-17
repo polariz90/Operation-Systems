@@ -4,6 +4,7 @@
 #include "x86_desc.h"
 
 
+
 #define space_char 32
 #define vir_mem_add 0x08000000
 #define phy_mem_add 0x800000
@@ -11,6 +12,7 @@
 
 /* array to keep in check of process number */
 uint32_t occupied[7] = {0,0,0,0,0,0,0};
+
 
 /* Description:
  * system call halt.
@@ -65,8 +67,10 @@ int32_t execute(const uint8_t* command){
 
 
 	/*Excutable check*/
+
 	uint8_t buf[four_kb];
 	read_file_img(com_arr, buf);
+
 	uint8_t ELF[4];
 	ELF[0]=0x7f;
 	ELF[1]=0x45;
@@ -77,8 +81,13 @@ int32_t execute(const uint8_t* command){
 	/*Paging*/
 	map_4KB_page(pid, vir_mem_add, phy_mem_add+(pid-1)*four_mb, 1);
 
+
 	/*File loader*/
+
 	load_file_img(com_arr);
+
+	//load_file_img(buf, pid, nbyte);
+
 
 	/*new PCB*/
 	pcb* new_pcb = add_process_stack(pid);
@@ -274,6 +283,7 @@ void sys_call_handler(){
   * OUTPUT: pid for the new process
   * SIDE EFFECT: none
   */
+  
 uint32_t get_next_pid(void){
 	int i = 0; /* loop counter */
 	while(i < 7){

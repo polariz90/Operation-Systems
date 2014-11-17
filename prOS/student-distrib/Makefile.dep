@@ -14,5 +14,5 @@ lib.o: lib.c lib.h types.h i8259.h rtc.h terminal.h
 page.o: page.c x86_desc.h types.h lib.h page.h
 pros_img.o: pros_img.c pros_img.h lib.h types.h terminal.h clock.h
 rtc.o: rtc.c i8259.h types.h rtc.h lib.h idt.h
-sys_call.o: sys_call.c lib.h types.h sys_call.h file.h
+sys_call.o: sys_call.c lib.h types.h sys_call.h file.h x86_desc.h
 terminal.o: terminal.c terminal.h lib.h types.h

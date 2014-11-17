@@ -196,7 +196,7 @@ entry (unsigned long magic, unsigned long addr)
 	clear();
 
 	//use to test system call
-	//asm("int $0x80");
+	asm("int $0x80");
 
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
