@@ -1,40 +1,13 @@
-make: Warning: File `Makefile.dep' has modification time 4.4 s in the future
+make: Warning: File `Makefile.dep' has modification time 81 s in the future
 gcc  -nostdinc -g  -c -o boot.o boot.S
 gcc  -nostdinc -g  -c -o assembly_ops.o assembly_ops.S
+assembly_ops.S:181:36: warning: no newline at end of file
 gcc  -nostdinc -g  -c -o x86_desc.o x86_desc.S
 gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o clock.o clock.c
-clock.c: In function ‘update_time’:
-clock.c:42: warning: implicit declaration of function ‘terminal_write’
-clock.c:100:2: warning: no newline at end of file
 gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o exception.o exception.c
 gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o file.o file.c
-file.c: In function ‘init_pcb’:
-file.c:40: warning: assignment makes pointer from integer without a cast
-file.c:41: warning: assignment makes pointer from integer without a cast
-file.c: In function ‘add_process_stack’:
-file.c:410: warning: initialization makes pointer from integer without a cast
 file.c: In function ‘load_file_img’:
-file.c:468: warning: assignment makes pointer from integer without a cast
-file.c:487: warning: suggest parentheses around assignment used as truth value
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o i8259.o i8259.c
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o idt.o idt.c
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o kernel.o kernel.c
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o keyboard.o keyboard.c
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o lib.o lib.c
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o page.o page.c
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o pros_img.o pros_img.c
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o rtc.o rtc.c
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o sys_call.o sys_call.c
-sys_call.c: In function ‘execute’:
-sys_call.c:65: warning: pointer targets in passing argument 1 of ‘read_file_img’ differ in signedness
-sys_call.c:71: warning: pointer targets in passing argument 1 of ‘strncmp’ differ in signedness
-sys_call.c:71: warning: pointer targets in passing argument 2 of ‘strncmp’ differ in signedness
-sys_call.c:74: warning: implicit declaration of function ‘map_4KB_page’
-sys_call.c:77: warning: pointer targets in passing argument 1 of ‘load_file_img’ differ in signedness
-sys_call.c: In function ‘sys_call_handler’:
-sys_call.c:209: warning: pointer targets in passing argument 1 of ‘execute’ differ in signedness
-sys_call.c:231:2: warning: no newline at end of file
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o terminal.o terminal.c
-gcc -nostdlib -static boot.o assembly_ops.o x86_desc.o clock.o exception.o file.o i8259.o idt.o kernel.o keyboard.o lib.o page.o pros_img.o rtc.o sys_call.o terminal.o  -Ttext=0x400000 -o bootimg
-sudo ./debug.sh
-make: warning:  Clock skew detected.  Your build may be incomplete.
+file.c:499: error: ‘i’ undeclared (first use in this function)
+file.c:499: error: (Each undeclared identifier is reported only once
+file.c:499: error: for each function it appears in.)
+make: *** [file.o] Error 1

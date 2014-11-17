@@ -2,11 +2,8 @@
 #include "sys_call.h"
 #include "file.h"
 #include "x86_desc.h"
-<<<<<<< HEAD
 #include "assembly_ops.h"
-=======
 #include "page.h"
->>>>>>> origin/master
 
 
 #define space_char 32
@@ -260,11 +257,7 @@ void sys_call_handler(){
 //	asm("pushal");
 	printf("system call handle!!\n");
 	int32_t temp;
-<<<<<<< HEAD
-	temp = execute("shell arghaha");
-=======
 	temp = execute("testprint arg");
->>>>>>> origin/master
 	printf("execute finished, and returned into the wrong palce \n");
 //	asm("popal;leave;iret");
 }
