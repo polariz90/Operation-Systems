@@ -184,7 +184,7 @@ entry (unsigned long magic, unsigned long addr)
 	/*opens the terminal, done by user*/
 	terminal_open();
 
-	//set up current pcb
+	//set up current pcb, pid should be 0
 	int pid= get_next_pid();
 	kernel_pcb_ptr = add_process_stack(pid); /* creating kernel pcb*/
 	kernel_pcb_ptr->parent_page_dir_ptr = NULL; /* kernel doesn't have parent process */
@@ -204,6 +204,8 @@ entry (unsigned long magic, unsigned long addr)
 	
 	clear();
 
+
+
 	test_execute();
 
 //	asm("pushal");
@@ -214,7 +216,7 @@ entry (unsigned long magic, unsigned long addr)
 		: : "b"(filename)
 		:"eax", "cc");
 */
-	uint8_t buf[]="if you see this, terminal write sys call success!!!";
+/*	uint8_t buf[]="if you see this, terminal write sys call success!!!";
 	int fd;
 	int nbyte=100;
 	fd=1;
@@ -223,10 +225,7 @@ entry (unsigned long magic, unsigned long addr)
 		:"eax", "cc");
 
 	asm("int $0x80");
-
-
-
-
+*/
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
 }

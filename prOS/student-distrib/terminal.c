@@ -4,6 +4,21 @@
 #define NUM_COLS 80
 #define NUM_ROWS 25
 
+void * stdin_opt[4]={
+  terminal_open,
+  terminal_read,
+  stdin_write,
+  terminal_close
+};
+
+void * stdout_opt[4]={
+  terminal_open,
+  stdout_read,
+  terminal_write,
+  terminal_close
+};
+
+
  /* Opens the terminal
   * Initializes important variables
   *	returns 0
