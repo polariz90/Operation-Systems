@@ -62,14 +62,15 @@ int32_t execute(const uint8_t* command){
 		com_arr[i] = command[i];
 		i++;
 	}
-	com_arr[i+1] = '\0';
+	com_arr[i] = '\0';
 	j = 0; i++;
 	while(command[i] != NULL){/* copying argument */
 		arg_arr[j] = command[i];
 		i++; j++;
 	}
-	arg_arr[j+1] = '\0';
+	arg_arr[j] = '\0';
 
+	printf("filename: %s\n", com_arr);
 
 	/*Excutable check*/
 	uint8_t buf[four_kb];
@@ -95,8 +96,6 @@ int32_t execute(const uint8_t* command){
 			: "memory", "cc" );
 	map_4KB_page(pid, vir_mem_add, phy_mem_add+(pid-1)*four_mb, 1);
 	/* paging test */
-
-
 
 
 	/*File loader*/
@@ -138,7 +137,7 @@ int32_t execute(const uint8_t* command){
 
 	uint32_t eflag =0;
 	cli_and_save(eflag);
-	restore_flags(eflag|0x00004000);
+//	restore_flags(eflag|0x00004000);
 
 	//sti();
 
@@ -252,7 +251,7 @@ void sys_call_handler(){
 	asm("pushal");
 	printf("system call handle!!\n");
 	int32_t temp;
-	temp = execute("testprint");
+	temp = execute("shell arg");
 	printf("execute finished, and returned into the wrong palce \n");
 	asm("popal;leave;iret");
 }
