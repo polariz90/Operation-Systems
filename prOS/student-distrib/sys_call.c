@@ -23,6 +23,9 @@ uint32_t entry_point;
  * 
  */
 int32_t halt(uint8_t status){
+	/*restore parent's esp/ebp and anything else you need*/
+	/*restore parent's paging*/
+
 	asm("movl $0, %eax");
 	asm("iret");
 }
@@ -67,8 +70,6 @@ int32_t execute(const uint8_t* command){
 	}
 	arg_arr[j+1] = '\0';
 
-	printf("filename : %s \n", com_arr);
-
 
 	/*Excutable check*/
 	uint8_t buf[four_kb];
@@ -87,6 +88,11 @@ int32_t execute(const uint8_t* command){
 	}
 
 	/*Paging*/
+	uint32_t parent_pcb;
+	asm volatile("movl %%cr3, %%eax "              \
+			: "=a"(parent_pcb)
+			: 
+			: "memory", "cc" );
 	map_4KB_page(pid, vir_mem_add, phy_mem_add+(pid-1)*four_mb, 1);
 	/* paging test */
 
@@ -105,6 +111,7 @@ int32_t execute(const uint8_t* command){
 	new_pcb->pid = pid;
 	strcpy((int8_t*)new_pcb->arg, (int8_t*)arg_arr);
 	new_pcb->parent_eip=tss.eip;
+	new_pcb->page_dir_ptr=parent_pcb;
 
 	/*context switch*/
 	//set up tss.esp0, ss0
