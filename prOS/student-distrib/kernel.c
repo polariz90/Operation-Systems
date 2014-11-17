@@ -206,7 +206,7 @@ entry (unsigned long magic, unsigned long addr)
 
 
 
-	//test_execute();
+	test_execute();
 
 /*	//WRITE SYSTEM CALL TEST(terminal)
 	uint8_t buf[]="if you see this, terminal write sys call success!!!";
