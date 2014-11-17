@@ -199,6 +199,8 @@ entry (unsigned long magic, unsigned long addr)
 	
 	clear();
 
+	test_execute();
+
 //	asm("pushal");
 
 /*	uint8_t * filename="terminal";
@@ -216,6 +218,7 @@ entry (unsigned long magic, unsigned long addr)
 		:"eax", "cc");
 
 	asm("int $0x80");
+
 
 
 

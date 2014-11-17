@@ -358,3 +358,23 @@ void new_line()
 			putc('\n');
 		}
 }
+
+/**
+  * stdin_write
+  * place holder function in file descriptor for stdin
+  * which should never be called, and when it is called 
+  * return 0
+  */
+int stdin_write(){
+	return 0;
+}
+
+/**
+  *stdout_read
+  * place holder function in file descriptor for stdout 
+  * which should never be called, and when it is called 
+  * return 0
+  */
+int stdout_read(){
+	return 0;
+}

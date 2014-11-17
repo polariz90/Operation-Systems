@@ -106,6 +106,10 @@ void toggle_caps();
 void toggle_shift();
 void toggle_ctrl(); 
 
+/*stdin/stdout useless functions */
+int stdin_write();
+
+int stdout_read();
 
 
 
