@@ -1,4 +1,4 @@
-assembly_ops.o: assembly_ops.S
+assembly_ops.o: assembly_ops.S assembly_ops.h x86_desc.h types.h
 boot.o: boot.S multiboot.h x86_desc.h types.h
 x86_desc.o: x86_desc.S x86_desc.h types.h
 clock.o: clock.c clock.h lib.h types.h

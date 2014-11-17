@@ -2,6 +2,7 @@
 #include "sys_call.h"
 #include "file.h"
 #include "x86_desc.h"
+#include "assembly_ops.h"
 
 
 #define space_char 32
@@ -62,13 +63,13 @@ int32_t execute(const uint8_t* command){
 		com_arr[i] = command[i];
 		i++;
 	}
-	com_arr[i+1] = '\0';
+	com_arr[i] = '\0';
 	j = 0; i++;
 	while(command[i] != NULL){/* copying argument */
 		arg_arr[j] = command[i];
 		i++; j++;
 	}
-	arg_arr[j+1] = '\0';
+	arg_arr[j] = '\0';
 
 
 	/*Excutable check*/
@@ -114,17 +115,14 @@ int32_t execute(const uint8_t* command){
 	new_pcb->page_dir_ptr=parent_pcb;
 
 	/*context switch*/
-	//set up tss.esp0, ss0
+
 	tss.esp0= eight_mb- eight_kb -4;
 	tss.ss0= KERNEL_DS;
 
 	printf("esp0: %x\n", tss.esp0);
 	printf("ss0: %x\n", tss.ss0);
 
-	//uint32_t entry_point;
 
-//	for(i=0;i<10;i++)
-//		printf("%d: 0x%x\n", i, buf[20+i]);
 	memcpy(&entry_point, buf+24, 4);
 	printf("entry point: %x\n", entry_point);
 
@@ -134,16 +132,19 @@ int32_t execute(const uint8_t* command){
 	sti();
 
 
-	asm volatile("pushl %%eax        \n      \
-			pushl $0x083FFFFC        \n      \
-			pushl %%edx        \n      \
-			pushl %%ecx        \n      \
-			pushl %%ebx"        				
-			: 
-			: "b"(entry_point), "d"(eflag), "c"(USER_CS), "a"(USER_DS) 
-			: "memory", "cc" );
+//	asm volatile("pushl %%eax        \n      \
+//			pushl $0x083FFFFC        \n      \
+//			pushl %%edx        \n      \
+//			pushl %%ecx        \n      \
+//			pushl %%ebx"        				
+//			: 
+//			: "b"(entry_point), "d"(eflag), "c"(USER_CS), "a"(USER_DS) 
+//			: "memory", "cc" );
+//
 
-	asm ("iret");
+	test_out(entry_point);
+
+//	asm ("iret");
 
 	return 0;
 }
@@ -243,7 +244,7 @@ void sys_call_handler(){
 	asm("pushal");
 	printf("system call handle!!\n");
 	int32_t temp;
-	temp = execute("testprint arghaha");
+	temp = execute("shell arghaha");
 	printf("execute finished, and returned into the wrong palce \n");
 	asm("popal;leave;iret");
 }

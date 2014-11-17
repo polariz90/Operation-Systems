@@ -54,7 +54,7 @@ void init_idt()
 		idt[i].reserved0 = 0 ;
 	   	SET_IDT_ENTRY(idt[i],general_handler);
 	}
-
+	idt[128].dpl = 0x3;
 
 	//initializing the specific vector values
 	SET_IDT_ENTRY(idt[0], div_err_excpn_0); 			//divide by 0
@@ -80,8 +80,9 @@ void init_idt()
 	//initilizing the other idt 
 	SET_IDT_ENTRY(idt[33], keyboard_handler);     			//keyboard 
 	SET_IDT_ENTRY(idt[40], rtc_handler);     				//rtc 
-	idt[128].dpl = 3;
-	SET_IDT_ENTRY(idt[128], sys_call_handler);			//sys call jumptable
+
+//	SET_IDT_ENTRY(idt[128], sys_call_handler);			//sys call jumptable
+	SET_IDT_ENTRY(idt[128], sys_call_linkage);
 }
 
 /*

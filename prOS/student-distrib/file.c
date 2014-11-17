@@ -37,8 +37,15 @@ void init_file_desc(void){
 void init_pcb(pcb* curr_pcb)
 {
 	/* intilizing the stdin and stdout*/
-	curr_pcb->file_descriptor[0].file_opt_ptr = stdin_ops;
-	curr_pcb->file_descriptor[1].file_opt_ptr = stdout_ops;
+	int i;
+	for( i = 0; i < 8; i++){
+		curr_pcb->file_descriptor[i].file_opt_ptr = NULL;
+		curr_pcb->file_descriptor[i].inode_ptr = NULL;
+		curr_pcb->file_descriptor[i].file_pos = 0;
+		curr_pcb->file_descriptor[i].flags = 0;
+	}
+//	curr_pcb->file_descriptor[0].file_opt_ptr = stdin_ops;
+//	curr_pcb->file_descriptor[1].file_opt_ptr = stdout_ops;
 
 	return;	
 }
@@ -407,7 +414,7 @@ pcb* add_process_stack(uint8_t num )
 {
 	
 	//Finds location of current pcb in kernel memory
-	pcb* curr_pcb = BOT_KERNEL_MEM - (num+1)*STACK_OFF;
+	pcb* curr_pcb = (pcb*)(BOT_KERNEL_MEM - (num+1)*STACK_OFF);
 
 	//initilizes current_pcb
 	init_pcb(curr_pcb);
@@ -486,7 +493,12 @@ int load_file_img(int8_t* fname)
 			return -1;
 		}
 		else{ /* else case, load 20 */
+			for(i = 0; i < 20; i++){
+				printf("%x ", buff[i]);
+			}
+			printf("\n");
 			memcpy(load_ptr, buff, 20);
+
 			offset += 20;
 			load_ptr += 20;
 		}
