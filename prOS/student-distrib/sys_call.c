@@ -13,7 +13,7 @@
 //#define four_mb 0x200000
 #define four_mb 0x400000
 #define eight_mb 0x800000
-#define eight_kb 0x8000
+#define eight_kb 0x2000
 
 
 /* array to keep in check of process number */
@@ -34,16 +34,13 @@ int32_t halt(uint8_t status){
 
 	/*may want to prevent user to close the last shell*/
 
-	/*restore parent's paging*/
-	asm(
-		"movl %%eax, %%cr3			;"
-		: 
-		: "a"(current_pcb->parent_page_dir_ptr) 
-		: "memory","cc"
-		);
-
 	/* set TSS back to point at parent's kernel stack */
 	tss.esp0 = eight_mb - (eight_kb*current_pcb->parent_pid) - 4;
+
+	int parent_page = current_pcb->parent_page_dir_ptr;
+
+	/* reset current processes mask for other process use */
+	occupied[current_pcb->pid] = 0;
 
 	/* transfer back to parent stack */
 	asm(
@@ -55,9 +52,13 @@ int32_t halt(uint8_t status){
 		: "memory", "cc"
 		);
 
-
-	/* reset current processes mask for other process use */
-	occupied[current_pcb->pid] = 0;
+		/*restore parent's paging*/
+	asm(
+		"movl %%eax, %%cr3			;"
+		: 
+		: "a"(parent_page) 
+		: "memory","cc"
+		);
 
 	asm volatile(
 				"movl $0,  %%eax;"
@@ -158,6 +159,7 @@ int32_t execute(const uint8_t* command){
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
+
 
 	/*new PCB*/
 	pcb* new_pcb = add_process_stack(pid); /* new PCB for new process */

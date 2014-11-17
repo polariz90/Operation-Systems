@@ -453,6 +453,7 @@ pcb* getting_to_know_yourself(){
 		"movl %%esp, %0" : "=g"(curr_pcb_add)
 		);
 
+//	curr_pcb_add = tss.esp0;
 	curr_pcb_add &= pcb_bitmask; 
 
 	return (pcb*)curr_pcb_add;
