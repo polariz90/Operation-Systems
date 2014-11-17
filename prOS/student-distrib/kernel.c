@@ -207,15 +207,14 @@ entry (unsigned long magic, unsigned long addr)
 		: : "b"(filename)
 		:"eax", "cc");
 */
-
-/*	uint8_t buf[]="if you see this, terminal write sys call success!!!";
+	uint8_t buf[]="if you see this, terminal write sys call success!!!";
 	int fd;
 	int nbyte=100;
 	fd=1;
 	asm("movl $4, %%eax"
 		: : "b"(fd), "c"(buf), "d"(nbyte)
 		:"eax", "cc");
-*/
+
 	asm("int $0x80");
 
 

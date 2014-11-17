@@ -43,3 +43,5 @@ prOS/student-distrib/bootimg
 >>>>>>> origin/master
 *.o
 *.o
+*.o
+*.o

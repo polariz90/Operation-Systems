@@ -40,10 +40,9 @@ void init_pcb(pcb* curr_pcb)
 	/* intilizing the stdin and stdout*/
 	int i;
 	for( i = 0; i < 8; i++){
-		//curr_pcb->file_descriptor[i].file_opt_ptr = NULL;
 		curr_pcb->file_descriptor[i].inode_ptr = NULL;
 		curr_pcb->file_descriptor[i].file_pos = 0;
-		curr_pcb->file_descriptor[i].flags = 0;
+		curr_pcb->file_descriptor[i].flags = N_USED;
 	}
 //	curr_pcb->file_descriptor[0].file_opt_ptr = stdin_ops;
 //	curr_pcb->file_descriptor[1].file_opt_ptr = stdout_ops;

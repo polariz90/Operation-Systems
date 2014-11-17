@@ -18,6 +18,7 @@
 #define name_length 32 /* length of the name string */
 
 #define USED 1 /*flag in file array*/
+#define N_USED 0 /*flag in file array*/
 
 #include "x86_desc.h"
 #include "assembly_ops.h"

@@ -9,21 +9,20 @@
 # /*global variable declaration*/ 
 .globl sys_call_linkage, _sys_call_linkage
 .globl test_out
-.globl stdout_ops, stdin_ops
 
 	.align  4
 sys_call_linkage:
 _sys_call_linkage:
 # /*callee setup */
-	pushl	%ebp;
-	movl	%esp,	%ebp;
+	pushl	%ebp
+	movl	%esp,	%ebp
 # /* save all registers */
-	pushl   %eax;
-	pushl   %ecx;
-	pushl   %edx;
-	pushl	%ebx;
-	pushl	%esi;
-	pushl	%edi;
+	pushl   %eax
+	pushl   %ecx
+	pushl   %edx
+	pushl	%ebx
+	pushl	%esi
+	pushl	%edi
 # /* check eax input valid*/
 	cmpl $1, %eax		# Check that eax is greater than 1
 	jl FAIL_EAX
@@ -32,12 +31,16 @@ _sys_call_linkage:
 
 	cmpl 	$1,%eax
 	jne 	check_2
+	pushl	%edx
+	pushl	%ecx
 	pushl	%ebx
 	jmp		continue_sys_call
  
 check_2:
 	cmpl 	$2,%eax
 	jne		check_3
+	pushl	%edx
+	pushl	%ecx
 	pushl	%ebx
 	jmp		continue_sys_call
 
@@ -60,18 +63,23 @@ check_4:
 check_5:
 	cmpl 	$5,%eax
 	jne		check_6
+	pushl	%edx
+	pushl	%ecx
 	pushl	%ebx
 	jmp		continue_sys_call
 
 check_6:
 	cmpl 	$6,%eax
 	jne		check_7
+	pushl	%edx
+	pushl	%ecx
 	pushl	%ebx
 	jmp		continue_sys_call
 
 check_7:
 	cmpl 	$7,%eax
 	jne		check_8
+	pushl	%edx
 	pushl	%ecx
 	pushl	%ebx
 	jmp		continue_sys_call
@@ -79,12 +87,15 @@ check_7:
 check_8:
 	cmpl 	$8,%eax
 	jne		check_9
+	pushl	%edx
+	pushl	%ecx
 	pushl	%ebx
 	jmp		continue_sys_call
 
 check_9:
 	cmpl 	$9,%eax
 	jne		check_10
+	pushl	%edx
 	pushl	%ecx
 	pushl	%ebx
 	jmp		continue_sys_call
@@ -97,12 +108,23 @@ check_10:
 
 continue_sys_call:	
 	call *sys_call_jumptable(,%eax,4)
+	addl $12, %esp
+	jmp LINK_RET
 
 FAIL_EAX:
-	movl $-1, 	%eax; 
-	jmp LINK_RET;
+	movl $-1, 	%eax
+	jmp LINK_RET
 
 LINK_RET:
+	/*pop all registers*/
+	popl	%edi
+	popl	%esi
+	popl	%ebx
+	popl   %edx
+	popl   %ecx
+	popl   %eax
+
+
 	leave;
 	iret;
 
@@ -124,22 +146,6 @@ sys_call_jumptable:
 	.long set_handler
 	.long sigreturn
 sys_call_jumptable_bot:
-
-
-
-stdin_ops:
-_stdin_ops:
-	.long 0x0
-	.long 0x0
-	.long 0x0
-	.long 0x0
-
-stdout_ops:
-_stdout_ops:
-	.long terminal_open
-	.long terminal_read
-	.long terminal_write
-	.long terminal_close
 
 
 

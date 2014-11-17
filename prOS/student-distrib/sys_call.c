@@ -229,7 +229,8 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
 	asm volatile("pushal \n \
 		pushl %%ebx \n \
 		pushl %%eax \n \
-		call %%ecx"
+		call %%ecx	\n \
+		addl $8, %%esp"
 		:
 		: "a"(buf), "b"(nbytes), "c"(fun_addr)
 		: "cc", "memory");
@@ -245,13 +246,15 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
  * 
  */
 int32_t open(const uint8_t* filename){
-	//asm("pushal");
 	if(!strncmp(filename, "terminal", 9)){
-		printf("get terminal argument\n");
-		//kernel_pcb_ptr->file_descriptor[1].file_opt_ptr=stdout_ops;
+	//	printf("get terminal argument\n");
+		kernel_pcb_ptr->file_descriptor[1].file_opt_ptr[0]=terminal_open;
+		kernel_pcb_ptr->file_descriptor[1].file_opt_ptr[1]=terminal_read;
+		kernel_pcb_ptr->file_descriptor[1].file_opt_ptr[2]=terminal_write;
+		kernel_pcb_ptr->file_descriptor[1].file_opt_ptr[3]=terminal_close;
 		kernel_pcb_ptr->file_descriptor[1].flags=USED;
-	}	
-	//asm("popal;leave;iret");
+	}
+	
 	return 0;
 }
 
