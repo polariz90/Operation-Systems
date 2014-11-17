@@ -508,7 +508,7 @@ int load_file_img(int8_t* fname)
 	uint8_t buff[buffer_size] ; /* buffer to hold copy data */
 	void* load_ptr; /* memory address pointer */
 	int output; /* hold output value */
-	int i;
+	//int i;
 
 	load_ptr = (void*)file_vir_addr;
 	read_dentry_by_name((uint8_t *) fname, &file_dentry);

@@ -93,6 +93,9 @@ int32_t execute(const uint8_t* command){
 		
 		asm("movl $-1, %eax");
 		asm("leave;ret"); /* fail execute */
+
+	//will never get here, stops compiler warnings 
+	return 0;
 	}
 
 	printf("command input : %s\n", command);
@@ -161,6 +164,9 @@ int32_t execute(const uint8_t* command){
 		
 		asm("movl $-1, %eax");
 		asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 	}
 
 
@@ -217,14 +223,16 @@ int32_t execute(const uint8_t* command){
 
 	asm("movl $0, %eax");
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
 /**
   * test function to call execute system call
   */
 void test_execute(){
-	int i = 0;
-	execute("shell abc");
+	execute((uint8_t*)"shell abc");
 }
 
 /* Description:
@@ -240,7 +248,7 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 	asm volatile("pushal \n \
 		pushl %%ebx \n \
 		pushl %%eax \n \
-		call %%ecx	\n \
+		call *%%ecx	\n \
 		addl $8, %%esp"
 		:
 		: "a"(buf), "b"(nbytes), "c"(fun_addr)
@@ -248,6 +256,9 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 
 	/*return 0*/
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
 
@@ -263,7 +274,7 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
 	asm volatile("pushal \n \
 		pushl %%ebx \n \
 		pushl %%eax \n \
-		call %%ecx	\n \
+		call *%%ecx	\n \
 		addl $8, %%esp"
 		:
 		: "a"(buf), "b"(nbytes), "c"(fun_addr)
@@ -271,6 +282,9 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
 
 	/*return 0*/
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
 
@@ -281,11 +295,15 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
  *  file descriptor 
  */
 int32_t open(const uint8_t* filename){
-	if(!strncmp(filename, "terminal", 9)){
+	if(!strncmp((int8_t*)filename,(int8_t*) "terminal", 9)){
+	//	printf("get terminal argument\n");
 	}
 	
 	asm("movl $0, %eax");  //comment this line after add the function
 	asm("leave;ret");
+
+	//will never get here 
+	return 0;
 }
 
 
@@ -299,6 +317,9 @@ int32_t close(int32_t fd){
 	
 	asm("movl $0, %eax");  //comment this line after add the function
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
 
@@ -311,6 +332,9 @@ int32_t getargs(uint8_t* buf, int32_t nbytes){
 	
 	asm("movl $0, %eax");  //comment this line after add the function
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
 
@@ -323,6 +347,9 @@ int32_t vidmap(uint8_t** screen_start){
 	
 	asm("movl $0, %eax");  //comment this line after add the function
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
 
@@ -335,6 +362,9 @@ int32_t set_handler(int32_t signum, void* handler_address){
 	
 	asm("movl $0, %eax"); //comment this line after add the function
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
 
@@ -348,6 +378,9 @@ int32_t sigreturn(void){
 
 	asm("movl $0, %eax"); //comment this line after add the function
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
 
