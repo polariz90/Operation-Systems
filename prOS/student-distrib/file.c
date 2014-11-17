@@ -10,6 +10,7 @@
 #include "lib.h"
 #include "assembly_ops.h"
 
+#define pcb_bitmask 0xFFFFE000
 
 /*extern var: file descriptor*/
 file_entry file_desc[8];
@@ -426,6 +427,24 @@ pcb* add_process_stack(uint8_t num )
 	return curr_pcb;
 }
 
+/** getting_to_know_yourself
+  *		function to get the processes' own PCB
+  *	by calculating the PCB address with a smart way : 
+  * anding esp with a bitmask FFE000
+  */
+pcb* getting_to_know_yourself(){
+
+	uint32_t curr_pcb_add;
+
+	asm(
+		"movl %%esp, %0" : "=g"(curr_pcb_add)
+		);
+
+	curr_pcb_add &= pcb_bitmask; 
+
+	return (pcb*)curr_pcb_add;
+}
+
 /*
  * read_file_img()
  *
@@ -474,6 +493,7 @@ int load_file_img(int8_t* fname)
 	uint8_t buff[20] ; /* buffer to hold copy data */
 	void* load_ptr; /* memory address pointer */
 	int output; /* hold output value */
+	int i;
 
 	load_ptr = (void*)file_vir_addr;
 	read_dentry_by_name((uint8_t *) fname, &file_dentry);
@@ -496,10 +516,7 @@ int load_file_img(int8_t* fname)
 			return -1;
 		}
 		else{ /* else case, load 20 */
-			for(i = 0; i < 20; i++){
-				printf("%x ", buff[i]);
-			}
-			printf("\n");
+
 			memcpy(load_ptr, buff, 20);
 
 			offset += 20;

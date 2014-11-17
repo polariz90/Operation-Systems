@@ -2,11 +2,9 @@
 #include "sys_call.h"
 #include "file.h"
 #include "x86_desc.h"
-<<<<<<< HEAD
 #include "assembly_ops.h"
-=======
 #include "page.h"
->>>>>>> origin/master
+
 
 
 #define space_char 32
@@ -17,6 +15,7 @@
 #define eight_mb 0x800000
 #define eight_kb 0x8000
 
+
 /* array to keep in check of process number */
 uint32_t occupied[7] = {1,0,0,0,0,0,0};
 uint32_t entry_point;
@@ -24,12 +23,41 @@ uint32_t entry_point;
 
 /* Description:
  * system call halt.
- *
+ *	DESCIPTION: called in the end of a process, restoring parent process's
+ * ESP/EBP in order to switch to parent's stack, and returning from parent's 
+ * stack which is right after iret in execute function. 
  * 
  */
 int32_t halt(uint8_t status){
 	/*restore parent's esp/ebp and anything else you need*/
+	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+
+	asm(
+		"movl %%eax, %%esp 			;"
+		"movl %%ebx, %%ebp 			;"
+		:
+		: "a"(current_pcb->parent_esp), "b"(current_pcb->parent_ebp)
+		: "memory", "cc"
+		);
+
+
 	/*restore parent's paging*/
+	asm(
+		"movl %%eax, %%cr3			;"
+		: 
+		: "a"(current_pcb->parent_page_dir_ptr) 
+		: "memory","cc"
+		);
+
+	/* reset current processes mask for other process use */
+	occupied[current_pcb->pid] = 0;
+
+	asm volatile(
+				"movl $0,  %%eax;"
+				"leave			;"
+				"ret 			;"
+				: : :"eax","memory","cc"
+				);
 
 //	asm("movl $0, %eax");
 //	asm("iret");
@@ -38,10 +66,14 @@ int32_t halt(uint8_t status){
 
 
 
+
 /* Description:
  * system call execute.
- *
- * 
+ *	execute system called when a new user process is created 
+ * 	it going through steps as : parse --> executable --> paging
+ *				--> new PCB --> context switch
+ * in the end of execute function, we will switch to user code program
+ * which are operating in user level with new set of page directories. 
  */
 int32_t execute(const uint8_t* command){
 	int i,j; /* loop counter */
@@ -110,17 +142,28 @@ int32_t execute(const uint8_t* command){
 	}
 
 	/*new PCB*/
-	pcb* new_pcb = add_process_stack(pid);
+	pcb* new_pcb = add_process_stack(pid); /* new PCB for new process */
+
+	pcb* current_pcb = getting_to_know_yourself(); /* PCB at current process */
+
 
 	/* filling PCB with stuff */
-	new_pcb->pid = pid;
-	strcpy((int8_t*)new_pcb->arg, (int8_t*)arg_arr);
+	new_pcb->pid = pid; /* saving new process pid */
+	strcpy((int8_t*)new_pcb->arg, (int8_t*)arg_arr); /* saving new process arg */
+	uint32_t parent_esp, parent_ebp;
+	asm volatile("movl %%esp, %0" : "=g"(parent_esp));
+	new_pcb->parent_esp = parent_esp; /* save parent esp */
+	asm volatile("movl %%ebp, %0" : "=g"(parent_ebp));
+	new_pcb->parent_ebp = parent_ebp; /* save parent ebp */
+	new_pcb->parent_pid = current_pcb->pid; /* loading parent pid */
+
 	//new_pcb->parent_eip=(uint32_t)tss.eip;
-	new_pcb->page_dir_ptr= (void*)parent_pcb;
+	new_pcb->parent_page_dir_ptr= (void*)parent_pcb; /**/
 
 	/*context switch*/
 
-	tss.esp0= eight_mb- eight_kb -4;
+	int temp = eight_kb*pid;
+	tss.esp0= eight_mb - temp - 4;
 	tss.ss0= KERNEL_DS;
 	//tss.prev_task_link=KERNEL_TSS;
 	//tss.eflags = 0x00004000;
@@ -134,7 +177,10 @@ int32_t execute(const uint8_t* command){
 	memcpy(&entry_point, buf+24, 4);
 	printf("entry point: %x\n", entry_point);
 
-	uint32_t eflag =0;
+//	test_out(entry_point);
+
+
+	uint32_t eflag = 0;
 	cli_and_save(eflag);
 //	restore_flags(eflag|0x00004000);
 
@@ -142,27 +188,30 @@ int32_t execute(const uint8_t* command){
 
 
 
-	asm volatile("pushl %%eax        \n      \
-			pushl $0x083FFFF0        \n      \
-			pushl %%edx        \n      \
-			pushl %%ecx        \n      \
-			pushl %%ebx"        				
+	asm volatile(
+			"pushl %%eax     		;"
+			"pushl $0x083FFFF0   	;"  
+			"pushl %%edx      		;"		
+			"pushl %%ecx      		;"
+			"pushl %%ebx 			;"		
+			"movw %%ax, %%ds  		;"
+			"movw %%ax, %%gs  		;"
+			"movw %%ax, %%fs  		;"
+			"movw %%ax, %%es  		;"
 			: 
 			: "b"(entry_point), "d"(eflag|0x4200), "c"(USER_CS), "a"(USER_DS) 
 			: "memory", "cc" );
 
-	asm("movw %%ax, %%ds  \n   \
-		movw %%ax, %%gs    \n   \
-		movw %%ax, %%fs    \n   \
-		movl $0x083FFFF0, %%ebp    \n   \
-		movw %%ax, %%es"
-		: 
-		: "a"(USER_DS)
-		: "memory", "cc");
 
 	asm ("iret");
 
 	return 0;
+}
+
+
+void test_execute(){
+	int i = 0;
+	execute("shell abc");
 }
 
 /* Description:
@@ -260,11 +309,7 @@ void sys_call_handler(){
 //	asm("pushal");
 	printf("system call handle!!\n");
 	int32_t temp;
-<<<<<<< HEAD
 	temp = execute("shell arghaha");
-=======
-	temp = execute("testprint arg");
->>>>>>> origin/master
 	printf("execute finished, and returned into the wrong palce \n");
 //	asm("popal;leave;iret");
 }

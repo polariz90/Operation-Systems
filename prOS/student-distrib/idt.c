@@ -81,8 +81,8 @@ void init_idt()
 	SET_IDT_ENTRY(idt[33], keyboard_handler);     			//keyboard 
 	SET_IDT_ENTRY(idt[40], rtc_handler);     				//rtc 
 
-//	SET_IDT_ENTRY(idt[128], sys_call_handler);			//sys call jumptable
-	SET_IDT_ENTRY(idt[128], sys_call_linkage);
+	SET_IDT_ENTRY(idt[128], sys_call_handler);			//sys call jumptable
+//	SET_IDT_ENTRY(idt[128], sys_call_linkage);
 }
 
 /*

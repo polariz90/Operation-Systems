@@ -98,13 +98,16 @@ typedef struct
 typedef struct
 {
 	file_entry file_descriptor[8];
-	void* page_dir_ptr;
-	void* page_table_ptr;
-	void* parent_process;
+	void* parent_page_dir_ptr;
+//	void* page_table_ptr;
+//	void* parent_process;
   uint32_t parent_eip;
 	uint32_t debug_info;
   uint32_t pid;
   uint8_t arg[128];
+  uint32_t parent_esp;
+  uint32_t parent_ebp;
+  uint32_t parent_pid;
   tss_t tss;
 }pcb;
 
@@ -130,6 +133,7 @@ int32_t close_dir(const uint8_t *filename);
 /*added for pcb */
 void init_pcb(pcb* curr_pcb);
 pcb* add_process_stack(uint8_t num );
+pcb* getting_to_know_yourself();
 
 int32_t read_file_img(const int8_t * fname, uint8_t* buffer);
 int load_file_img(int8_t* fname);

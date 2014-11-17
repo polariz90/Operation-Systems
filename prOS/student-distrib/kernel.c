@@ -195,10 +195,7 @@ entry (unsigned long magic, unsigned long addr)
 	
 	clear();
 
-//	asm("pushal");
-	asm("movl $1, %%eax"
-		: : :"eax", "cc");
-	asm("int $0x80");
+	test_execute();
 
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");

@@ -19,7 +19,9 @@ extern int32_t getargs(uint8_t* buf, int32_t nbytes);
 extern int32_t vidmap(uint8_t** screen_start);
 extern int32_t set_handler(int32_t signum, void* handler_address);
 extern int32_t sigreturn(void);
+extern void test_execute();
 	   uint32_t get_next_pid(void); 
+
 
 #endif /* ASM_SYS*/
 #endif
