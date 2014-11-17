@@ -11,6 +11,8 @@
 #include "assembly_ops.h"
 
 #define pcb_bitmask 0xFFFFE000
+#define stdin_idx 0
+#define stdout_idx 1
 
 /*extern var: file descriptor*/
 file_entry file_desc[8];
@@ -46,11 +48,17 @@ void init_pcb(pcb* curr_pcb)
 		curr_pcb->file_descriptor[i].file_pos = 0;
 		curr_pcb->file_descriptor[i].flags = 0;
 	}
-//	curr_pcb->file_descriptor[0].file_opt_ptr = stdin_ops;
-//	curr_pcb->file_descriptor[1].file_opt_ptr = stdout_ops;
+	/* initialize stdin */
+	curr_pcb->file_descriptor[stdin_idx].file_opt_ptr = stdin_ops; /* initialize jump table */
+	curr_pcb->file_descriptor[stdin_idx].inode_ptr = NULL; /*stdin do not have inode */
+	curr_pcb->file_descriptor[stdin_idx].file_pos = 0; /*stdin is read only */
+	curr_pcb->file_descriptor[stdin_idx].flags = 1; /* set flag in use */
+	/* initialize stdout */
+	curr_pcb->file_descriptor[stdout_idx].file_opt_ptr = stdout_ops; /* initialize jump table */
+	curr_pcd->file_descriptor[stdout_idx].inode_ptr = NULL; /* stdout do not have inode */
+	curr_pcd->file_descriptor[stdout_idx].file_pos = 0; /* stdout is read only */
+	curr_pcd->file_descriptor[stdout_idx].flags = 1; /* set flag in use*/
 
-
-	return;	
 }
 
 /**	read_dentry_by_name 
@@ -431,6 +439,7 @@ pcb* add_process_stack(uint8_t num )
   *		function to get the processes' own PCB
   *	by calculating the PCB address with a smart way : 
   * anding esp with a bitmask FFE000
+  * return: the pcb pointer of current process 
   */
 pcb* getting_to_know_yourself(){
 

@@ -129,15 +129,15 @@ sys_call_jumptable_bot:
 
 stdin_ops:
 _stdin_ops:
-	.long 0x0
-	.long 0x0
-	.long 0x0
-	.long 0x0
+	.long terminal_open
+	.long terminal_read
+	.long stdin_write
+	.long terminal_close
 
 stdout_ops:
 _stdout_ops:
 	.long terminal_open
-	.long terminal_read
+	.long stdout_read
 	.long terminal_write
 	.long terminal_close
 

@@ -374,7 +374,6 @@ void sys_call_handler(){
 	printf("system call handle!!\n");
 	int32_t temp;
 	temp = execute("testprint arg");
->>>>>>> origin/master
 	printf("execute finished, and returned into the wrong palce \n");
 //	asm("popal;leave;iret");
 }
