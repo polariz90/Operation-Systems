@@ -133,7 +133,7 @@ int32_t execute(const uint8_t* command){
 
 	/*Excutable check*/
 	uint8_t buf[buffer_size];
-	if(-1==read_file_img((int8_t*)com_arr,(uint8_t*) buf, buffer_size)){
+	if(read_file_img((int8_t*)com_arr,(uint8_t*) buf, buffer_size) == -1){
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
@@ -143,13 +143,15 @@ int32_t execute(const uint8_t* command){
 	ELF[2]=0x4c;
 	ELF[3]=0x46;
 	if(strncmp((int8_t*)buf, (int8_t*)ELF, (uint32_t)4)){
-	//	printf("not Excutable!!\n");
+//		printf("not Excutable!!\n");
+
 		
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
 	else{
-	//	printf("this is executable\n");
+//		printf("this is executable\n");
+
 	}
 
 	/*Paging*/
