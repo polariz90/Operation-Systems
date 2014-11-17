@@ -211,7 +211,7 @@ int32_t execute(const uint8_t* command){
 
 void test_execute(){
 	int i = 0;
-	execute("shell abc");
+	execute("testprint abc");
 }
 
 /* Description:
@@ -258,25 +258,9 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
  * 
  */
 int32_t write(int32_t fd, void* buf, int32_t nbytes){
-/*	int pid = get_next_pid();
-	pcb * new_pcb = add_process_stack(pid);
-	
-	if( fd < 0 || fd > 7 || buf == NULL || new_pcb->filedescriptor[fd].flags == 0 )
-	{
-			return -1;
-	}
 
+	asm("pushal");
 
-	asm volatile("pushl %0          ;"
-				 "pushl %1              ;"
-				 "call  *%2             ;"
-				 "leave					;"
-				 "ret					;"
-				 :
-				 : "g" (nbytes), "g" ((int32_t )buf), "g" (new_pcb->filedescriptor[fd].file_opt_ptr[2]));
-*/	
-	kernel_pcb_ptr->file_descriptor[1].file_opt_ptr[2]=terminal_write;
-	kernel_pcb_ptr->file_descriptor[1].flags=USED;
 	uint32_t fun_addr=(uint32_t)kernel_pcb_ptr->file_descriptor[fd].file_opt_ptr[2];
 	asm volatile("pushal \n \
 		pushl %%ebx \n \
@@ -286,9 +270,11 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
 		:
 		: "a"(buf), "b"(nbytes), "c"(fun_addr)
 		: "cc", "memory");
-	
+	asm("popal");
 
-	return 0;
+	/*return 0*/
+	asm("movl $0, %eax");
+	asm("leave;ret");
 }
 
 
@@ -300,11 +286,6 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
 int32_t open(const uint8_t* filename){
 	if(!strncmp(filename, "terminal", 9)){
 	//	printf("get terminal argument\n");
-		kernel_pcb_ptr->file_descriptor[1].file_opt_ptr[0]=terminal_open;
-		kernel_pcb_ptr->file_descriptor[1].file_opt_ptr[1]=terminal_read;
-		kernel_pcb_ptr->file_descriptor[1].file_opt_ptr[2]=terminal_write;
-		kernel_pcb_ptr->file_descriptor[1].file_opt_ptr[3]=terminal_close;
-		kernel_pcb_ptr->file_descriptor[1].flags=USED;
 	}
 	
 	return 0;

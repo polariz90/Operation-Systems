@@ -84,7 +84,7 @@ typedef struct
   */
 typedef struct 
 {
-  void * file_opt_ptr[4];  /*4 bytes file operation table pointer*/
+  void ** file_opt_ptr;  /*4 bytes file operation table pointer*/
   inode_struct* inode_ptr;  /* 4 bytes inodes ptr */
   uint32_t file_pos; /* 4 bytes file position */
   uint32_t flags; /* 4 bytes flags -- 1 is in use, 0 is free */

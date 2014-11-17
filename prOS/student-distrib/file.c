@@ -9,6 +9,7 @@
 #include "file.h"
 #include "lib.h"
 #include "assembly_ops.h"
+#include "terminal.h"
 
 #define pcb_bitmask 0xFFFFE000
 #define stdin_idx 0
@@ -48,15 +49,17 @@ void init_pcb(pcb* curr_pcb)
 		curr_pcb->file_descriptor[i].flags = N_USED;
 	}
 	/* initialize stdin */
-	curr_pcb->file_descriptor[stdin_idx].file_opt_ptr = stdin_ops; /* initialize jump table */
+	curr_pcb->file_descriptor[stdin_idx].file_opt_ptr = stdin_opt; /* initialize jump table */
 	curr_pcb->file_descriptor[stdin_idx].inode_ptr = NULL; /*stdin do not have inode */
 	curr_pcb->file_descriptor[stdin_idx].file_pos = 0; /*stdin is read only */
-	curr_pcb->file_descriptor[stdin_idx].flags = 1; /* set flag in use */
+	curr_pcb->file_descriptor[stdin_idx].flags=USED;
+
+
 	/* initialize stdout */
-	curr_pcb->file_descriptor[stdout_idx].file_opt_ptr = stdout_ops; /* initialize jump table */
-	curr_pcd->file_descriptor[stdout_idx].inode_ptr = NULL; /* stdout do not have inode */
-	curr_pcd->file_descriptor[stdout_idx].file_pos = 0; /* stdout is read only */
-	curr_pcd->file_descriptor[stdout_idx].flags = 1; /* set flag in use*/
+	curr_pcb->file_descriptor[stdout_idx].file_opt_ptr = stdout_opt; /* initialize jump table */
+	curr_pcb->file_descriptor[stdout_idx].inode_ptr = NULL; /* stdout do not have inode */
+	curr_pcb->file_descriptor[stdout_idx].file_pos = 0; /* stdout is read only */
+	curr_pcb->file_descriptor[stdout_idx].flags = USED; /* set flag in use*/
 
 }
 

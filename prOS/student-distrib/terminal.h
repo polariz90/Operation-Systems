@@ -42,6 +42,8 @@ uint8_t written;
 volatile uint8_t reading;
 
 
+extern void * stdin_opt[4];
+extern void * stdout_opt[4];
 
 
 
