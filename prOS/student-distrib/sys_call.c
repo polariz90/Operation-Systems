@@ -211,7 +211,7 @@ int32_t execute(const uint8_t* command){
 
 void test_execute(){
 	int i = 0;
-	execute("testprint abc");
+	execute("shell abc");
 }
 
 /* Description:
