@@ -4,7 +4,7 @@
 #include "x86_desc.h"
 #include "assembly_ops.h"
 #include "page.h"
-
+#include "terminal.h"
 
 
 #define space_char 32
@@ -17,9 +17,9 @@
 
 
 /* array to keep in check of process number */
-uint32_t occupied[7] = {1,0,0,0,0,0,0};
+uint32_t occupied[7] = {0,0,0,0,0,0,0};
 uint32_t entry_point;
-
+pcb* kernel_pcb_ptr;
 
 /* Description:
  * system call halt.
@@ -220,7 +220,35 @@ void test_execute(){
  * 
  */
 int32_t read(int32_t fd, void* buf, int32_t nbytes){
-	return 0;
+	sti();
+	int bytesread;
+	int pid = get_next_pid();
+
+	pcb * new_pcb = add_process_stack(pid);
+
+	if( fd < 0 || fd > 7 || buf == NULL || new_pcb->file_descriptor[fd].flags == 0 )
+	{
+			return -1;
+	}
+
+/*	uint8_t* filename = new_pcb->filenames[fd];
+	uint32_t fileposition = new_pcb->file_descriptor[fd].file_pos;
+
+	asm volatile("pushl %0          ;"
+				 "pushl %1              ;"
+				 "pushl %2              ;"
+				 "pushl %3              ;"
+				 "call  *%4             ;"
+				 :
+				 : "g" (fileposition), "g" ((int32_t)filename), "g" (nbytes), "g" ((int32_t)buf),
+				   "g" (new_pcb->file_descriptor[fd].file_opt_ptr[1]));
+							 
+	asm volatile("movl %%eax, %0":"=g"(bytesread));
+	asm volatile("addl $16, %esp    ;");
+
+	new_pcb->file_descriptor[fd].file_pos += bytesread;
+*/	
+	return bytesread;
 }
 
 
@@ -230,6 +258,35 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
  * 
  */
 int32_t write(int32_t fd, void* buf, int32_t nbytes){
+/*	int pid = get_next_pid();
+	pcb * new_pcb = add_process_stack(pid);
+	
+	if( fd < 0 || fd > 7 || buf == NULL || new_pcb->filedescriptor[fd].flags == 0 )
+	{
+			return -1;
+	}
+
+
+	asm volatile("pushl %0          ;"
+				 "pushl %1              ;"
+				 "call  *%2             ;"
+				 "leave					;"
+				 "ret					;"
+				 :
+				 : "g" (nbytes), "g" ((int32_t )buf), "g" (new_pcb->filedescriptor[fd].file_opt_ptr[2]));
+*/	
+	kernel_pcb_ptr->file_descriptor[1].file_opt_ptr[2]=terminal_write;
+	kernel_pcb_ptr->file_descriptor[1].flags=USED;
+	uint32_t fun_addr=(uint32_t)kernel_pcb_ptr->file_descriptor[fd].file_opt_ptr[2];
+	asm volatile("pushal \n \
+		pushl %%ebx \n \
+		pushl %%eax \n \
+		call %%ecx"
+		:
+		: "a"(buf), "b"(nbytes), "c"(fun_addr)
+		: "cc", "memory");
+	
+
 	return 0;
 }
 
@@ -240,6 +297,13 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
  * 
  */
 int32_t open(const uint8_t* filename){
+	//asm("pushal");
+	if(!strncmp(filename, "terminal", 9)){
+		printf("get terminal argument\n");
+		//kernel_pcb_ptr->file_descriptor[1].file_opt_ptr=stdout_ops;
+		kernel_pcb_ptr->file_descriptor[1].flags=USED;
+	}	
+	//asm("popal;leave;iret");
 	return 0;
 }
 
@@ -309,7 +373,8 @@ void sys_call_handler(){
 //	asm("pushal");
 	printf("system call handle!!\n");
 	int32_t temp;
-	temp = execute("shell arghaha");
+	temp = execute("testprint arg");
+>>>>>>> origin/master
 	printf("execute finished, and returned into the wrong palce \n");
 //	asm("popal;leave;iret");
 }

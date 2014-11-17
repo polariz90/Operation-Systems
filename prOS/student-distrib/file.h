@@ -17,6 +17,8 @@
 #define four_kb 4096 /* 4KB = 4096 bytes */
 #define name_length 32 /* length of the name string */
 
+#define USED 1 /*flag in file array*/
+
 #include "x86_desc.h"
 #include "assembly_ops.h"
 
@@ -81,7 +83,7 @@ typedef struct
   */
 typedef struct 
 {
-  void * file_opt_ptr;  /*4 bytes file operation table pointer*/
+  void * file_opt_ptr[4];  /*4 bytes file operation table pointer*/
   inode_struct* inode_ptr;  /* 4 bytes inodes ptr */
   uint32_t file_pos; /* 4 bytes file position */
   uint32_t flags; /* 4 bytes flags */

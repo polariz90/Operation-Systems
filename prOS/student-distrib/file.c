@@ -41,7 +41,7 @@ void init_pcb(pcb* curr_pcb)
 	/* intilizing the stdin and stdout*/
 	int i;
 	for( i = 0; i < 8; i++){
-		curr_pcb->file_descriptor[i].file_opt_ptr = NULL;
+		//curr_pcb->file_descriptor[i].file_opt_ptr = NULL;
 		curr_pcb->file_descriptor[i].inode_ptr = NULL;
 		curr_pcb->file_descriptor[i].file_pos = 0;
 		curr_pcb->file_descriptor[i].flags = 0;
