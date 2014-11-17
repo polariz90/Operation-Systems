@@ -7,7 +7,7 @@
 .text
 
 # /*global variable declaration*/ 
-.globl sys_call_linkage
+.globl sys_call_linkage, _sys_call_linkage
 .globl test_out
 
 	.align  4
