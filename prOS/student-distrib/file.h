@@ -102,8 +102,6 @@ typedef struct
 {
 	file_entry file_descriptor[8];
 	void* parent_page_dir_ptr;
-//	void* page_table_ptr;
-//	void* parent_process;
   uint32_t parent_eip;
 	uint32_t debug_info;
   uint32_t pid;
@@ -113,8 +111,6 @@ typedef struct
   uint32_t parent_pid;
   tss_t tss;
 }pcb;
-
-//extern pcb file_desc[8];
 
 extern super_block* s_block;
 

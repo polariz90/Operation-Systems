@@ -205,7 +205,6 @@ entry (unsigned long magic, unsigned long addr)
 	clear();
 
 
-
 	test_execute();
 
 /*	//WRITE SYSTEM CALL TEST(terminal)
