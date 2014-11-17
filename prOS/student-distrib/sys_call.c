@@ -10,10 +10,9 @@
 #define space_char 32
 #define vir_mem_add 0x08000000
 #define phy_mem_add 0x800000
-//#define four_mb 0x200000
 #define four_mb 0x400000
 #define eight_mb 0x800000
-#define eight_kb 0x8000
+#define eight_kb 0x2000
 
 
 /* array to keep in check of process number */
@@ -32,26 +31,35 @@ int32_t halt(uint8_t status){
 	/*restore parent's esp/ebp and anything else you need*/
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
-	asm(
-		"movl %%eax, %%esp 			;"
-		"movl %%ebx, %%ebp 			;"
-		:
-		: "a"(current_pcb->parent_esp), "b"(current_pcb->parent_ebp)
-		: "memory", "cc"
-		);
+	/*may want to prevent user to close the last shell*/
 
+	/* set TSS back to point at parent's kernel stack */
+	tss.esp0 = eight_mb - (eight_kb*current_pcb->parent_pid) - 4;
 
-	/*restore parent's paging*/
-	asm(
-		"movl %%eax, %%cr3			;"
-		: 
-		: "a"(current_pcb->parent_page_dir_ptr) 
-		: "memory","cc"
-		);
+	int parent_page = current_pcb->parent_page_dir_ptr;
 
 	/* reset current processes mask for other process use */
 	occupied[current_pcb->pid] = 0;
 
+		/*restore parent's paging*/
+	asm(
+		"movl %%eax, %%cr3			;"
+		: 
+		: "a"(parent_page) 
+		: "memory","cc"
+		);
+
+	/* transfer back to parent stack */
+	asm(
+		"movl %%eax, %%esp 			;"
+		"movl %%ebx, %%ebp 			;"
+		"pushl %%ecx 				;"
+		:
+		: "a"(current_pcb->parent_esp), "b"(current_pcb->parent_ebp), "c"(status)
+		: "memory", "cc"
+		);
+
+		stil();
 	asm volatile(
 				"movl $0,  %%eax;"
 				"leave			;"
@@ -59,8 +67,6 @@ int32_t halt(uint8_t status){
 				: : :"eax","memory","cc"
 				);
 
-//	asm("movl $0, %eax");
-//	asm("iret");
 	return 0;
 
 }
@@ -89,7 +95,7 @@ int32_t execute(const uint8_t* command){
 	return 0;
 	}
 
-	printf("command: %s\n", command);
+	printf("command input : %s\n", command);
 
 	/*Parse*/
 	uint8_t com_arr[128];
@@ -160,6 +166,7 @@ int32_t execute(const uint8_t* command){
 	return 0;
 	}
 
+
 	/*new PCB*/
 	pcb* new_pcb = add_process_stack(pid); /* new PCB for new process */
 
@@ -184,19 +191,10 @@ int32_t execute(const uint8_t* command){
 	int temp = eight_kb*pid;
 	tss.esp0= eight_mb - temp - 4;
 	tss.ss0= KERNEL_DS;
-	//tss.prev_task_link=KERNEL_TSS;
-	//tss.eflags = 0x00004000;
-	//tss_desc_ptr.dpl=0x3;
 
-
-	printf("esp0: %x\n", tss.esp0);
-	printf("ss0: %x\n", tss.ss0);
-
-
+	/*getting entry_point from file image*/
 	memcpy(&entry_point, buf+24, 4);
-	printf("entry point: %x\n", entry_point);
 
-//	test_out(entry_point);
 
 
 	uint32_t eflag = 0;
@@ -234,8 +232,9 @@ void test_execute(){
 
 /* Description:
  * system call read.
- *
- * 
+ *	Read system call: passing in fd with read buffer and number of bytes need to 
+ * be read. return number of bytes that read, or return 0 when reach the end of 
+ * of the file
  */
 int32_t read(int32_t fd, void* buf, int32_t nbytes){
 	sti();
@@ -260,8 +259,8 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 
 /* Description:
  * system call write.
- *
- * 
+ *  Write system call: passing in fd with buffer and number of bytes need to 
+ * be write. Return number of bytes that write to the terminal. 
  */
 int32_t write(int32_t fd, void* buf, int32_t nbytes){
 
@@ -286,8 +285,9 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
 
 /* Description:
  * system call open.
- *
- * 
+ *  Open system call: passing in with a filename, and allocate fd location for the 
+ * file, if fd is full, return -1. else return 0 with side effect of a functional 
+ *  file descriptor 
  */
 int32_t open(const uint8_t* filename){
 	if(!strncmp((int8_t*)filename,(int8_t*) "terminal", 9)){
@@ -304,8 +304,9 @@ int32_t open(const uint8_t* filename){
 
 /* Description:
  * system call close.
- *
- * 
+ *   Close system call: passing in with fd, close the corresponding fd for the file
+ * let it free to be used by other process. return -1 for fail operation, and return 
+ * 0 when success
  */
 int32_t close(int32_t fd){
 	
@@ -319,7 +320,7 @@ int32_t close(int32_t fd){
 
 /* Description:
  * system call getargs.
- *
+ *  Getarg system call: 
  * 
  */
 int32_t getargs(uint8_t* buf, int32_t nbytes){

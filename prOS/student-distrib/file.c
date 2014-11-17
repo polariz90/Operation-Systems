@@ -49,6 +49,7 @@ void init_pcb(pcb* curr_pcb)
 		curr_pcb->file_descriptor[i].flags = N_USED;
 	}
 	/* initialize stdin */
+
 	curr_pcb->file_descriptor[stdin_idx].file_opt_ptr = stdin_opt; /* initialize jump table */
 	curr_pcb->file_descriptor[stdin_idx].inode_ptr = NULL; /*stdin do not have inode */
 	curr_pcb->file_descriptor[stdin_idx].file_pos = 0; /*stdin is read only */
@@ -60,6 +61,7 @@ void init_pcb(pcb* curr_pcb)
 	curr_pcb->file_descriptor[stdout_idx].inode_ptr = NULL; /* stdout do not have inode */
 	curr_pcb->file_descriptor[stdout_idx].file_pos = 0; /* stdout is read only */
 	curr_pcb->file_descriptor[stdout_idx].flags = USED; /* set flag in use*/
+
 
 }
 
@@ -451,6 +453,7 @@ pcb* getting_to_know_yourself(){
 		"movl %%esp, %0" : "=g"(curr_pcb_add)
 		);
 
+//	curr_pcb_add = tss.esp0;
 	curr_pcb_add &= pcb_bitmask; 
 
 	return (pcb*)curr_pcb_add;

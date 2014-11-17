@@ -22,6 +22,10 @@ _sys_call_linkage:
 	pushl	%ebx
 	pushl	%esi
 	pushl	%edi
+# /* pushing on parameters */
+	pushl	%edx
+	pushl	%ecx
+	pushl	%ebx
 # /* check eax input valid*/
 	cmpl $1, %eax		# Check that eax is greater than 1
 	jl FAIL_EAX
@@ -116,7 +120,11 @@ FAIL_EAX:
 	jmp LINK_RET
 
 LINK_RET:
-	/*pop all registers*/
+# /* pop off parameters */
+	popl	%ebx 
+	popl 	%ecx 
+	popl	%edx 
+#	/*pop all registers*/
 	popl	%edi
 	popl	%esi
 	popl	%ebx
@@ -144,11 +152,6 @@ sys_call_jumptable:
 	.long set_handler
 	.long sigreturn
 sys_call_jumptable_bot:
-
-
-
-
-
 
 
 

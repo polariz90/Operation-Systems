@@ -186,7 +186,12 @@ entry (unsigned long magic, unsigned long addr)
 
 	//set up current pcb, pid should be 0
 	int pid= get_next_pid();
-	kernel_pcb_ptr= add_process_stack(pid);
+	kernel_pcb_ptr = add_process_stack(pid); /* creating kernel pcb*/
+	kernel_pcb_ptr->parent_page_dir_ptr = NULL; /* kernel doesn't have parent process */
+	kernel_pcb_ptr->pid = 0; /* kernel is the 0 process always */
+	kernel_pcb_ptr->parent_esp = 0; 
+	kernel_pcb_ptr->parent_ebp = 0;
+	kernel_pcb_ptr->parent_pid = 0;
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
@@ -200,33 +205,6 @@ entry (unsigned long magic, unsigned long addr)
 	clear();
 
 
-
-	//test_execute();
-
-/*	//WRITE SYSTEM CALL TEST(terminal)
-	uint8_t buf[]="if you see this, terminal write sys call success!!!";
-	int fd;
-	int nbyte=100;
-	fd=1;
-	asm("movl $4, %%eax"
-		: : "b"(fd), "c"(buf), "d"(nbyte)
-		:"eax", "cc");
-
-	asm("int $0x80");
-*/
-
-/*	//READ SYSTEM CALL TEST(terminal)
-	uint8_t buf[100];
-	int fd;
-	int nbyte=100;
-	fd=0;
-	asm("movl $3, %%eax"
-		: : "b"(fd), "c"(buf), "d"(nbyte)
-		:"eax", "cc");
-	asm("int $0x80");
-	printf("finish terminal read!\n");
-	printf("keyboard buffer= %s\n", buf);
-*/
 
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
