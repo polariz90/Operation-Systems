@@ -177,7 +177,6 @@ int32_t execute(const uint8_t* command){
 	new_pcb->parent_ebp = parent_ebp; /* save parent ebp */
 	new_pcb->parent_pid = current_pcb->pid; /* loading parent pid */
 
-	//new_pcb->parent_eip=(uint32_t)tss.eip;
 	new_pcb->parent_page_dir_ptr= (void*)parent_pcb; /**/
 
 	/*context switch*/
@@ -185,9 +184,6 @@ int32_t execute(const uint8_t* command){
 	int temp = eight_kb*pid;
 	tss.esp0= eight_mb - temp - 4;
 	tss.ss0= KERNEL_DS;
-	//tss.prev_task_link=KERNEL_TSS;
-	//tss.eflags = 0x00004000;
-	//tss_desc_ptr.dpl=0x3;
 
 
 	printf("esp0: %x\n", tss.esp0);
@@ -196,8 +192,6 @@ int32_t execute(const uint8_t* command){
 
 	memcpy(&entry_point, buf+24, 4);
 	printf("entry point: %x\n", entry_point);
-
-//	test_out(entry_point);
 
 
 	uint32_t eflag = 0;
