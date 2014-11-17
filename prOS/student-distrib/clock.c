@@ -6,6 +6,7 @@
   */
 
 #include "clock.h"
+#include "terminal.h"
 
 #define lowerbound 48
 #define upperbound 58

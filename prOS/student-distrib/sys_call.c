@@ -2,6 +2,7 @@
 #include "sys_call.h"
 #include "file.h"
 #include "x86_desc.h"
+#include "page.h"
 
 
 #define space_char 32
@@ -26,8 +27,9 @@ int32_t halt(uint8_t status){
 	/*restore parent's esp/ebp and anything else you need*/
 	/*restore parent's paging*/
 
-	asm("movl $0, %eax");
-	asm("iret");
+//	asm("movl $0, %eax");
+//	asm("iret");
+	return 0;
 }
 
 
@@ -74,13 +76,13 @@ int32_t execute(const uint8_t* command){
 
 	/*Excutable check*/
 	uint8_t buf[four_kb];
-	read_file_img(com_arr, buf);
+	read_file_img((int8_t*)com_arr,(uint8_t*) buf);
 	uint8_t ELF[4];
 	ELF[0]=0x7f;
 	ELF[1]=0x45;
 	ELF[2]=0x4c;
 	ELF[3]=0x46;
-	if(strncmp((uint8_t*)buf, (uint8_t*)ELF, 4)){
+	if(strncmp((int8_t*)buf, (int8_t*)ELF, (uint32_t)4)){
 		printf("not Excutable!!\n");
 		return -1;
 	}
@@ -99,7 +101,7 @@ int32_t execute(const uint8_t* command){
 
 
 	/*File loader*/
-	if(load_file_img(com_arr) == -1){
+	if(load_file_img((int8_t*)com_arr) == -1){
 		return -1;
 	}
 
@@ -109,8 +111,8 @@ int32_t execute(const uint8_t* command){
 	/* filling PCB with stuff */
 	new_pcb->pid = pid;
 	strcpy((int8_t*)new_pcb->arg, (int8_t*)arg_arr);
-	new_pcb->parent_eip=tss.eip;
-	new_pcb->page_dir_ptr=parent_pcb;
+	//new_pcb->parent_eip=(uint32_t)tss.eip;
+	new_pcb->page_dir_ptr= (void*)parent_pcb;
 
 	/*context switch*/
 	//set up tss.esp0, ss0
@@ -120,10 +122,6 @@ int32_t execute(const uint8_t* command){
 	//tss.eflags = 0x00004000;
 	//tss_desc_ptr.dpl=0x3;
 
-	asm("movw %%ax, %%ds"
-		: 
-		: "a"(USER_DS)
-		: "memory", "cc");
 
 	printf("esp0: %x\n", tss.esp0);
 	printf("ss0: %x\n", tss.ss0);
@@ -143,13 +141,22 @@ int32_t execute(const uint8_t* command){
 
 
 	asm volatile("pushl %%eax        \n      \
-			pushl $0x083FFFFC        \n      \
+			pushl $0x083FFFF0        \n      \
 			pushl %%edx        \n      \
 			pushl %%ecx        \n      \
 			pushl %%ebx"        				
 			: 
-			: "b"(entry_point), "d"(eflag), "c"(USER_CS), "a"(USER_DS) 
+			: "b"(entry_point), "d"(eflag|0x4200), "c"(USER_CS), "a"(USER_DS) 
 			: "memory", "cc" );
+
+	asm("movw %%ax, %%ds  \n   \
+		movw %%ax, %%gs    \n   \
+		movw %%ax, %%fs    \n   \
+		movl $0x083FFFF0, %%ebp    \n   \
+		movw %%ax, %%es"
+		: 
+		: "a"(USER_DS)
+		: "memory", "cc");
 
 	asm ("iret");
 
@@ -248,12 +255,12 @@ int32_t sigreturn(void){
  * 
  */
 void sys_call_handler(){
-	asm("pushal");
+//	asm("pushal");
 	printf("system call handle!!\n");
 	int32_t temp;
-	temp = execute("shell arg");
+	temp = execute("testprint arg");
 	printf("execute finished, and returned into the wrong palce \n");
-	asm("popal;leave;iret");
+//	asm("popal;leave;iret");
 }
 
 /**
