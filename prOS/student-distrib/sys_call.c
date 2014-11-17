@@ -13,6 +13,8 @@
 #define four_mb 0x400000
 #define eight_mb 0x800000
 #define eight_kb 0x2000
+#define size_of_occupied 7
+#define buffer_size 128
 
 
 /* array to keep in check of process number */
@@ -36,7 +38,7 @@ int32_t halt(uint8_t status){
 	/* set TSS back to point at parent's kernel stack */
 	tss.esp0 = eight_mb - (eight_kb*current_pcb->parent_pid) - 4;
 
-	int parent_page = current_pcb->parent_page_dir_ptr;
+	int parent_page = (int)current_pcb->parent_page_dir_ptr;
 
 	/* reset current processes mask for other process use */
 	occupied[current_pcb->pid] = 0;
@@ -59,7 +61,8 @@ int32_t halt(uint8_t status){
 		: "memory", "cc"
 		);
 
-		stil();
+		sti();
+
 	asm volatile(
 				"movl $0,  %%eax;"
 				"leave			;"
@@ -90,13 +93,16 @@ int32_t execute(const uint8_t* command){
 		
 		asm("movl $-1, %eax");
 		asm("leave;ret"); /* fail execute */
+
+	//will never get here, stops compiler warnings 
+	return 0;
 	}
 
 	printf("command input : %s\n", command);
 
 	/*Parse*/
-	uint8_t com_arr[128];
-	uint8_t arg_arr[128];
+	uint8_t com_arr[buffer_size];
+	uint8_t arg_arr[buffer_size];
 	/* special case check */
 	if(command == NULL){
 		/* case empty string */
@@ -111,13 +117,13 @@ int32_t execute(const uint8_t* command){
 		asm("leave;ret");
 	}
 	i = 0;
-	while(!((command[i] == space_char)||(command[i] == NULL))){/* copying command */
+	while(!((command[i] == space_char)||(command[i] == '\0'))){/* copying command */
 		com_arr[i] = command[i];
 		i++;
 	}
 	com_arr[i] = '\0';
 	j = 0; i++;
-	while(command[i] != NULL){/* copying argument */
+	while(command[i] != '\0'){/* copying argument */
 		arg_arr[j] = command[i];
 		i++; j++;
 	}
@@ -126,10 +132,10 @@ int32_t execute(const uint8_t* command){
 	printf("filename: %s\n", com_arr);
 
 	/*Excutable check*/
-	uint8_t buf[100];
-	read_file_img((int8_t*)com_arr,(uint8_t*) buf, 100);
+	uint8_t buf[buffer_size];
+	read_file_img((int8_t*)com_arr,(uint8_t*) buf, buffer_size);
 	uint8_t ELF[4];
-	ELF[0]=0x7f;
+	ELF[0]=0x7f; /* executable check for magic number ELF*/
 	ELF[1]=0x45;
 	ELF[2]=0x4c;
 	ELF[3]=0x46;
@@ -158,6 +164,9 @@ int32_t execute(const uint8_t* command){
 		
 		asm("movl $-1, %eax");
 		asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 	}
 
 
@@ -214,12 +223,16 @@ int32_t execute(const uint8_t* command){
 
 	asm("movl $0, %eax");
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
-
+/**
+  * test function to call execute system call
+  */
 void test_execute(){
-	int i = 0;
-	execute("shell abc");
+	execute((uint8_t*)"shell abc");
 }
 
 /* Description:
@@ -235,7 +248,7 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 	asm volatile("pushal \n \
 		pushl %%ebx \n \
 		pushl %%eax \n \
-		call %%ecx	\n \
+		call *%%ecx	\n \
 		addl $8, %%esp"
 		:
 		: "a"(buf), "b"(nbytes), "c"(fun_addr)
@@ -243,6 +256,9 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 
 	/*return 0*/
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
 
@@ -258,7 +274,7 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
 	asm volatile("pushal \n \
 		pushl %%ebx \n \
 		pushl %%eax \n \
-		call %%ecx	\n \
+		call *%%ecx	\n \
 		addl $8, %%esp"
 		:
 		: "a"(buf), "b"(nbytes), "c"(fun_addr)
@@ -266,6 +282,9 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
 
 	/*return 0*/
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
 
@@ -276,11 +295,15 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
  *  file descriptor 
  */
 int32_t open(const uint8_t* filename){
-	if(!strncmp(filename, "terminal", 9)){
+	if(!strncmp((int8_t*)filename,(int8_t*) "terminal", 9)){
+	//	printf("get terminal argument\n");
 	}
 	
 	asm("movl $0, %eax");  //comment this line after add the function
 	asm("leave;ret");
+
+	//will never get here 
+	return 0;
 }
 
 
@@ -294,6 +317,9 @@ int32_t close(int32_t fd){
 	
 	asm("movl $0, %eax");  //comment this line after add the function
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
 
@@ -306,6 +332,9 @@ int32_t getargs(uint8_t* buf, int32_t nbytes){
 	
 	asm("movl $0, %eax");  //comment this line after add the function
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
 
@@ -318,6 +347,9 @@ int32_t vidmap(uint8_t** screen_start){
 	
 	asm("movl $0, %eax");  //comment this line after add the function
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
 
@@ -330,6 +362,9 @@ int32_t set_handler(int32_t signum, void* handler_address){
 	
 	asm("movl $0, %eax"); //comment this line after add the function
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
 
@@ -343,28 +378,11 @@ int32_t sigreturn(void){
 
 	asm("movl $0, %eax"); //comment this line after add the function
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
-/* Description:
- * Handler for the system call. This should be a jump table
- *
- * Exception Class:
- *
- *
- * Exception Error Code:
- * 
- *
- * Saved Instruction Pointer:
- * 
- */
-void sys_call_handler(){
-//	asm("pushal");
-	printf("system call handle!!\n");
-	int32_t temp;
-	temp = execute("testprint arg");
-	printf("execute finished, and returned into the wrong palce \n");
-//	asm("leave;iret");
-}
 
 /**
   * get next pid
@@ -374,9 +392,9 @@ void sys_call_handler(){
   */
 uint32_t get_next_pid(void){
 	int i = 0; /* loop counter */
-	while(i < 7){
-		if(occupied[i] == 0){/* case avaliable*/
-			occupied[i] = 1;
+	while(i < size_of_occupied){
+		if(occupied[i] == N_USED){/* case avaliable*/
+			occupied[i] = USED;
 			return i;
 		}
 		else{
