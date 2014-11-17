@@ -15,12 +15,14 @@
 #include "terminal.h"
 #include "pros_img.h"
 #include "assembly_ops.h"
-
+#include "sys_call.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags,bit)   ((flags) & (1 << (bit)))
 super_block* s_block;
+
+
 
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
@@ -182,7 +184,9 @@ entry (unsigned long magic, unsigned long addr)
 	/*opens the terminal, done by user*/
 	terminal_open();
 
-
+	//set up current pcb
+	int pid= get_next_pid();
+	kernel_pcb_ptr= add_process_stack(pid);
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
@@ -196,10 +200,25 @@ entry (unsigned long magic, unsigned long addr)
 	clear();
 
 //	asm("pushal");
-	asm("movl $1, %%eax	\n \
-		int $0x80"
-		: : :"eax", "cc");
-	//asm("int $0x80");
+
+/*	uint8_t * filename="terminal";
+
+	asm("movl $5, %%eax"
+		: : "b"(filename)
+		:"eax", "cc");
+*/
+
+/*	uint8_t buf[]="if you see this, terminal write sys call success!!!";
+	int fd;
+	int nbyte=100;
+	fd=1;
+	asm("movl $4, %%eax"
+		: : "b"(fd), "c"(buf), "d"(nbyte)
+		:"eax", "cc");
+*/
+	asm("int $0x80");
+
+
 
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");

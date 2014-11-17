@@ -9,6 +9,7 @@
 # /*global variable declaration*/ 
 .globl sys_call_linkage, _sys_call_linkage
 .globl test_out
+.globl stdout_ops, stdin_ops
 
 	.align  4
 sys_call_linkage:
@@ -95,7 +96,7 @@ check_10:
 	jmp		continue_sys_call
 
 continue_sys_call:	
-	jmp *sys_call_jumptable(,%eax,4)
+	call *sys_call_jumptable(,%eax,4)
 
 FAIL_EAX:
 	movl $-1, 	%eax; 
@@ -126,20 +127,19 @@ sys_call_jumptable_bot:
 
 
 
+stdin_ops:
+_stdin_ops:
+	.long 0x0
+	.long 0x0
+	.long 0x0
+	.long 0x0
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+stdout_ops:
+_stdout_ops:
+	.long terminal_open
+	.long terminal_read
+	.long terminal_write
+	.long terminal_close
 
 
 
