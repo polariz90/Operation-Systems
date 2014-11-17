@@ -1,19 +1,12 @@
-# assembly_ops.S - contains the operation tables for the file descriptor tables, also contains the jumptable for system calls
-# vim:ts=4 noexpandtab
+
 
 
 .text
 
 .globl sys_call_jmptable
+.globl sys_call_linkage
 .globl stdin_ops, stdout_ops
-# unsure if I need this, included it due to its location in x86_desc.S
 
-
-#	Operation jumptables are constructred in this format
-#	0:	open
-#	1:	read
-#	2:	write
-#	3:	close
 
 
 stdin_ops:
@@ -34,11 +27,77 @@ _stdout_ops:
 
 sys_call_linkage:
 _sys_call_linkage:
-	pushal
-	jmp *sys_call_jmptable(,%eax,4)
+	cmpl 	$1,%eax
+	jne 	check_2
+	pushl	%ebx
+	jmp		continue_sys_call
+ 
+check_2:
+	cmpl 	$2,%eax
+	jne		check_3
+	pushl	%ebx
+	jmp		continue_sys_call
 
-sys_call_jmptable:
-_sys_call_jmptable:
+check_3:
+	cmpl 	$3,%eax
+	jne		check_4
+	pushl	%edx
+	pushl	%ecx
+	pushl	%ebx
+	jmp		continue_sys_call
+
+check_4:
+	cmpl 	$4,%eax
+	jne		check_5
+	pushl	%edx
+	pushl	%ecx
+	pushl	%ebx
+	jmp		continue_sys_call
+
+check_5:
+	cmpl 	$5,%eax
+	jne		check_6
+	pushl	%ebx
+	jmp		continue_sys_call
+
+check_6:
+	cmpl 	$6,%eax
+	jne		check_7
+	pushl	%ebx
+	jmp		continue_sys_call
+
+check_7:
+	cmpl 	$7,%eax
+	jne		check_8
+	pushl	%ecx
+	pushl	%ebx
+	jmp		continue_sys_call
+
+check_8:
+	cmpl 	$8,%eax
+	jne		check_9
+	pushl	%ebx
+	jmp		continue_sys_call
+
+check_9:
+	cmpl 	$9,%eax
+	jne		check_10
+	pushl	%ecx
+	pushl	%ebx
+	jmp		continue_sys_call
+
+check_10:
+	cmpl 	$10,%eax
+	je		continue_sys_call		
+	movl 	$0,%eax
+	jmp		continue_sys_call
+
+continue_sys_call:	
+	jmp *sys_call_jumptable(,%eax,4)
+sys_call_linkage_buttom:
+
+sys_call_jumptable:
+_sys_call_jumptable:
 	.long halt
 	.long execute
 	.long read
@@ -49,5 +108,4 @@ _sys_call_jmptable:
 	.long vidmap
 	.long set_handler
 	.long sigreturn
-
-
+sys_call_jumptable_bot:

@@ -70,7 +70,6 @@ int32_t execute(const uint8_t* command){
 	}
 	arg_arr[j+1] = '\0';
 
-	printf("filename: %s\n", com_arr);
 
 	/*Excutable check*/
 	uint8_t buf[four_kb];
@@ -99,6 +98,7 @@ int32_t execute(const uint8_t* command){
 
 
 
+
 	/*File loader*/
 	if(load_file_img(com_arr) == -1){
 		return -1;
@@ -123,23 +123,27 @@ int32_t execute(const uint8_t* command){
 
 	//uint32_t entry_point;
 
-	for(i=0;i<10;i++)
-		printf("%d: 0x%x\n", i, buf[20+i]);
+//	for(i=0;i<10;i++)
+//		printf("%d: 0x%x\n", i, buf[20+i]);
 	memcpy(&entry_point, buf+24, 4);
 	printf("entry point: %x\n", entry_point);
-	//asm("pushal");
 
-	//asm("movl %eip, %eax\n\t" "pushl %eax\n\t");
-	//asm("pushl %%eax" : : : "eax");
+	uint32_t eflag;
+	cli_and_save(eflag);
+	restore_flags(eflag|0x00004000);
+	sti();
+
+
 	asm volatile("pushl %%eax        \n      \
 			pushl $0x083FFFFC        \n      \
 			pushl %%edx        \n      \
 			pushl %%ecx        \n      \
-			pushl %%ebx        \n           \
-			iret"				\
+			pushl %%ebx"        				
 			: 
-			: "b"(entry_point), "c"(USER_CS), "d"(tss.eflags|0x00004000), "a"(USER_DS) 
+			: "b"(entry_point), "d"(eflag), "c"(USER_CS), "a"(USER_DS) 
 			: "memory", "cc" );
+
+	asm ("iret");
 
 	return 0;
 }
@@ -237,9 +241,6 @@ int32_t sigreturn(void){
  */
 void sys_call_handler(){
 	asm("pushal");
-	int i;
-	i=0;
-
 	printf("system call handle!!\n");
 	int32_t temp;
 	temp = execute("testprint arghaha");

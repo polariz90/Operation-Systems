@@ -478,7 +478,6 @@ int load_file_img(int8_t* fname)
 		output = read_data(file_dentry.inode_num, offset, (uint8_t*) buff, 20);
 
 		if(output == 0){/* case hit the end of the file */
-			printf("check pt 1\n");
 			last_chunk = curr_inode->length - offset;
 			memcpy(load_ptr, buff, last_chunk); 
 		}
@@ -489,7 +488,7 @@ int load_file_img(int8_t* fname)
 		else{ /* else case, load 20 */
 			memcpy(load_ptr, buff, 20);
 			offset += 20;
-			load_ptr += 20*8;
+			load_ptr += 20;
 		}
 	}while(output != 0);
 

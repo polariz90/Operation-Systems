@@ -213,7 +213,7 @@ int map_4KB_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32_t priv
 			"movl %%eax, %%cr0                ;"
 			: : : "eax" ,"cc" );	
 
-		int j = 0;
+
 
 		return 0;
 
