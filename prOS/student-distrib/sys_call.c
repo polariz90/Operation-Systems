@@ -10,7 +10,6 @@
 #define space_char 32
 #define vir_mem_add 0x08000000
 #define phy_mem_add 0x800000
-//#define four_mb 0x200000
 #define four_mb 0x400000
 #define eight_mb 0x800000
 #define eight_kb 0x2000
@@ -92,7 +91,7 @@ int32_t execute(const uint8_t* command){
 		asm("leave;ret"); /* fail execute */
 	}
 
-	printf("command: %s\n", command);
+	printf("command input : %s\n", command);
 
 	/*Parse*/
 	uint8_t com_arr[128];
@@ -185,19 +184,10 @@ int32_t execute(const uint8_t* command){
 	int temp = eight_kb*pid;
 	tss.esp0= eight_mb - temp - 4;
 	tss.ss0= KERNEL_DS;
-	//tss.prev_task_link=KERNEL_TSS;
-	//tss.eflags = 0x00004000;
-	//tss_desc_ptr.dpl=0x3;
 
-
-	printf("esp0: %x\n", tss.esp0);
-	printf("ss0: %x\n", tss.ss0);
-
-
+	/*getting entry_point from file image*/
 	memcpy(&entry_point, buf+24, 4);
-	printf("entry point: %x\n", entry_point);
 
-//	test_out(entry_point);
 
 
 	uint32_t eflag = 0;
