@@ -90,6 +90,7 @@ int32_t execute(const uint8_t* command){
 	/* getting new pid for processes */
 	int pid = get_next_pid();
 	if(pid == -1){
+		occupied[pid]=0;
 		
 		asm("movl $-1, %eax");
 		asm("leave;ret"); /* fail execute */
@@ -106,13 +107,13 @@ int32_t execute(const uint8_t* command){
 	/* special case check */
 	if(command == NULL){
 		/* case empty string */
-		
+		occupied[pid]=0;
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
 	if(command[0] == space_char){
 		/* case single space string */
-		
+		occupied[pid]=0;
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
@@ -134,6 +135,7 @@ int32_t execute(const uint8_t* command){
 	/*Excutable check*/
 	uint8_t buf[buffer_size];
 	if(read_file_img((int8_t*)com_arr,(uint8_t*) buf, buffer_size) == -1){
+		occupied[pid]=0;
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
@@ -145,7 +147,7 @@ int32_t execute(const uint8_t* command){
 	if(strncmp((int8_t*)buf, (int8_t*)ELF, (uint32_t)4)){
 //		printf("not Excutable!!\n");
 
-		
+		occupied[pid]=0;
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
@@ -166,7 +168,7 @@ int32_t execute(const uint8_t* command){
 
 	/*File loader*/
 	if(load_file_img((int8_t*)com_arr) == -1){
-		
+		occupied[pid]=0;
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 
