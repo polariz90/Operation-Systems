@@ -17,6 +17,7 @@ extern uint32_t min_h;
 extern uint32_t min_l;
 extern uint32_t sec_h;
 extern uint32_t sec_l;
+extern char time_buffer[5];
 
 void update_time ();
 char in_to_char (uint32_t input);

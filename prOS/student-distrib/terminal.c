@@ -393,3 +393,5 @@ int stdin_write(){
 int stdout_read(){
 	return 0;
 }
+
+

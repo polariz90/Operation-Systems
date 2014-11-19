@@ -10,10 +10,11 @@
 #define space_char 32
 #define vir_mem_add 0x08000000
 #define phy_mem_add 0x800000
-//#define four_mb 0x200000
 #define four_mb 0x400000
 #define eight_mb 0x800000
 #define eight_kb 0x2000
+#define size_of_occupied 7
+#define buffer_size 128
 
 
 /* array to keep in check of process number */
@@ -37,7 +38,7 @@ int32_t halt(uint8_t status){
 	/* set TSS back to point at parent's kernel stack */
 	tss.esp0 = eight_mb - (eight_kb*current_pcb->parent_pid) - 4;
 
-	int parent_page = current_pcb->parent_page_dir_ptr;
+	int parent_page = (int)current_pcb->parent_page_dir_ptr;
 
 	/* reset current processes mask for other process use */
 	occupied[current_pcb->pid] = 0;
@@ -60,6 +61,8 @@ int32_t halt(uint8_t status){
 		: "memory", "cc"
 		);
 
+		sti();
+
 	asm volatile(
 				"movl $0,  %%eax;"
 				"leave			;"
@@ -67,7 +70,7 @@ int32_t halt(uint8_t status){
 				: : :"eax","memory","cc"
 				);
 
-	return 0;
+	return status;
 
 }
 
@@ -87,60 +90,76 @@ int32_t execute(const uint8_t* command){
 	/* getting new pid for processes */
 	int pid = get_next_pid();
 	if(pid == -1){
+
+		printf("Warning!!! Reaching maximum process capacity!! Calm Down Pls!!!!\n");
 		
 		asm("movl $-1, %eax");
 		asm("leave;ret"); /* fail execute */
+
 	}
 
-	printf("command: %s\n", command);
+//	printf("command input : %s\n", command);
 
 	/*Parse*/
-	uint8_t com_arr[128];
-	uint8_t arg_arr[128];
+	uint8_t com_arr[buffer_size];
+	uint8_t arg_arr[buffer_size];
 	/* special case check */
 	if(command == NULL){
 		/* case empty string */
-		
+		occupied[pid]=0;
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
 	if(command[0] == space_char){
 		/* case single space string */
-		
+		occupied[pid]=0;
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
 	i = 0;
-	while(!((command[i] == space_char)||(command[i] == NULL))){/* copying command */
+	while(!((command[i] == space_char)||(command[i] == '\0'))){/* copying command */
 		com_arr[i] = command[i];
 		i++;
 	}
 	com_arr[i] = '\0';
 	j = 0; i++;
-	while(command[i] != NULL){/* copying argument */
+	while(command[i] != '\0'){/* copying argument */
 		arg_arr[j] = command[i];
 		i++; j++;
 	}
 	arg_arr[j] = '\0';
 
-	printf("filename: %s\n", com_arr);
+	/* checking special commands */
+	if(strncmp(com_arr, "clear", 5) == 0){ /* clear screen command */
+		clear();
+		occupied[pid]=0;
+		//asm("movl $-1, %eax");
+		//asm("leave;ret");
+		return 0;
+	}
 
 	/*Excutable check*/
-	uint8_t buf[100];
-	read_file_img((int8_t*)com_arr,(uint8_t*) buf, 100);
+	uint8_t buf[buffer_size];
+	if(read_file_img((int8_t*)com_arr,(uint8_t*) buf, buffer_size) == -1){
+		occupied[pid]=0;
+		asm("movl $-1, %eax");
+		asm("leave;ret");
+	}
 	uint8_t ELF[4];
-	ELF[0]=0x7f;
+	ELF[0]=0x7f; /* executable check for magic number ELF*/
 	ELF[1]=0x45;
 	ELF[2]=0x4c;
 	ELF[3]=0x46;
 	if(strncmp((int8_t*)buf, (int8_t*)ELF, (uint32_t)4)){
-		printf("not Excutable!!\n");
-		
+//		printf("not Excutable!!\n");
+
+		occupied[pid]=0;
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
 	else{
-		printf("this is executable\n");
+//		printf("this is executable\n");
+
 	}
 
 	/*Paging*/
@@ -155,9 +174,10 @@ int32_t execute(const uint8_t* command){
 
 	/*File loader*/
 	if(load_file_img((int8_t*)com_arr) == -1){
-		
+		occupied[pid]=0;
 		asm("movl $-1, %eax");
 		asm("leave;ret");
+
 	}
 
 
@@ -177,6 +197,7 @@ int32_t execute(const uint8_t* command){
 	new_pcb->parent_ebp = parent_ebp; /* save parent ebp */
 	new_pcb->parent_pid = current_pcb->pid; /* loading parent pid */
 
+	//new_pcb->parent_eip=(uint32_t)tss.eip;
 	new_pcb->parent_page_dir_ptr= (void*)parent_pcb; /**/
 
 	/*context switch*/
@@ -185,13 +206,9 @@ int32_t execute(const uint8_t* command){
 	tss.esp0= eight_mb - temp - 4;
 	tss.ss0= KERNEL_DS;
 
-
-	printf("esp0: %x\n", tss.esp0);
-	printf("ss0: %x\n", tss.ss0);
-
-
+	/*getting entry_point from file image*/
 	memcpy(&entry_point, buf+24, 4);
-	printf("entry point: %x\n", entry_point);
+
 
 
 	uint32_t eflag = 0;
@@ -217,18 +234,23 @@ int32_t execute(const uint8_t* command){
 
 	asm("movl $0, %eax");
 	asm("leave;ret");
+
+	return -1;
+
 }
 
-
+/**
+  * test function to call execute system call
+  */
 void test_execute(){
-	int i = 0;
-	execute("shell abc");
+	execute((uint8_t*)"shell abc");
 }
 
 /* Description:
  * system call read.
- *
- * 
+ *	Read system call: passing in fd with read buffer and number of bytes need to 
+ * be read. return number of bytes that read, or return 0 when reach the end of 
+ * of the file
  */
 int32_t read(int32_t fd, void* buf, int32_t nbytes){
 	sti();
@@ -237,7 +259,7 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 	asm volatile("pushal \n \
 		pushl %%ebx \n \
 		pushl %%eax \n \
-		call %%ecx	\n \
+		call *%%ecx	\n \
 		addl $8, %%esp"
 		:
 		: "a"(buf), "b"(nbytes), "c"(fun_addr)
@@ -245,13 +267,16 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 
 	/*return 0*/
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
 
 /* Description:
  * system call write.
- *
- * 
+ *  Write system call: passing in fd with buffer and number of bytes need to 
+ * be write. Return number of bytes that write to the terminal. 
  */
 int32_t write(int32_t fd, void* buf, int32_t nbytes){
 
@@ -260,7 +285,7 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
 	asm volatile("pushal \n \
 		pushl %%ebx \n \
 		pushl %%eax \n \
-		call %%ecx	\n \
+		call *%%ecx	\n \
 		addl $8, %%esp"
 		:
 		: "a"(buf), "b"(nbytes), "c"(fun_addr)
@@ -268,45 +293,68 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
 
 	/*return 0*/
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
 
 /* Description:
  * system call open.
- *
- * 
+ *  Open system call: passing in with a filename, and allocate fd location for the 
+ * file, if fd is full, return -1. else return 0 with side effect of a functional 
+ *  file descriptor 
  */
 int32_t open(const uint8_t* filename){
-	if(!strncmp(filename, "terminal", 9)){
+	if(!strncmp((int8_t*)filename,(int8_t*) "terminal", 9)){
 	//	printf("get terminal argument\n");
 	}
 	
 	asm("movl $0, %eax");  //comment this line after add the function
 	asm("leave;ret");
+
+	//will never get here 
+	return 0;
 }
 
 
 /* Description:
  * system call close.
- *
- * 
+ *   Close system call: passing in with fd, close the corresponding fd for the file
+ * let it free to be used by other process. return -1 for fail operation, and return 
+ * 0 when success
  */
 int32_t close(int32_t fd){
 	
 	asm("movl $0, %eax");  //comment this line after add the function
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
 
-/* Description:
- * system call getargs.
- *
- * 
- */
+/**
+  *Description
+  * System Call: getarg 
+  * 	reads the program's command line arguments into a user-level buffer
+  *   Merely copied into user space. Return -1 if argument do not fit in the 
+  *   buffer.
+  */
 int32_t getargs(uint8_t* buf, int32_t nbytes){
 	
-	asm("movl $0, %eax");  //comment this line after add the function
-	asm("leave;ret");
+	pcb* current_pcb = getting_to_know_yourself(); /* PCB at current process */
+	
+	uint32_t length = strlen((int8_t*) current_pcb->arg); /* getting length of the argument */
+
+	if(length > nbytes || length < 0){
+		return -1; /* case argument does not fit buffer */
+	}	
+
+	strncpy((int8_t*) buf, (int8_t*) current_pcb->arg, nbytes); /* copying argument */
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
 
@@ -319,6 +367,9 @@ int32_t vidmap(uint8_t** screen_start){
 	
 	asm("movl $0, %eax");  //comment this line after add the function
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
 
@@ -331,7 +382,11 @@ int32_t set_handler(int32_t signum, void* handler_address){
 	
 	asm("movl $0, %eax"); //comment this line after add the function
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
+
 
 
 /* Description:
@@ -344,28 +399,11 @@ int32_t sigreturn(void){
 
 	asm("movl $0, %eax"); //comment this line after add the function
 	asm("leave;ret");
+
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
-/* Description:
- * Handler for the system call. This should be a jump table
- *
- * Exception Class:
- *
- *
- * Exception Error Code:
- * 
- *
- * Saved Instruction Pointer:
- * 
- */
-void sys_call_handler(){
-//	asm("pushal");
-	printf("system call handle!!\n");
-	int32_t temp;
-	temp = execute("testprint arg");
-	printf("execute finished, and returned into the wrong palce \n");
-//	asm("leave;iret");
-}
 
 /**
   * get next pid
@@ -375,9 +413,9 @@ void sys_call_handler(){
   */
 uint32_t get_next_pid(void){
 	int i = 0; /* loop counter */
-	while(i < 7){
-		if(occupied[i] == 0){/* case avaliable*/
-			occupied[i] = 1;
+	while(i < size_of_occupied){
+		if(occupied[i] == N_USED){/* case avaliable*/
+			occupied[i] = USED;
 			return i;
 		}
 		else{

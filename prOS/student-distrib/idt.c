@@ -120,7 +120,7 @@ void rtc_handler()
 	send_eoi(RTC_IRQ);
 	flag = 0;
 	/* timer implementation */
-	//update_time();
+	update_time();
 
 	sti();
 	asm("popal;leave;iret");
@@ -143,6 +143,7 @@ void rtc_handler()
  */
 void keyboard_handler()
 {
+	//printf("keyboard interrut!! buffer: %s\n", terminal_buffer);
 	asm("pushal");
 	//reading from the keyboard port and sending the end of interrut signal	
 	unsigned char temp = inb(KEYBOARD_PORT); 				//get signal from the keyboard
