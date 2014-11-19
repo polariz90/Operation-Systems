@@ -170,6 +170,7 @@ entry (unsigned long magic, unsigned long addr)
 	init_paging();
 
 	/* printing out booting image */
+	clear();
 	booting_img();
 	clear();
 

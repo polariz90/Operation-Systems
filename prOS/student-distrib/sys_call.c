@@ -90,7 +90,8 @@ int32_t execute(const uint8_t* command){
 	/* getting new pid for processes */
 	int pid = get_next_pid();
 	if(pid == -1){
-		occupied[pid]=0;
+
+		printf("Warning!!! Reaching maximum process capacity!! Calm Down Pls!!!!\n");
 		
 		asm("movl $-1, %eax");
 		asm("leave;ret"); /* fail execute */
@@ -128,7 +129,14 @@ int32_t execute(const uint8_t* command){
 	}
 	arg_arr[j] = '\0';
 
-//	printf("filename: %s\n", com_arr);
+	/* checking special commands */
+	if(strncmp(com_arr, "clear", 5) == 0){ /* clear screen command */
+		clear();
+		occupied[pid]=0;
+		//asm("movl $-1, %eax");
+		//asm("leave;ret");
+		return 0;
+	}
 
 	/*Excutable check*/
 	uint8_t buf[buffer_size];
@@ -326,15 +334,24 @@ int32_t close(int32_t fd){
 }
 
 
-/* Description:
- * system call getargs.
- *  Getarg system call: 
- * 
- */
+/**
+  *Description
+  * System Call: getarg 
+  * 	reads the program's command line arguments into a user-level buffer
+  *   Merely copied into user space. Return -1 if argument do not fit in the 
+  *   buffer.
+  */
 int32_t getargs(uint8_t* buf, int32_t nbytes){
 	
-	asm("movl $0, %eax");  //comment this line after add the function
-	asm("leave;ret");
+	pcb* current_pcb = getting_to_know_yourself(); /* PCB at current process */
+	
+	uint32_t length = strlen((int8_t*) current_pcb->arg); /* getting length of the argument */
+
+	if(length > nbytes || length < 0){
+		return -1; /* case argument does not fit buffer */
+	}	
+
+	strncpy((int8_t*) buf, (int8_t*) current_pcb->arg, nbytes); /* copying argument */
 
 	//will never get here, stops compiler warnings 
 	return 0;
@@ -369,6 +386,7 @@ int32_t set_handler(int32_t signum, void* handler_address){
 	//will never get here, stops compiler warnings 
 	return 0;
 }
+
 
 
 /* Description:
