@@ -44,12 +44,16 @@ void vert_scroll(uint32_t count);
 
 /*moves the current screen position of  loc*/
 void move_screen_x(int loc); 
+/*moves the current screen position of  loc*/
+void move_screen_y(int loc); 
 
 /*clears the current line based on the current screen y position*/
 void clear_line();
 
 /*returns the screen_y()*/
 int get_screen_y();
+/*returns the screen_x()*/
+int get_screen_x();
 
 
 /* Userspace address-check functions */

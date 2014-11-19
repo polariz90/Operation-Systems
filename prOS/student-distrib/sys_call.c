@@ -70,7 +70,7 @@ int32_t halt(uint8_t status){
 				: : :"eax","memory","cc"
 				);
 
-	return 0;
+	return status;
 
 }
 
@@ -94,8 +94,6 @@ int32_t execute(const uint8_t* command){
 		asm("movl $-1, %eax");
 		asm("leave;ret"); /* fail execute */
 
-	//will never get here, stops compiler warnings 
-	return 0;
 	}
 
 //	printf("command input : %s\n", command);
@@ -170,8 +168,6 @@ int32_t execute(const uint8_t* command){
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 
-	//will never get here, stops compiler warnings 
-	return 0;
 	}
 
 
@@ -229,8 +225,8 @@ int32_t execute(const uint8_t* command){
 	asm("movl $0, %eax");
 	asm("leave;ret");
 
-	//will never get here, stops compiler warnings 
-	return 0;
+	return -1;
+
 }
 
 /**

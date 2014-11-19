@@ -16,6 +16,7 @@
 #include "pros_img.h"
 #include "assembly_ops.h"
 #include "sys_call.h"
+#include "clock.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -195,13 +196,8 @@ entry (unsigned long magic, unsigned long addr)
 	kernel_pcb_ptr->parent_pid = 0;
 
 
-
 	test_execute();
 
-
-
-	/* Initialize devices, memory, filesystem, enable device interrupts on the
-	 * PIC, any other initialization stuff... */
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
@@ -211,8 +207,6 @@ entry (unsigned long magic, unsigned long addr)
 	
 	clear();
 
-
-	test_execute();
 
 /*	//WRITE SYSTEM CALL TEST(terminal)
 	uint8_t buf[]="if you see this, terminal write sys call success!!!";

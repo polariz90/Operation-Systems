@@ -6,6 +6,7 @@
 #include "i8259.h"
 #include "rtc.h"
 #include "terminal.h"
+#include "clock.h"
 
 #define VIDEO 0xB8000
 #define NUM_COLS 80
@@ -45,6 +46,13 @@ clear(void)
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
+    cli();
+	int temp_x, temp_y;
+	temp_x = get_screen_x(); temp_y = get_screen_y();
+	move_screen_x(75);move_screen_y(24);
+	printf("%d%d%c%d%d", min_h,min_l,time_buffer[2],sec_h,sec_l);
+	move_screen_x(temp_x); move_screen_y(temp_y);
+	sti();
 }
 
 /* Standard printf().
@@ -618,6 +626,15 @@ void vert_scroll(uint32_t count)
 		//here is where i am going to adjust the screen x and screen y
 		screen_x =0;	
 	}
+	cli();
+	int temp_x, temp_y;
+	temp_x = get_screen_x(); temp_y = get_screen_y();
+	move_screen_x(75);move_screen_y(23);
+	printf("%c%c%c%c%c",32,32,32,32,32);
+	move_screen_x(75);move_screen_y(24);
+	printf("%d%d%c%d%d", min_h,min_l,time_buffer[2],sec_h,sec_l);
+	move_screen_x(temp_x); move_screen_y(temp_y);
+	sti();
 	return;
 }
 /*moves the current screen position of  char
@@ -626,6 +643,16 @@ void move_screen_x(int loc)
 {
 
 	screen_x = loc;
+	
+
+
+}
+/*moves the current screen position of  char
+ * enter zero for zero*/
+void move_screen_y(int loc)
+{
+
+	screen_y = loc;
 	
 
 
@@ -649,4 +676,10 @@ void clear_line()
 int get_screen_y()
 {
 	return screen_y;
+}
+
+/*returns the screen_x()*/
+int get_screen_x()
+{
+	return screen_x;
 }

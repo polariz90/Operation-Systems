@@ -14,6 +14,7 @@
 volatile uint32_t real_time = 0;
 
 uint32_t time_tracker = 0;
+char time_buffer[5];
 
 /*initializing time variables */
 uint32_t min_h = 0; uint32_t min_l = 0; uint32_t sec_h = 0; uint32_t sec_l = 0; 
@@ -27,7 +28,7 @@ uint32_t min_h = 0; uint32_t min_l = 0; uint32_t sec_h = 0; uint32_t sec_l = 0;
   * SIDE EFFECTS: updating the clock in the OS, and keep printing into the system 
   */
 void update_time(){
-	char time_buffer[5]; /* time buffer, showing as _ _ : _ _*/
+//	char time_buffer[5]; /* time buffer, showing as _ _ : _ _*/
 	/* filling the buffer with time */
 	time_buffer[0] = in_to_char(min_h);
 	time_buffer[1] = in_to_char(min_l);
@@ -38,9 +39,16 @@ void update_time(){
 
 
 	time_tracker ++;
-	if(time_tracker%1024 ==0){
-	clear();
-	terminal_write(time_buffer, 5);
+	if(time_tracker%1024 ==0){ /* updating time in every second*/
+	int temp_x, temp_y;
+	cli();
+	temp_x = get_screen_x(); temp_y = get_screen_y();
+	move_screen_x(75);
+	move_screen_y(24);
+	printf("%d%d%c%d%d", min_h,min_l,time_buffer[2],sec_h,sec_l);
+	move_screen_x(temp_x); move_screen_y(temp_y);
+	sti();
+	//terminal_write(time_buffer, 5);
 		time_tracker = 0;
 		sec_l ++;
 		if(sec_l == 10){
@@ -92,9 +100,11 @@ char in_to_char (uint32_t input){
   * SIDE EFFECTS: delay program for a certain time 
   */
 void delay(const uint32_t delay){
-	uint32_t temp;
-	temp = real_time+delay;
-	while(real_time != temp){
+	volatile uint32_t delay_start, delay_end;
+	delay_end = real_time + delay;
+	delay_start = real_time;
+	while(delay_start < delay_end){
+		delay_start = real_time;
 		/*expensive while loop*/
 	}
 	return;
