@@ -20,7 +20,6 @@
 /* array to keep in check of process number */
 uint32_t occupied[7] = {0,0,0,0,0,0,0};
 uint32_t entry_point;
-pcb* kernel_pcb_ptr;
 
 /* Description:
  * system call halt.
@@ -255,7 +254,9 @@ void test_execute(){
 int32_t read(int32_t fd, void* buf, int32_t nbytes){
 	sti();
 
-	uint32_t fun_addr=(uint32_t)kernel_pcb_ptr->file_descriptor[fd].file_opt_ptr[1];
+	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+
+	uint32_t fun_addr=(uint32_t)current_pcb->file_descriptor[fd].file_opt_ptr[1];
 	asm volatile("pushal \n \
 		pushl %%ebx \n \
 		pushl %%eax \n \
@@ -280,8 +281,9 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
  */
 int32_t write(int32_t fd, void* buf, int32_t nbytes){
 
+	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
-	uint32_t fun_addr=(uint32_t)kernel_pcb_ptr->file_descriptor[fd].file_opt_ptr[2];
+	uint32_t fun_addr=(uint32_t)current_pcb->file_descriptor[fd].file_opt_ptr[2];
 	asm volatile("pushal \n \
 		pushl %%ebx \n \
 		pushl %%eax \n \

@@ -7,9 +7,6 @@
 
 
 extern uint32_t occupied[7];
-extern pcb* kernel_pcb_ptr;
-
-
 
 extern int32_t halt(uint8_t status);
 extern int32_t execute(const uint8_t* command);
