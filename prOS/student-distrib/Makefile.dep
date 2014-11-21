@@ -10,9 +10,9 @@ idt.o: idt.c idt.h x86_desc.h types.h lib.h keyboard.h i8259.h rtc.h \
   exception.h terminal.h clock.h assembly_ops.h sys_call.h file.h
 kernel.o: kernel.c multiboot.h types.h x86_desc.h lib.h i8259.h debug.h \
   page.h idt.h keyboard.h rtc.h file.h assembly_ops.h terminal.h \
-  pros_img.h sys_call.h
+  pros_img.h sys_call.h clock.h
 keyboard.o: keyboard.c keyboard.h i8259.h types.h
-lib.o: lib.c lib.h types.h i8259.h rtc.h terminal.h
+lib.o: lib.c lib.h types.h i8259.h rtc.h terminal.h clock.h
 page.o: page.c x86_desc.h types.h lib.h page.h
 pros_img.o: pros_img.c pros_img.h lib.h types.h terminal.h clock.h
 rtc.o: rtc.c i8259.h types.h rtc.h lib.h idt.h

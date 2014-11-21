@@ -19,6 +19,8 @@ void * stdout_opt[4]={
 };
 
 
+history_buffer terminal_history;
+
  /* Opens the terminal
   * Initializes important variables
   *	returns 0
@@ -233,6 +235,8 @@ int is_special_key(int key)
 		key == RSHFTR  				||
 		key == CTLP 			    ||
 		key == CTLR    				||
+		key == UPP 					||
+		key == UPR 					||
 	    (key == Lp && ctrl == 1)			
 	  )
 	{
@@ -252,6 +256,7 @@ int is_special_key(int key)
  */
 void exe_special_key(int key)
 {
+	int i; /* loop counters */
 	switch(key)
 	{
 
@@ -300,6 +305,9 @@ void exe_special_key(int key)
 				curr_terminal_loc = 0;	
 			}
 
+			/*store entire line into the history */
+			add_to_history((char*)terminal_buffer);
+			terminal_history.current = terminal_history.end; /* reset current position */
 
 
 
@@ -327,6 +335,28 @@ void exe_special_key(int key)
 			clear();
 			break;
 
+		case UPP: /* case where up arrow key is pressed */
+			//printf("up key pressed\n");
+			/* load and print out prvious command */
+
+			/* copying over the new string */
+			if((terminal_history.current) == terminal_history.begin){ /* case reach beginning of buffer*/
+				/* do nothing */
+			//	printf("case 1\n");
+			}
+			else{/* case not at beginning of the buffer yet*/
+				terminal_history.current --; /* move one position backwards */
+				for( i = 0; i < 128; i++){ /* clear current terminal buffer*/
+					terminal_buffer[i] = 0;
+				}
+			//	printf("case 2\n");
+				strcpy((int8_t*)terminal_buffer, (int8_t*)terminal_history.command[terminal_history.end-1].cmd);
+				/*print out the buffer */
+			//	printf("%s\n", terminal_buffer);
+				//printf("%s\n", terminal_history.command[terminal_history.end-1].cmd);
+			}
+			printf("%s", terminal_history.command[terminal_history.current].cmd);
+			break;
 
 	return;
 	}	
@@ -394,4 +424,31 @@ int stdout_read(){
 	return 0;
 }
 
+/**
+  * add_to_history
+  *   function which add entire command line into 
+  *  terminal history buffer for future use
+  */
+void add_to_history(char* buffer){
+	cli();
+	int i = 0;
+	terminal_history.end ++;
+	if(terminal_history.end >= his_buff_size){ /* case reach out range of buffer  */
+		terminal_history.end = 0; /* loop it around to 0*/
+	}
+	if(terminal_history.end == terminal_history.begin){ /* case buffer is full */
+		terminal_history.begin ++; /* move begin over 1*/
+		if(terminal_history.begin >= his_buff_size){ /*case begin reach the end*/
+			terminal_history.begin = 0; /* loop it around */
+		}
+	}
+	/* copying terminal buffer into history buffer */
+	while(buffer[i] != '\n'){
+		terminal_history.command[terminal_history.end].cmd[i] = buffer[i];
+		i++;
+	}
+	terminal_history.command[terminal_history.end].cmd[i] = '\0' ;
+	//strcpy((int8_t*)terminal_history.command[terminal_history.end].cmd, (int8_t*)buffer);
+	sti();
+}
 
