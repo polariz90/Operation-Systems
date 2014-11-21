@@ -1,29 +1,62 @@
-make: Warning: File `Makefile.dep' has modification time 26 s in the future
-gcc  -nostdinc -g  -c -o boot.o boot.S
-gcc  -nostdinc -g  -c -o assembly_ops.o assembly_ops.S
-gcc  -nostdinc -g  -c -o x86_desc.o x86_desc.S
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o clock.o clock.c
-clock.c: In function ‘update_time’:
-clock.c:42: warning: implicit declaration of function ‘terminal_write’
-clock.c:100:2: warning: no newline at end of file
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o exception.o exception.c
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o file.o file.c
-file.c: In function ‘init_pcb’:
-file.c:44: warning: assignment makes pointer from integer without a cast
-file.c:45: warning: assignment makes pointer from integer without a cast
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o i8259.o i8259.c
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o idt.o idt.c
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o kernel.o kernel.c
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o keyboard.o keyboard.c
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o lib.o lib.c
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o page.o page.c
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o pros_img.o pros_img.c
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o rtc.o rtc.c
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o sys_call.o sys_call.c
-sys_call.c: In function ‘sys_call_handler’:
-sys_call.c:119: warning: pointer targets in passing argument 1 of ‘execute’ differ in signedness
-gcc -Wall -fno-builtin -fno-stack-protector -nostdlib -nostdinc -g  -c -o terminal.o terminal.c
-gcc -nostdlib -static boot.o assembly_ops.o x86_desc.o clock.o exception.o file.o i8259.o idt.o kernel.o keyboard.o lib.o page.o pros_img.o rtc.o sys_call.o terminal.o  -Ttext=0x400000 -o bootimg
-sudo ./debug.sh
-make: *** Deleting file `bootimg'
-make: *** [bootimg] Interrupt
+assembly_ops.h
+assembly_ops.o
+assembly_ops.S
+bootimg
+boot.o
+boot.S
+clock.c
+clock.h
+clock.o
+DEBUG
+debug.bat
+debug.h
+debug.sh
+debug - Shortcut.lnk
+exception.c
+exception.h
+exception.o
+file.c
+file.h
+file.o
+filesys_img
+i8259.c
+i8259.h
+i8259.o
+idt.c
+idt.h
+idt.o
+INSTALL
+kernel.c
+kernel.o
+keyboard.c
+keyboard.h
+keyboard.o
+lib.c
+lib.h
+lib.o
+Makefile
+Makefile.dep
+mp3.img
+multiboot.h
+orig.img
+output.txt
+page.c
+page.h
+page.o
+pros_img.c
+pros_img.h
+pros_img.o
+rtc.c
+rtc.h
+rtc.o
+sys_call.c
+sys_call.h
+sys_call.o
+temp.txt
+terminal.c
+terminal.h
+terminal.o
+types.h
+x86_desc.h
+x86_desc.o
+x86_desc.S

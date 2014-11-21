@@ -196,6 +196,11 @@ entry (unsigned long magic, unsigned long addr)
 	kernel_pcb_ptr->parent_ebp = 0;
 	kernel_pcb_ptr->parent_pid = 0;
 
+	/*temporary initializing terminal structure */
+	terminal_history.begin = 0;
+	terminal_history.end = 0;
+	terminal_history.cap = 0;
+	terminal_history.current = 0;
 
 	test_execute();
 

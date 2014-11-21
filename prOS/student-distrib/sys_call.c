@@ -30,8 +30,16 @@ pcb* kernel_pcb_ptr;
  * 
  */
 int32_t halt(uint8_t status){
+	cli();
+	int i; /* array counter */
 	/*restore parent's esp/ebp and anything else you need*/
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+
+	/* reset file descriptor in pcb for future memory use*/
+	for(i = 2; i < 8; i++){
+			current_pcb->file_descriptor[i].flags = 0;
+	}
+
 
 	/*may want to prevent user to close the last shell*/
 
@@ -130,11 +138,17 @@ int32_t execute(const uint8_t* command){
 	arg_arr[j] = '\0';
 
 	/* checking special commands */
-	if(strncmp(com_arr, "clear", 5) == 0){ /* clear screen command */
+	if(strncmp((int8_t*)com_arr, (int8_t*)"clear", 5) == 0){ /* clear screen command */
 		clear();
 		occupied[pid]=0;
 		//asm("movl $-1, %eax");
 		//asm("leave;ret");
+		return 0;
+	}
+	if(strncmp((int8_t*)com_arr,(int8_t*)"showpid",7) ==0){ /*check current pid */
+		pcb* temp = getting_to_know_yourself(); /* PCB at current process */
+		printf("current process id is : %d \n", temp->pid);
+		occupied[pid] = 0;
 		return 0;
 	}
 
