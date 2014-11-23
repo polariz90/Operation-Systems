@@ -60,7 +60,7 @@ typedef struct
 	uint32_t begin; /* point at oldest command */
 	uint32_t end;  /* point at newest command */
   uint32_t current; /* keep in track of the current history position*/
-	uint32_t cap; /* capacity of this */
+	uint32_t pre_pos; /* keep in track of previous position */
 	cmd_line command[his_buff_size]; /* array to store all commands */
 }history_buffer;
 

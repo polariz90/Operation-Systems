@@ -346,15 +346,22 @@ void exe_special_key(int key)
 			}
 			else{/* case not at beginning of the buffer yet*/
 				terminal_history.current --; /* move one position backwards */
-				for( i = 0; i < 128; i++){ /* clear current terminal buffer*/
+	//			for( i = 0; i < 128; i++){ /* clear current terminal buffer*/
+	//				terminal_buffer[i] = 0;
+	//			}
+				int count = 0;
+				i = 0;
+				while(!((terminal_buffer[i] == '\n') || (terminal_buffer[i] == '\0'))){
 					terminal_buffer[i] = 0;
+					count ++; i++; 
 				}
 			//	printf("case 2\n");
-				strcpy((int8_t*)terminal_buffer, (int8_t*)terminal_history.command[terminal_history.end-1].cmd);
+				strcpy((int8_t*)terminal_buffer, (int8_t*)terminal_history.command[terminal_history.current].cmd);
 				/*print out the buffer */
 			//	printf("%s\n", terminal_buffer);
 				//printf("%s\n", terminal_history.command[terminal_history.end-1].cmd);
 			}
+			curr_terminal_loc = 0; //terminal_history.pre_pos;
 			printf("%s", terminal_history.command[terminal_history.current].cmd);
 			break;
 

@@ -199,7 +199,7 @@ entry (unsigned long magic, unsigned long addr)
 	/*temporary initializing terminal structure */
 	terminal_history.begin = 0;
 	terminal_history.end = 0;
-	terminal_history.cap = 0;
+	terminal_history.pre_pos = 8;
 	terminal_history.current = 0;
 
 	test_execute();
