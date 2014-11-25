@@ -4,6 +4,14 @@
 #include "idt.h"
 
 
+void * rtc_opt[4]={
+  rtc_open,
+  rtc_read,
+  rtc_write,
+  rtc_close
+};
+
+
 extern void rtc_enable()
 {
 	outb(RTC_B, RTC_PORT);		// select register B, and disable NMI

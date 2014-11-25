@@ -5,6 +5,7 @@
 #include "assembly_ops.h"
 #include "page.h"
 #include "terminal.h"
+#include "rtc.h"
 
 
 #define space_char 32
@@ -257,10 +258,11 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
 	uint32_t fun_addr=(uint32_t)current_pcb->file_descriptor[fd].file_opt_ptr[1];
+
 	asm volatile("pushal \n \
 		pushl %%ebx \n \
 		pushl %%eax \n \
-		call *%%ecx	\n \
+		call %%ecx	\n \
 		addl $8, %%esp"
 		:
 		: "a"(buf), "b"(nbytes), "c"(fun_addr)
@@ -308,11 +310,67 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
  *  file descriptor 
  */
 int32_t open(const uint8_t* filename){
+	/*don't need this if user never call open(terminal)*/
 	if(!strncmp((int8_t*)filename,(int8_t*) "terminal", 9)){
 	//	printf("get terminal argument\n");
 	}
 	
-	asm("movl $0, %eax");  //comment this line after add the function
+
+	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+
+
+	int i, j;	/* loop counter */
+	uint32_t num_entries = s_block->dir_entries; /* variable hold # of entries */
+	uint32_t length; /* variable to hold filename string length */
+	length = strlen((int8_t*)filename);	
+
+	for(i = 0; i < num_entries; i++){ /* looping through entire entries to find file*/
+		if(strlen(s_block->file_entries[i].filename) == length){/* case 2 names doesnt have the same length*/
+			if(strncmp((int8_t*)filename, s_block->file_entries[i].filename, length) == 0){ /* check if 2 are the same */
+				/* using strncpy from lib to make deep copy*/
+				int type;
+				type= s_block->file_entries[i].file_type;
+				printf("%s", s_block->file_entries[i].filename);
+				printf("	file_type: %d", s_block->file_entries[i].file_type);
+				printf("	inode num: %d\n", s_block->file_entries[i].inode_num);
+				for(j=0;j<6;j++){
+					if(current_pcb->file_descriptor[j+2].flags==0){
+						if(type==0){
+							current_pcb->file_descriptor[j+2].file_opt_ptr=rtc_opt;
+						}	//set this pcb to rtc
+						else if(type==1){
+							current_pcb->file_descriptor[j+2].file_opt_ptr=dir_opt;
+						}	//set this pcb to directory
+						else if(type==2){
+							current_pcb->file_descriptor[j+2].file_opt_ptr=file_opt;
+						}	//set this pcb to regular file
+
+						current_pcb->file_descriptor[j+2].flags=1;
+						break;	
+					}
+					else if(j==5&&current_pcb->file_descriptor[j+2].flags!=0){
+						//return -1; 	//array is full
+						asm("movl $-1, %eax");  //comment this line after add the function
+						asm("leave;ret");
+					}
+				}
+
+				//return fd number
+				asm("movl %%ebx, %%eax" 
+				:
+				: "b"(j+2)
+				: "cc", "memory"
+				);
+				asm("leave;ret");
+				
+				return 0; /* operation success*/
+			}
+		}
+
+	}
+	return -1; /* operation failed */
+
+	asm("movl $-, %eax");  //comment this line after add the function
 	asm("leave;ret");
 
 	//will never get here 
@@ -328,6 +386,11 @@ int32_t open(const uint8_t* filename){
  */
 int32_t close(int32_t fd){
 	
+	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+	current_pcb->file_descriptor[fd].file_opt_ptr=NULL;
+	current_pcb->file_descriptor[fd].file_pos = 0;
+	current_pcb->file_descriptor[fd].flags = N_USED;
+
 	asm("movl $0, %eax");  //comment this line after add the function
 	asm("leave;ret");
 
