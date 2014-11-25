@@ -55,6 +55,11 @@ int get_screen_y();
 /*returns the screen_x()*/
 int get_screen_x();
 
+/*sets the screen_y()*/
+void set_screen_y(uint32_t yloc);
+/*setd the screen_x()*/
+void set_screen_x(uint32_t xloc);
+
 
 /* Userspace address-check functions */
 int32_t bad_userspace_addr(const void* addr, int32_t len);

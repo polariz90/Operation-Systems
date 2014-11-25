@@ -37,9 +37,10 @@ static char* video_mem = (char *)VIDEO;
 void
 clear(void)
 {
-	curr_terminal_loc = 0;
 	screen_x = X_INITAL_LOC;
 	screen_y = Y_INITAL_LOC;
+	terminals[curr_terminal].yloc = Y_INITAL_LOC;
+	terminals[curr_terminal].xloc = X_INITAL_LOC;
 
     int32_t i;
     for(i=0; i<NUM_ROWS*NUM_COLS; i++) {
@@ -49,9 +50,9 @@ clear(void)
     cli();
 	int temp_x, temp_y;
 	temp_x = get_screen_x(); temp_y = get_screen_y();
-	move_screen_x(75);move_screen_y(24);
+	set_screen_x(75);set_screen_y(24);
 	printf("%d%d%c%d%d", min_h,min_l,time_buffer[2],sec_h,sec_l);
-	move_screen_x(temp_x); move_screen_y(temp_y);
+	set_screen_x(temp_x); set_screen_y(temp_y);
 	sti();
 }
 
@@ -629,33 +630,13 @@ void vert_scroll(uint32_t count)
 	cli();
 	int temp_x, temp_y;
 	temp_x = get_screen_x(); temp_y = get_screen_y();
-	move_screen_x(75);move_screen_y(23);
+	set_screen_x(75);set_screen_y(23);
 	printf("%c%c%c%c%c",32,32,32,32,32);
-	move_screen_x(75);move_screen_y(24);
+	set_screen_x(75);set_screen_y(24);
 	printf("%d%d%c%d%d", min_h,min_l,time_buffer[2],sec_h,sec_l);
-	move_screen_x(temp_x); move_screen_y(temp_y);
+	set_screen_x(temp_x); set_screen_y(temp_y);
 	sti();
 	return;
-}
-/*moves the current screen position of  char
- * enter zero for zero*/
-void move_screen_x(int loc)
-{
-
-	screen_x = loc;
-	
-
-
-}
-/*moves the current screen position of  char
- * enter zero for zero*/
-void move_screen_y(int loc)
-{
-
-	screen_y = loc;
-	
-
-
 }
 
 /*clears the current line based on the current screen y position*/
@@ -682,4 +663,17 @@ int get_screen_y()
 int get_screen_x()
 {
 	return screen_x;
+}
+
+
+/*sets the screen_y()*/
+void set_screen_y(uint32_t yloc)
+{
+	screen_y = yloc;
+}
+
+/*returns the screen_x()*/
+void set_screen_x(uint32_t xloc)
+{
+	screen_x = xloc;
 }
