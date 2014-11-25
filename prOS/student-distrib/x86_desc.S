@@ -13,6 +13,7 @@
 .globl  idt_desc_ptr, idt
 .globl  kernel_page_dir, video_page_table
 .globl  processes_page_dir
+.globl  vidmap_page_table
 
 .align 4
 
@@ -145,3 +146,13 @@ _processes_page_dir:
 	.quad 0
 	.endr
 processes_page_dir_bottom:
+
+
+# initializing page table for vidmap
+	.align 4096 #4kb aligned
+vidmap_page_table:
+_vidmap_page_table:
+	.rept PAGE_DIRECTORY_ARR_SIZE
+	.quad 0
+	.endr
+vidmap_page_table_bottom:

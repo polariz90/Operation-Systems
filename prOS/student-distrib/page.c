@@ -14,6 +14,9 @@
 
   #define max_process_num 6
   #define size_of_pagedir 4096
+  #define four_GB         0x100000000
+  #define four_MB		  0x400000
+  #define four_KB		  0x1000
 
   /* variable to hold the process page directory address for inline assembly */
   uint32_t new_page_dir_add;
@@ -128,7 +131,7 @@ asm (
     *	SIDE EFFECTS: initilizing new page directories for process, allocate 4MB
     *					memory locations depending on the process id.
     */
-int map_4KB_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32_t privilage){
+int change_process_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32_t privilage){
 
 		int i; /* loop counter for initialize page directory */
 		int vir_address = 32;
@@ -219,3 +222,70 @@ int map_4KB_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32_t priv
 
 }
 
+/**
+  * map_4KB_page
+  *		mapping a 4kb page table into privilage	level space
+  * INPUT: pid 			process id 
+  *		   vir_add 		which we are mapping into
+  * 	   phy_add 		which physical address we are mapping into
+  * 	   privilage 	privilage level for this page table
+  *	 	   pd_add 		page directory address
+  * 	   pt_add 		page table address
+  * OUTPUT:
+  *			return 0 when success, reutn -1 whe failed 
+  */
+int map_4kb_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32_t privilage, uint32_t pd_add, uint32_t pt_add, uint32_t read_write){
+
+	/* initializing pointer points at page table and page directory */
+	page_directory* cur_page_directory;
+	page_table* cur_page_table;
+
+	cur_page_directory = (page_directory*)pd_add;
+	cur_page_table = (page_table*)pt_add;
+
+	/* check invalid physical address */
+	if(phy_add < 0 ){
+		return -1; 
+	}
+	/* check invalid virtual address */
+	if(vir_add < 0 ){
+		return -1;
+	}
+	/* check if the virtual address is already signed */
+	uint32_t temp = vir_add/four_MB;
+	if(cur_page_directory->dir_arr[temp].present == 1){
+		printf("page table at this vir_add is already present \n");
+		return -1;
+	}
+
+	/* mapping the page directory first */
+	cur_page_directory->dir_arr[temp].present = 1; /* emable page entry*/
+	cur_page_directory->dir_arr[temp].read_write = read_write; /*read and write enable */
+	cur_page_directory->dir_arr[temp].user_supervisor = privilage; /* set privilage level */
+	cur_page_directory->dir_arr[temp].write_through = 0; /* disable write through */
+	cur_page_directory->dir_arr[temp].cache_disabled = 0; /* disable cache */
+	cur_page_directory->dir_arr[temp].accessed = 0; /* set to one to access it */
+	cur_page_directory->dir_arr[temp].reserved = 0; /* reserved set to 0*/
+	cur_page_directory->dir_arr[temp].page_size = 0; /* set map to 4kb page */
+	cur_page_directory->dir_arr[temp].global_page = 1; /* set to global page */
+	cur_page_directory->dir_arr[temp].avail = 0; /*set to 0*/
+	cur_page_directory->dir_arr[temp].PT_base_add = ((int)pt_add >> 12); /* page table address shifted */
+
+	temp = phy_add & 0xFFFFF; /* get last 20 bits of physical address */
+	temp /= four_KB; /* get the page_table entry index */
+	/* mapping the page table */
+	cur_page_table->dir_arr[temp].present = 1;
+	cur_page_table->dir_arr[temp].read_write = read_write;
+	cur_page_table->dir_arr[temp].user_supervisor = privilage;
+	cur_page_table->dir_arr[temp].write_through = 0;
+	cur_page_table->dir_arr[temp].cache_disabled = 0;
+	cur_page_table->dir_arr[temp].accessed = 0;
+	cur_page_table->dir_arr[temp].dirty = 0;
+	cur_page_table->dir_arr[temp].PT_attribute_idx = 0;
+	cur_page_table->dir_arr[temp].global_page = 1;
+	cur_page_table->dir_arr[temp].avail = 0;
+	cur_page_table->dir_arr[temp].page_base_add = temp;
+
+	return 0;
+
+}

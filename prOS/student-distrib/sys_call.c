@@ -182,7 +182,7 @@ int32_t execute(const uint8_t* command){
 			: "=a"(parent_pcb)
 			: 
 			: "memory", "cc" );
-	map_4KB_page(pid, vir_mem_add, phy_mem_add+(pid-1)*four_mb, 1);
+	change_process_page(pid, vir_mem_add, phy_mem_add+(pid-1)*four_mb, 1);
 	/* paging test */
 
 
@@ -373,17 +373,40 @@ int32_t getargs(uint8_t* buf, int32_t nbytes){
 
 
 /* Description:
- * system call vidmap.
- *
- * 
+ * system call vidmap:
+ *		maps the text-mode video memory into user space at a pre-set virtual address. 
+ *   the return value is always the same at 256MB, and written into the memory location
+ *   that given by the user program. need to check validity
+ * RETUN:     0 when success, -1 when failed. 
  */
 int32_t vidmap(uint8_t** screen_start){
 	
-	asm("movl $0, %eax");  //comment this line after add the function
-	asm("leave;ret");
+	/* check screen_start memory location first */
 
-	//will never get here, stops compiler warnings 
-	return 0;
+
+	pcb * current_pcb = getting_to_know_yourself(); /* getting current pcb */
+
+	uint32_t vir_add = 10000000; /* virtual address */
+	uint32_t phy_add = 0x8000; /* physcial address */
+	uint32_t pid = current_pcb->pid; /* current pid */
+	uint32_t pd_add = (uint32_t)(&processes_page_dir[pid]); /* page directory address */
+	uint32_t pt_add = (uint32_t)(&vidmap_page_table[pid]); /* page table address */
+
+	int ret = map_4kb_page(pid, vir_add, phy_add, 1, pd_add, pt_add, 1);
+
+	if(ret == 0){
+		/*not sure what to do here */
+		* screen_start = vir_add;
+		asm("movl $0, %eax"); //comment this line after add the function
+		asm("leave;ret");
+		//return 0;
+	}
+	else{
+		asm("movl $-1, %eax"); //comment this line after add the function
+		asm("leave;ret");
+		//return -1; 
+	}
+
 }
 
 

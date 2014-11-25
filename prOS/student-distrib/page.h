@@ -17,6 +17,8 @@
 //int set_same_virtual_addr(int physical_addr, int mem_size, int wr);
 
 /* function to map the virtual memory addess to physical memory address */
-int map_4KB_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32_t privilage);
+int change_process_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32_t privilage);
 
+/* function to map specific 4kb pages */
+int map_4kb_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32_t privilage, uint32_t pd_add, uint32_t pt_add, uint32_t read_write);
 #endif

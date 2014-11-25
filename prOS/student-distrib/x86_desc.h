@@ -235,7 +235,15 @@ typedef	struct page_directory{
 	page_pde_t dir_arr[1024];
 }page_directory;
 
-/* declare array of 6 page tables for processes use only */
+/* page-table, which holds 1024 page table entries */
+typedef struct page_table{
+	page_pte_t dir_arr[1024];
+}page_table;
+
+/* currently declare array of 6 page tables for process vidmap use */
+extern page_table vidmap_page_table[6];
+
+/* declare array of 6 page directories for processes use only */
 extern page_directory processes_page_dir[6];
 
 /* declare kernel page directory */
