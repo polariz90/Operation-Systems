@@ -7,27 +7,27 @@
 #include "lib.h"
 
 /*Defined constants*/
-#define	BUF_SIZE   	128
+#define	BUF_SIZE   		128
 #define LTABP	    	15 
-#define LTABR 		  143
+#define LTABR 			143
 #define CAPP	     	58 
 #define CAPR	     	186 
-#define LSHFTP	   	42
-#define LSHFTR	   	170 
-#define BSP	       	14 
+#define LSHFTP	  	 	42
+#define LSHFTR	   		170 
+#define BSP	       		14 
 #define BSR 	     	142
 #define ENTP 	    	28
 #define ENTR 		    156
 #define CTLP	     	29
 #define CTLR	     	157
-#define RSHFTP 	   	54
-#define RSHFTR	   	182
+#define RSHFTP 	   		54
+#define RSHFTR	   		182
 #define Lp			    38 
-#define UPP         72
-#define UPR         200
+#define UPP 	        72
+#define UPR     	    200
 
-#define CAPS_CONV	  0x20
-#define his_buff_size 100
+#define CAPS_CONV		0x20
+#define his_buff_size 	100
 
 
 
