@@ -6,8 +6,6 @@
   */ 
 #include "lib.h"
 
-
-
 /*Defined constants*/
 #define	BUF_SIZE   	128
 #define LTABP	    	15 
@@ -34,15 +32,22 @@
 
 
 /*Decleared variables for the terminal*/
-int curr_terminal_loc;				/*current index into buffer to be written*/
-char terminal_buffer[BUF_SIZE];		/*this is the terminal buffer that will be written to*/
-uint8_t caps;						/*varible detailing the state of the caps button 0 if not pressed 1 if pressed*/
-uint8_t shift;						/*0 if not pressed, one if pressed*/
-uint8_t ctrl; 						/*0 if not pressed, one if pressed*/
-uint8_t written;
+uint32_t curr_terminal;				/*current index into buffer to be written*/
 
 
-volatile uint8_t reading;
+typedef struct
+{
+	char buf[BUF_SIZE];
+	uint32_t xloc;
+	uint32_t yloc;
+	uint32_t caps;
+	uint32_t size;
+	uint32_t shift;						/*0 if not pressed, one if pressed*/
+	uint32_t ctrl; 						/*0 if not pressed, one if pressed*/
+	volatile uint8_t reading;
+}terminal_buffer;
+
+extern terminal_buffer terminals[3];
 
 
 extern void * stdin_opt[4];
@@ -97,19 +102,11 @@ int terminal_write(char *buf, int32_t count );
 int terminal_close();
 
 
-
-/* Clears the current line and writes the buffer to the screen
- * actions change if the buffer is longer than the screen width	
- *
+/* terminal print
+ * takes a char prints to the current screen location
+ * returns nothing
  */
-int write_buf_to_screen();
-
-/* Clears the current line and writes the buffer to the screen in hex
- * actions change if the buffer is longer than the screen width	
- *
- */
-int write_buf_to_screen_hex();
-
+void printt(char c);
 
 /* 	Simple function that has a logic to check if the key pressed is a special case that should not be printed to the screen
  *

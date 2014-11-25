@@ -18,7 +18,6 @@ void keyboard_handler();
 void rtc_handler();
 
 
-
 #endif /* _IDT_H  */
 
 

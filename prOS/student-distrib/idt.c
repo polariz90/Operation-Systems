@@ -144,10 +144,14 @@ void rtc_handler()
 void keyboard_handler()
 {
 	asm("pushal");
+
 	//reading from the keyboard port and sending the end of interrut signal	
 	unsigned char temp = inb(KEYBOARD_PORT); 				//get signal from the keyboard
-	//if((int)temp<=58)	printf("%c", code_set[(int)temp]);	//print a key thay corresponds to the signal
 	send_eoi(KB_IRQ);
+
+	//status of the keys
+	int shift = terminals[curr_terminal].shift;
+	int caps  = terminals[curr_terminal].caps;
 
 	/*checking for the sepecial cases*/
 	if(is_special_key((int)temp) == 1)
@@ -156,43 +160,30 @@ void keyboard_handler()
 	}
 
 	/*Writing to the buffer if it is a valid character*/
-	else if(curr_terminal_loc < BUF_SIZE && (int) temp <= 58)
+	else if(terminals[curr_terminal].size < BUF_SIZE && (int) temp <= 58)
 	{
+		//prints the shifted key
 		if (shift ==1)
 		{
-			terminal_buffer[curr_terminal_loc] = code_set_shift[(int)temp] ;
-
-			if(curr_terminal_loc == NUM_COLS )
-			{
-				new_line();
-		  		printf("%c",code_set_shift[(int)temp]);
-			}
-			else
-			{
-		  		printf("%c",code_set_shift[(int)temp]);
-			}
+			//writes into the buffer
+			terminals[curr_terminal].buf[terminals[curr_terminal].size] = code_set_shift[(int)temp];
+			terminals[curr_terminal].size++;
+		  	printt(code_set_shift[(int)temp]);
 
 		}
+
+		//non shifted version keys 
 		else
-		{	
-			terminal_buffer[curr_terminal_loc] = code_set[(int)temp] - ((caps+shift)%2)*(CAPS_CONV);
-
-			if(curr_terminal_loc == NUM_COLS )
-			{
-				new_line();
-		  		printf("%c",code_set[(int)temp]);
-			}
-			else
-			{
-		  		printf("%c",code_set[(int)temp]);
-			}
+		{
+			//writes the buffer	
+			terminals[curr_terminal].buf[terminals[curr_terminal].size] =  code_set[(int)temp] - ((caps+shift)%2)*(CAPS_CONV);
+			terminals[curr_terminal].size++;
+		  	printt(code_set[(int)temp] - ((caps+shift)%2)*(CAPS_CONV));
 
 		}
 
-		curr_terminal_loc++;
 	}	
 
-	//send PIC end of interrupt
  	asm("popal;leave;iret");
 }
 

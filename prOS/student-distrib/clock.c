@@ -43,10 +43,10 @@ void update_time(){
 	int temp_x, temp_y;
 	cli();
 	temp_x = get_screen_x(); temp_y = get_screen_y();
-	move_screen_x(75);
-	move_screen_y(24);
+	set_screen_x(75);
+	set_screen_y(24);
 	printf("%d%d%c%d%d", min_h,min_l,time_buffer[2],sec_h,sec_l);
-	move_screen_x(temp_x); move_screen_y(temp_y);
+	set_screen_x(temp_x); set_screen_y(temp_y);
 	sti();
 	//terminal_write(time_buffer, 5);
 		time_tracker = 0;

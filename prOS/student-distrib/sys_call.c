@@ -451,8 +451,8 @@ int32_t sigreturn(void){
 uint32_t get_next_pid(void){
 	int i = 0; /* loop counter */
 	while(i < size_of_occupied){
-		if(occupied[i] == 0){/* case avaliable*/
-			occupied[i] = 1;
+		if(occupied[i] == N_USED){/* case avaliable*/
+			occupied[i] = USED;
 			return i;
 		}
 		else{
