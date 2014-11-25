@@ -171,7 +171,7 @@ entry (unsigned long magic, unsigned long addr)
 
 	/* printing out booting image */
 	clear();
-	//booting_img();
+	booting_img();
 	clear();
 
 	/* Init the PIC */
