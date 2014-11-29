@@ -18,6 +18,21 @@
 /*extern var: file descriptor*/
 file_entry file_desc[8];
 
+
+void * file_opt[4]={
+  open_file,
+  read_file,
+  write_file,
+  close_file
+};
+
+void * dir_opt[4]={
+  open_dir,
+  read_dir,
+  write_dir,
+  close_dir
+};
+
 /*set the default value of file descriptor*/
 
 /* NOT SURE IF WE NEED THIS ANYMORE
