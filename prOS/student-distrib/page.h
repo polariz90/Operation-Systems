@@ -8,7 +8,7 @@
 #ifndef PROS_PAGING_H
 #define PROS_PAGING_H
 
-#define VIDEO_TABLE_IDX 0XB8
+#define video_table_idx 0XB8
 
 /* Function initializing paging */
   void init_paging();

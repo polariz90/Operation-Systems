@@ -22,6 +22,7 @@
 
 extern void rtc_enable();
 extern void rtc_disable();
+extern void * rtc_opt[4];
 
 extern int32_t rtc_read();
 extern int32_t rtc_write(const int32_t* buf, int32_t nbytes);

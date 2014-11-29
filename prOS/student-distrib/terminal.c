@@ -202,7 +202,6 @@ int is_special_key(int key)
  */
 void exe_special_key(int key)
 {
-	int i; /* loop counters */
 	switch(key)
 	{
 

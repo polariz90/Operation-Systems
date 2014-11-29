@@ -18,6 +18,20 @@
 /*extern var: file descriptor*/
 file_entry file_desc[8];
 
+
+void * file_opt[4]={
+  open_file,
+  read_file,
+  write_file,
+  close_file
+};
+
+void * dir_opt[4]={
+  open_dir,
+  read_dir,
+  write_dir,
+  close_dir
+};
 /*set the default value of file descriptor*/
 
 /* NOT SURE IF WE NEED THIS ANYMORE
@@ -49,7 +63,6 @@ void init_pcb(pcb* curr_pcb)
 		curr_pcb->file_descriptor[i].flags = N_USED;
 	}
 	/* initialize stdin */
-
 	curr_pcb->file_descriptor[stdin_idx].file_opt_ptr = stdin_opt; /* initialize jump table */
 	curr_pcb->file_descriptor[stdin_idx].inode_ptr = NULL; /*stdin do not have inode */
 	curr_pcb->file_descriptor[stdin_idx].file_pos = 0; /*stdin is read only */
@@ -318,7 +331,7 @@ int32_t read_dir(int8_t* fname, uint8_t * buf, uint32_t nbytes){
 	int fd;
 	int pos;
 	/*only for this check point, set directory file descriptor fd=2*/
-	fd=2;
+	fd = 2;
 
 	/*pos=0 is the dir entry*/
 	file_desc[fd].file_pos++;
@@ -329,7 +342,7 @@ int32_t read_dir(int8_t* fname, uint8_t * buf, uint32_t nbytes){
 		return strlen(s_block->file_entries[pos].filename);
 	}
 	else if(pos>s_block->dir_entries){
-		file_desc[fd].file_pos=0;
+		file_desc[fd].file_pos = 0;
 		return 0;
 	}
 	else{

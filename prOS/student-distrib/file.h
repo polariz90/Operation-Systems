@@ -113,6 +113,8 @@ typedef struct
 }pcb;
 
 extern super_block* s_block;
+extern void * file_opt[4];
+extern void * dir_opt[4];
 
 int32_t read_dentry_by_name (const uint8_t * fname, dentry_t * dentry);
 int32_t read_dentry_by_index (uint32_t index, dentry_t * dentry);

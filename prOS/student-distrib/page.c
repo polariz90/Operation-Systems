@@ -94,17 +94,17 @@ void init_paging( ){
 	kernel_page_dir[0].PT_base_add = ((int)video_page_table >> 12);
 
 	/* set up video page table entries*/
-	video_page_table[VIDEO_TABLE_IDX].present = 1;
-	video_page_table[VIDEO_TABLE_IDX].read_write = 1;
-	video_page_table[VIDEO_TABLE_IDX].user_supervisor = 0;
-	video_page_table[VIDEO_TABLE_IDX].write_through = 0;
-	video_page_table[VIDEO_TABLE_IDX].cache_disabled = 0;
-	video_page_table[VIDEO_TABLE_IDX].accessed = 0;
-	video_page_table[VIDEO_TABLE_IDX].dirty = 0;
-	video_page_table[VIDEO_TABLE_IDX].PT_attribute_idx = 0;
-	video_page_table[VIDEO_TABLE_IDX].global_page = 1;
-	video_page_table[VIDEO_TABLE_IDX].avail = 0;
-//	video_page_table[VIDEO_TABLE_IDX].page_base_add = 0X8000;		
+	video_page_table[video_table_idx].present = 1;
+	video_page_table[video_table_idx].read_write = 1;
+	video_page_table[video_table_idx].user_supervisor = 0;
+	video_page_table[video_table_idx].write_through = 0;
+	video_page_table[video_table_idx].cache_disabled = 0;
+	video_page_table[video_table_idx].accessed = 0;
+	video_page_table[video_table_idx].dirty = 0;
+	video_page_table[video_table_idx].PT_attribute_idx = 0;
+	video_page_table[video_table_idx].global_page = 1;
+	video_page_table[video_table_idx].avail = 0;
+//	video_page_table[video_table_idx].page_base_add = 0X8000;		
 
 	/* copies the address of the page directory into the CR3 register and enable paging*/
 
@@ -252,7 +252,7 @@ int map_4kb_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32_t priv
 		return -1;
 	}
 	/* check if the virtual address is already signed */
-	uint32_t temp = vir_add/four_MB;
+	uint32_t temp = (vir_add/four_MB) - 1; //should be the 63 entries at 256MB
 	if(cur_page_directory->dir_arr[temp].present == 1){
 		printf("page table at this vir_add is already present \n");
 		return -1;
@@ -271,7 +271,8 @@ int map_4kb_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32_t priv
 	cur_page_directory->dir_arr[temp].avail = 0; /*set to 0*/
 	cur_page_directory->dir_arr[temp].PT_base_add = ((int)pt_add >> 12); /* page table address shifted */
 
-	temp = phy_add & 0xFFFFF; /* get last 20 bits of physical address */
+	int base_add = (phy_add & 0xFFFFF000) >> 12; /* get last 20 bits of physical address */
+	temp = vir_add % four_MB; /* getting page table entries, should be 0 at this point */
 	temp /= four_KB; /* get the page_table entry index */
 	/* mapping the page table */
 	cur_page_table->dir_arr[temp].present = 1;
@@ -284,7 +285,7 @@ int map_4kb_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32_t priv
 	cur_page_table->dir_arr[temp].PT_attribute_idx = 0;
 	cur_page_table->dir_arr[temp].global_page = 1;
 	cur_page_table->dir_arr[temp].avail = 0;
-	cur_page_table->dir_arr[temp].page_base_add = temp;
+	cur_page_table->dir_arr[temp].page_base_add = base_add;
 
 	return 0;
 
