@@ -292,13 +292,27 @@ int32_t read_file( const int8_t* fname, void * buf, uint32_t nbytes){
 		printf("failed to read file \n");
 		return -1; 
 	}
+	/* getting current pcb*/
+	pcb* current_pcb = getting_to_know_yourself();
 
+	/* getting fd */
+	int fd = 0;
+	int fname_length = strlen(fname);
+
+	while(strncmp(fname, current_pcb->filenames[fd].filename, fname_length) != 0){/* means right fd*/
+			fd ++;
+	}
 	dentry_t file_dentry; /* dentry to hold inofrmation of this file */
 
 	read_dentry_by_name((uint8_t*)fname, &file_dentry); /* read dentry by name */
 
-	int ret = read_data(file_dentry.inode_num, 0, buf, nbytes); /* read file data into buffer */
-
+	int ret = read_data(file_dentry.inode_num, current_pcb->file_descriptor[fd].file_pos, buf, nbytes); /* read file data into buffer */
+	/* updating file position */
+	current_pcb->file_descriptor[fd].file_pos += nbytes;
+	/* check return value */
+	if(ret == -1){
+		printf("file read failed \n");
+	}
 	return ret;
 }
 
