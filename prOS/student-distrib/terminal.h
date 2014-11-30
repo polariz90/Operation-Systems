@@ -87,11 +87,8 @@ int terminal_open( );
 /* Reads count bytes from the terminal 
  * returns number of bytes sucessfully read
  */ 
-<<<<<<< HEAD
-int terminal_read(int8_t* filename, char *buf, int32_t count );
-=======
+
 int terminal_read(int32_t fd, char *buf, int32_t count );
->>>>>>> origin/eric_choi_open&close
 
 /* Writes count bytes to the buffer 
   * returns number of bytes written to the terminal
