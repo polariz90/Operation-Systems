@@ -164,7 +164,7 @@ int32_t execute(const uint8_t* command){
 
 	/*Paging*/
 	uint32_t parent_pcb;
-	asm volatile("movl %%cr3, %%eax "              \
+	asm volatile("movl %%cr3, %%eax "               \
 			: "=a"(parent_pcb)
 			: 
 			: "memory", "cc" );
@@ -262,10 +262,11 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 	asm volatile("pushal \n \
 		pushl %%ebx \n \
 		pushl %%eax \n \
+		pushl %%edx \n \
 		call %%ecx	\n \
-		addl $8, %%esp"
+		addl $12, %%esp"
 		:
-		: "a"(buf), "b"(nbytes), "c"(fun_addr)
+		: "a"(buf), "b"(nbytes), "c"(fun_addr), "d"(fd)
 		: "cc", "memory");
 
 	/*return 0*/
@@ -314,7 +315,7 @@ int32_t open(const uint8_t* filename){
 	if(!strncmp((int8_t*)filename,(int8_t*) "terminal", 9)){
 	//	printf("get terminal argument\n");
 	}
-	
+	printf("in the open sys call*************\n");
 
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
@@ -330,9 +331,9 @@ int32_t open(const uint8_t* filename){
 				/* using strncpy from lib to make deep copy*/
 				int type;
 				type= s_block->file_entries[i].file_type;
-				printf("%s", s_block->file_entries[i].filename);
-				printf("	file_type: %d", s_block->file_entries[i].file_type);
-				printf("	inode num: %d\n", s_block->file_entries[i].inode_num);
+				printf("filename: %s\n", s_block->file_entries[i].filename);
+				printf("file_type: %d\n", s_block->file_entries[i].file_type);
+				printf("inode num: %d\n", s_block->file_entries[i].inode_num);
 				for(j=0;j<6;j++){
 					if(current_pcb->file_descriptor[j+2].flags==0){
 						if(type==0){
@@ -344,8 +345,9 @@ int32_t open(const uint8_t* filename){
 						else if(type==2){
 							current_pcb->file_descriptor[j+2].file_opt_ptr=file_opt;
 						}	//set this pcb to regular file
-
-						current_pcb->file_descriptor[j+2].flags=1;
+						current_pcb->file_descriptor[j+2].inode_ptr=(uint32_t)s_block+ (s_block->file_entries[i].inode_num+1)*four_kb;
+						current_pcb->file_descriptor[j+2].inode_num=s_block->file_entries[i].inode_num;
+						current_pcb->file_descriptor[j+2].flags=USED;
 						break;	
 					}
 					else if(j==5&&current_pcb->file_descriptor[j+2].flags!=0){

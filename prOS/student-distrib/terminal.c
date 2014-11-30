@@ -36,7 +36,7 @@ int terminal_open()
 /* Reads count bytes from the terminal 
  * returns number of bytes sucessfully read
  */ 
-int terminal_read(char *buf, int32_t count )
+int terminal_read(int32_t fd, char *buf, int32_t count )
 {
 	if(buf == NULL)
 		return -1;
