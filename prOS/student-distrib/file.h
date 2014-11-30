@@ -23,6 +23,11 @@
 #include "x86_desc.h"
 #include "assembly_ops.h"
 
+typedef struct 
+{
+  int8_t filename[32]; 
+}pcb_filename;
+
 /**
   * Basic structure for file system:
   * data_block for file system
@@ -100,16 +105,17 @@ typedef struct
 
 typedef struct
 {
-	file_entry file_descriptor[8];
-	void* parent_page_dir_ptr;
-  uint32_t parent_eip;
-	uint32_t debug_info;
-  uint32_t pid;
-  uint8_t arg[128];
-  uint32_t parent_esp;
-  uint32_t parent_ebp;
-  uint32_t parent_pid;
-  tss_t tss;
+  pcb_filename filenames[8];  /* store all file's file names with fd as index */
+	file_entry file_descriptor[8]; /* file descriptor array */
+	void* parent_page_dir_ptr; /* parent page directory pointer*/
+  uint32_t parent_eip; /* parent eip */
+	uint32_t debug_info; /* not sure what is this */
+  uint32_t pid; /* current process pid */
+  uint8_t arg[128]; /* current process argument */
+  uint32_t parent_esp; /* parent esp */
+  uint32_t parent_ebp; /* parent ebp */
+  uint32_t parent_pid; /* parent pid */
+  tss_t tss; /* not sure what is this */
 }pcb;
 
 extern super_block* s_block;

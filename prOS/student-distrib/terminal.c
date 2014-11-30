@@ -48,7 +48,7 @@ int terminal_open()
 /* Reads count bytes from the terminal 
  * returns number of bytes sucessfully read
  */ 
-int terminal_read(char *buf, int32_t count )
+int terminal_read(int8_t* filename, char *buf, int32_t count )
 {
 	//passed in a bad buffer
 	if(buf == NULL)

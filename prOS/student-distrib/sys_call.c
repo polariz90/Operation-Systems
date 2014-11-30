@@ -8,15 +8,15 @@
 #include "rtc.h"
 
 
-#define space_char 32
-#define vir_mem_add 0x08000000
-#define phy_mem_add 0x800000
-#define four_mb 0x400000
-#define eight_mb 0x800000
-#define eight_kb 0x2000
-#define size_of_occupied 7
-#define buffer_size 128
-
+#define space_char 			32
+#define vir_mem_add 		0x08000000
+#define phy_mem_add 		0x800000
+#define four_mb 			0x400000
+#define eight_mb 			0x800000
+#define eight_kb			0x2000
+#define size_of_occupied 	7
+#define buffer_size 		128
+#define name_length 		32
 
 /* array to keep in check of process number */
 uint32_t occupied[7] = {0,0,0,0,0,0,0};
@@ -272,16 +272,18 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
+	/* getting file name */
+	int8_t* filename = current_pcb->filenames[fd].filename;
 	uint32_t fun_addr=(uint32_t)current_pcb->file_descriptor[fd].file_opt_ptr[1];
 
 	asm volatile("pushal \n \
 		pushl %%ebx \n \
 		pushl %%eax \n \
-		pushl %1    \n \
+		pushl %%edx \n \
 		call %%ecx	\n \
 		addl $8, %%esp"
 		:
-		: "g"(), "a"(buf), "b"(nbytes), "c"(fun_addr)
+		: "d"(filename), "a"(buf), "b"(nbytes), "c"(fun_addr)
 		: "cc", "memory");
 
 	/*return 0*/
@@ -330,7 +332,6 @@ int32_t open(const uint8_t* filename){
 	if(!strncmp((int8_t*)filename,(int8_t*) "terminal", 9)){
 	//	printf("get terminal argument\n");
 	}
-	
 
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
@@ -339,16 +340,21 @@ int32_t open(const uint8_t* filename){
 	uint32_t num_entries = s_block->dir_entries; /* variable hold # of entries */
 	uint32_t length; /* variable to hold filename string length */
 	length = strlen((int8_t*)filename);	
+	/* check if the length is too long */
+	if (length >= name_length){/* case too long */
+			length == name_length -1;
+	}
 
 	for(i = 0; i < num_entries; i++){ /* looping through entire entries to find file*/
 		if(strlen(s_block->file_entries[i].filename) == length){/* case 2 names doesnt have the same length*/
 			if(strncmp((int8_t*)filename, s_block->file_entries[i].filename, length) == 0){ /* check if 2 are the same */
 				/* using strncpy from lib to make deep copy*/
+
 				int type;
 				type= s_block->file_entries[i].file_type;
-				printf("%s", s_block->file_entries[i].filename);
-				printf("	file_type: %d", s_block->file_entries[i].file_type);
-				printf("	inode num: %d\n", s_block->file_entries[i].inode_num);
+//				printf("%s", s_block->file_entries[i].filename);
+//				printf("	file_type: %d", s_block->file_entries[i].file_type);
+//				printf("	inode num: %d\n", s_block->file_entries[i].inode_num);
 
 				/* getting inode of the file */
 				inode_struct* curr_inode = (inode_struct*)(s_block + four_kb + ((four_kb)*(s_block->file_entries[i].inode_num)));
@@ -372,33 +378,22 @@ int32_t open(const uint8_t* filename){
 							current_pcb->file_descriptor[j].file_pos = 0;
 							current_pcb->file_descriptor[j].flags = 1;	
 						}	//set this pcb to regular file
-
+					/* copying file name into pcb */
+						strcpy(current_pcb->filenames[j].filename, (int8_t*)filename);
 						break;	
 					}
-			//		else if(j==5&&current_pcb->file_descriptor[j+2].flags!=0){
-			//			//return -1; 	//array is full
-			//			asm("movl $-1, %eax");  //comment this line after add the function
-			//			asm("leave;ret");
-			//		}
 				}
 				if(j < 0 || j >= 8){ /* case array is full*/
+					printf("open failed 1\n");
 					return -1; 
 				}
-
+				printf("open success\n");
 				return j;
-//				//return fd number
-//				asm("movl %%ebx, %%eax" 
-//				:
-//				: "b"(j+2)
-//				: "cc", "memory"
-//				);
-//				asm("leave;ret");
-//				
-//				return 0; /* operation success*/
 			}
 		}
 
 	}
+	printf("open failed 2\n");
 	return -1; /* operation failed */
 
 }
@@ -421,7 +416,7 @@ int32_t close(int32_t fd){
 	current_pcb->file_descriptor[fd].file_opt_ptr = NULL;
 	current_pcb->file_descriptor[fd].inode_ptr = NULL;
 	current_pcb->file_descriptor[fd].file_pos = 0;
-	current_pcb->file_descriptor[fd].flags = N_USED;
+	current_pcb->file_descriptor[fd].flags = 0;
 
 
 	return 0;
@@ -446,7 +441,8 @@ int32_t getargs(uint8_t* buf, int32_t nbytes){
 		return -1; /* case argument does not fit buffer */
 	}	
 
-	strncpy((int8_t*) buf, (int8_t*) current_pcb->arg, nbytes); /* copying argument */
+	strncpy((int8_t*) buf, (int8_t*) current_pcb->arg, length); /* copying argument */
+	buf[length] = '\0';
 
 	//will never get here, stops compiler warnings 
 	return 0;
