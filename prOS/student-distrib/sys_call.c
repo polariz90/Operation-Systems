@@ -8,20 +8,19 @@
 #include "rtc.h"
 
 
-#define space_char 			32
-#define vir_mem_add 		0x08000000
-#define phy_mem_add 		0x800000
-#define four_mb 			0x400000
-#define eight_mb 			0x800000
-#define eight_kb			0x2000
-#define size_of_occupied 	7
-#define buffer_size 		128
-#define name_length 		32
+#define space_char 32
+#define vir_mem_add 0x08000000
+#define phy_mem_add 0x800000
+#define four_mb 0x400000
+#define eight_mb 0x800000
+#define eight_kb 0x2000
+#define size_of_occupied 7
+#define buffer_size 128
+
 
 /* array to keep in check of process number */
 uint32_t occupied[7] = {0,0,0,0,0,0,0};
 uint32_t entry_point;
-pcb* kernel_pcb_ptr;
 
 /* Description:
  * system call halt.
@@ -31,16 +30,8 @@ pcb* kernel_pcb_ptr;
  * 
  */
 int32_t halt(uint8_t status){
-	cli();
-	int i; /* array counter */
 	/*restore parent's esp/ebp and anything else you need*/
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
-
-	/* reset file descriptor in pcb for future memory use*/
-	for(i = 2; i < 8; i++){
-			current_pcb->file_descriptor[i].flags = 0;
-	}
-
 
 	/*may want to prevent user to close the last shell*/
 
@@ -139,17 +130,11 @@ int32_t execute(const uint8_t* command){
 	arg_arr[j] = '\0';
 
 	/* checking special commands */
-	if(strncmp((int8_t*)com_arr, (int8_t*)"clear", 5) == 0){ /* clear screen command */
+	if(strncmp(com_arr, "clear", 5) == 0){ /* clear screen command */
 		clear();
 		occupied[pid]=0;
 		//asm("movl $-1, %eax");
 		//asm("leave;ret");
-		return 0;
-	}
-	if(strncmp((int8_t*)com_arr,(int8_t*)"showpid",7) ==0){ /*check current pid */
-		pcb* temp = getting_to_know_yourself(); /* PCB at current process */
-		printf("current process id is : %d \n", temp->pid);
-		occupied[pid] = 0;
 		return 0;
 	}
 
@@ -179,11 +164,11 @@ int32_t execute(const uint8_t* command){
 
 	/*Paging*/
 	uint32_t parent_pcb;
-	asm volatile("movl %%cr3, %%eax "              \
+	asm volatile("movl %%cr3, %%eax "               \
 			: "=a"(parent_pcb)
 			: 
 			: "memory", "cc" );
-	change_process_page(pid, vir_mem_add, phy_mem_add+(pid-1)*four_mb, 1);
+	map_4KB_page(pid, vir_mem_add, phy_mem_add+(pid-1)*four_mb, 1);
 	/* paging test */
 
 
@@ -272,8 +257,6 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
-	/* getting file name */
-	int8_t* filename = current_pcb->filenames[fd].filename;
 	uint32_t fun_addr=(uint32_t)current_pcb->file_descriptor[fd].file_opt_ptr[1];
 
 	asm volatile("pushal \n \
@@ -281,9 +264,9 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 		pushl %%eax \n \
 		pushl %%edx \n \
 		call %%ecx	\n \
-		addl $8, %%esp"
+		addl $12, %%esp"
 		:
-		: "d"(filename), "a"(buf), "b"(nbytes), "c"(fun_addr)
+		: "a"(buf), "b"(nbytes), "c"(fun_addr), "d"(fd)
 		: "cc", "memory");
 
 	/*return 0*/
@@ -332,6 +315,7 @@ int32_t open(const uint8_t* filename){
 	if(!strncmp((int8_t*)filename,(int8_t*) "terminal", 9)){
 	//	printf("get terminal argument\n");
 	}
+	printf("in the open sys call*************\n");
 
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
@@ -340,62 +324,59 @@ int32_t open(const uint8_t* filename){
 	uint32_t num_entries = s_block->dir_entries; /* variable hold # of entries */
 	uint32_t length; /* variable to hold filename string length */
 	length = strlen((int8_t*)filename);	
-	/* check if the length is too long */
-	if (length >= name_length){/* case too long */
-			length == name_length -1;
-	}
 
 	for(i = 0; i < num_entries; i++){ /* looping through entire entries to find file*/
 		if(strlen(s_block->file_entries[i].filename) == length){/* case 2 names doesnt have the same length*/
 			if(strncmp((int8_t*)filename, s_block->file_entries[i].filename, length) == 0){ /* check if 2 are the same */
 				/* using strncpy from lib to make deep copy*/
-
 				int type;
 				type= s_block->file_entries[i].file_type;
-//				printf("%s", s_block->file_entries[i].filename);
-//				printf("	file_type: %d", s_block->file_entries[i].file_type);
-//				printf("	inode num: %d\n", s_block->file_entries[i].inode_num);
-
-				/* getting inode of the file */
-				inode_struct* curr_inode = (inode_struct*)(s_block + four_kb + ((four_kb)*(s_block->file_entries[i].inode_num)));
-				for(j=2;j<8;j++){ /* looping over file descriptor to find empty spots */
-					if(current_pcb->file_descriptor[j].flags == 0){ /* check if spot is open */
-						if(type==0){ /* case it is RTC */
-							current_pcb->file_descriptor[j].file_opt_ptr = rtc_opt;
-							current_pcb->file_descriptor[j].inode_ptr = curr_inode;
-							current_pcb->file_descriptor[j].file_pos = 0;
-							current_pcb->file_descriptor[j].flags = 1;
+				printf("filename: %s\n", s_block->file_entries[i].filename);
+				printf("file_type: %d\n", s_block->file_entries[i].file_type);
+				printf("inode num: %d\n", s_block->file_entries[i].inode_num);
+				for(j=0;j<6;j++){
+					if(current_pcb->file_descriptor[j+2].flags==0){
+						if(type==0){
+							current_pcb->file_descriptor[j+2].file_opt_ptr=rtc_opt;
 						}	//set this pcb to rtc
-						else if(type==1){ /* case it is Directory */
-							current_pcb->file_descriptor[j].file_opt_ptr = dir_opt;
-							current_pcb->file_descriptor[j].inode_ptr = curr_inode;
-							current_pcb->file_descriptor[j].file_pos = 0;
-							current_pcb->file_descriptor[j].flags = 1;				
+						else if(type==1){
+							current_pcb->file_descriptor[j+2].file_opt_ptr=dir_opt;
 						}	//set this pcb to directory
-						else if(type==2){ /* case it is regular file */
-							current_pcb->file_descriptor[j].file_opt_ptr = file_opt;
-							current_pcb->file_descriptor[j].inode_ptr = curr_inode;
-							current_pcb->file_descriptor[j].file_pos = 0;
-							current_pcb->file_descriptor[j].flags = 1;	
+						else if(type==2){
+							current_pcb->file_descriptor[j+2].file_opt_ptr=file_opt;
 						}	//set this pcb to regular file
-					/* copying file name into pcb */
-						strcpy(current_pcb->filenames[j].filename, (int8_t*)filename);
+						current_pcb->file_descriptor[j+2].inode_ptr=(uint32_t)s_block+ (s_block->file_entries[i].inode_num+1)*four_kb;
+						current_pcb->file_descriptor[j+2].inode_num=s_block->file_entries[i].inode_num;
+						current_pcb->file_descriptor[j+2].flags=USED;
 						break;	
 					}
+					else if(j==5&&current_pcb->file_descriptor[j+2].flags!=0){
+						//return -1; 	//array is full
+						asm("movl $-1, %eax");  //comment this line after add the function
+						asm("leave;ret");
+					}
 				}
-				if(j < 0 || j >= 8){ /* case array is full*/
-					printf("open failed 1\n");
-					return -1; 
-				}
-				printf("open success\n");
-				return j;
+
+				//return fd number
+				asm("movl %%ebx, %%eax" 
+				:
+				: "b"(j+2)
+				: "cc", "memory"
+				);
+				asm("leave;ret");
+				
+				return 0; /* operation success*/
 			}
 		}
 
 	}
-	printf("open failed 2\n");
 	return -1; /* operation failed */
 
+	asm("movl $-, %eax");  //comment this line after add the function
+	asm("leave;ret");
+
+	//will never get here 
+	return 0;
 }
 
 
@@ -406,21 +387,17 @@ int32_t open(const uint8_t* filename){
  * 0 when success
  */
 int32_t close(int32_t fd){
-		
-	/* check if default descriptor */
-	if (fd < 2){ /* case trying to close stdin stdout*/
-		return -1; 
-	}
-
+	
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
-	current_pcb->file_descriptor[fd].file_opt_ptr = NULL;
-	current_pcb->file_descriptor[fd].inode_ptr = NULL;
+	current_pcb->file_descriptor[fd].file_opt_ptr=NULL;
 	current_pcb->file_descriptor[fd].file_pos = 0;
-	current_pcb->file_descriptor[fd].flags = 0;
+	current_pcb->file_descriptor[fd].flags = N_USED;
 
+	asm("movl $0, %eax");  //comment this line after add the function
+	asm("leave;ret");
 
+	//will never get here, stops compiler warnings 
 	return 0;
-
 }
 
 
@@ -441,8 +418,7 @@ int32_t getargs(uint8_t* buf, int32_t nbytes){
 		return -1; /* case argument does not fit buffer */
 	}	
 
-	strncpy((int8_t*) buf, (int8_t*) current_pcb->arg, length); /* copying argument */
-	buf[length] = '\0';
+	strncpy((int8_t*) buf, (int8_t*) current_pcb->arg, nbytes); /* copying argument */
 
 	//will never get here, stops compiler warnings 
 	return 0;
@@ -450,36 +426,17 @@ int32_t getargs(uint8_t* buf, int32_t nbytes){
 
 
 /* Description:
- * system call vidmap:
- *		maps the text-mode video memory into user space at a pre-set virtual address. 
- *   the return value is always the same at 256MB, and written into the memory location
- *   that given by the user program. need to check validity
- * RETUN:     0 when success, -1 when failed. 
+ * system call vidmap.
+ *
+ * 
  */
 int32_t vidmap(uint8_t** screen_start){
 	
-	/* check screen_start memory location first */
+	asm("movl $0, %eax");  //comment this line after add the function
+	asm("leave;ret");
 
-
-	pcb * current_pcb = getting_to_know_yourself(); /* getting current pcb */
-
-	uint32_t vir_add = 0x10000000; /* virtual address */
-	uint32_t phy_add = 0x8000; /* physcial address */
-	uint32_t pid = current_pcb->pid; /* current pid */
-	uint32_t pd_add = (uint32_t)(&processes_page_dir[pid]); /* page directory address */
-	uint32_t pt_add = (uint32_t)(&vidmap_page_table[pid]); /* page table address */
-
-	int ret = map_4kb_page(pid, vir_add, phy_add, 1, pd_add, pt_add, 1);
-
-	if(ret == 0){
-		/*not sure what to do here */
-		* screen_start = vir_add;
-		return 0;
-	}
-	else{
-		return -1; 
-	}
-
+	//will never get here, stops compiler warnings 
+	return 0;
 }
 
 

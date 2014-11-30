@@ -91,6 +91,7 @@ typedef struct
 {
   void ** file_opt_ptr;  /*4 bytes file operation table pointer*/
   inode_struct* inode_ptr;  /* 4 bytes inodes ptr */
+  int inode_num;
   uint32_t file_pos; /* 4 bytes file position */
   uint32_t flags; /* 4 bytes flags -- 1 is in use, 0 is free */
 }file_entry;
@@ -122,13 +123,14 @@ extern super_block* s_block;
 extern void * file_opt[4];
 extern void * dir_opt[4];
 
+
 int32_t read_dentry_by_name (const uint8_t * fname, dentry_t * dentry);
 int32_t read_dentry_by_index (uint32_t index, dentry_t * dentry);
 int32_t read_data (uint32_t inode, uint32_t offset, uint8_t * buf, uint32_t length);
 int32_t open_file_sys(const uint8_t * fname);
 int32_t read_sys (int32_t fd, void * buf, int32_t nbytes);
-int32_t read_file(const int8_t* fname, void * buf, uint32_t nbytes);
-int32_t read_dir(int8_t* fname, uint8_t * buf, uint32_t nbytes);
+int32_t read_file(int32_t fd, void * buf, uint32_t nbytes);
+int32_t read_dir(int32_t fd, uint8_t * buf, uint32_t nbytes);
 int32_t write_sys(int32_t fd, const void * buf, int32_t nbytes);
 int32_t write_dir();
 int32_t write_file();

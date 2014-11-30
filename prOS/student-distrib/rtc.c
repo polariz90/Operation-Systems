@@ -11,6 +11,7 @@ void * rtc_opt[4]={
   rtc_close
 };
 
+
 extern void rtc_enable()
 {
 	outb(RTC_B, RTC_PORT);		// select register B, and disable NMI
