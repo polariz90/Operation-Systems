@@ -189,7 +189,9 @@ int is_special_key(int key)
 	 *
 	 * rcontrolp = 29 
 	 * rcontrolr = 157
+	 *	
 	 *
+	 * altp   56
 	 *
 	 */
 
@@ -210,6 +212,7 @@ int is_special_key(int key)
 		key == CTLR    				||
 		key == UPP 					||
 		key == UPR 					||
+		key == ALTP 				||
 	    (key == Lp && terminals[curr_terminal].ctrl == 1)			
 	  )
 	{
@@ -297,6 +300,10 @@ void exe_special_key(int key)
 
 		case CTLP :
 			toggle_ctrl();
+			break;
+
+		case ALTP :
+
 			break;
 
 		case CTLR :

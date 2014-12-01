@@ -162,6 +162,7 @@ void keyboard_handler()
 	/*Writing to the buffer if it is a valid character*/
 	else if(terminals[curr_terminal].size < BUF_SIZE && (int) temp <= 58)
 	{
+
 		//prints the shifted key
 		if (shift ==1)
 		{
@@ -183,6 +184,7 @@ void keyboard_handler()
 		}
 
 	}	
+	//printf("%d",(int) temp);
 
  	asm("popal;leave;iret");
 }

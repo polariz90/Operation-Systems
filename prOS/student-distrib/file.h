@@ -121,6 +121,7 @@ typedef struct
 
 extern super_block* s_block;
 extern void * file_opt[4];
+//int (*file_opt)(int fd, void* buf, int nbytes)[4];
 extern void * dir_opt[4];
 
 

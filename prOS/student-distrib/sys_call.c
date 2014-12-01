@@ -243,7 +243,10 @@ int32_t execute(const uint8_t* command){
   * test function to call execute system call
   */
 void test_execute(){
-	execute((uint8_t*)"shell abc");
+	//execute((uint8_t*)"shell abc");
+	int32_t (*test)(const uint8_t*);
+	test = execute;
+	test("shell abc");
 }
 
 /* Description:
@@ -264,6 +267,12 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 	{
 		return -1;
 	}
+	//test 1
+	//int32_t (*test)(int32_t, void*, int32_t);
+	//test = (uint32_t)current_pcb->file_descriptor[fd].file_opt_ptr[1];
+	//return test(fd,buf,nbytes);
+
+	//return ((uint32_t)current_pcb->file_descriptor[fd].file_opt_ptr[1])(fd,buf,nbytes);
 
 	uint32_t fun_addr=(uint32_t)current_pcb->file_descriptor[fd].file_opt_ptr[1];
 

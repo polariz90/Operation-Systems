@@ -25,6 +25,7 @@
 #define Lp			    38 
 #define UPP 	        72
 #define UPR     	    200
+#define ALTP			56
 
 #define CAPS_CONV		0x20
 #define his_buff_size 	100
