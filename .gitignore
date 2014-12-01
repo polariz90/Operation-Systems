@@ -57,3 +57,8 @@ prOS/student-distrib/bootimg
 *.o
 *.o
 *.o
+<<<<<<< HEAD
+=======
+*.o
+>>>>>>> origin/eric_choi_open&close
+*.o

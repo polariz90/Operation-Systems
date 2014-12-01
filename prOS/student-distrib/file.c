@@ -32,6 +32,7 @@ void * dir_opt[4]={
   write_dir,
   close_dir
 };
+
 /*set the default value of file descriptor*/
 
 /* NOT SURE IF WE NEED THIS ANYMORE
@@ -63,6 +64,7 @@ void init_pcb(pcb* curr_pcb)
 		curr_pcb->file_descriptor[i].flags = N_USED;
 	}
 	/* initialize stdin */
+
 	curr_pcb->file_descriptor[stdin_idx].file_opt_ptr = stdin_opt; /* initialize jump table */
 	curr_pcb->file_descriptor[stdin_idx].inode_ptr = NULL; /*stdin do not have inode */
 	curr_pcb->file_descriptor[stdin_idx].file_pos = 0; /*stdin is read only */
@@ -173,33 +175,44 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t * buf, uint32_t lengt
 	uint32_t bytes_left = file_length - offset; /* this gives number of bytes left to read */
 	uint32_t ori_length = length; /* keep in track of original length*/
 	uint32_t block_number; /* keep in track of which block is on */
+	int i;
 
 	/* check boundary conditions */
 	if(inode < 0 || inode > s_block->inodes){
+		printf("case1\n");
 		return -1; /* case invalid inode number */
 	}
 	if(offset < 0 || offset > file_length){
+		printf("case2\n");
 		return -1; /* case invalid offset */
 	}
 	if(file_length == 0){
 		return 0; /* case empty file */
 	}
 	if(buf == NULL){
+		printf("case3\n");
 		return -1; /* case passed in invalid buffer */
 	}
-
+	if (bytes_left==0) //if meet end of the file
+	{
+		return 0;
+	}
 
 	block_number = curr_inode->data_blocks[num_block];
 	 /* variable to point at current data block */
 	data_struct* curr_data = (data_struct*)((uint32_t)s_block + (inodes_N + block_number+1)*four_kb);
 
+	i = 0;
 	for(; length > 0; length --){ /* loop to read length bytes of data into buffer */
 		if(bytes_left == 0){ /* case finished the entire file */
-			return 0; 
+			return file_length - offset; //have to return num of byte read. in case "cat frame0.txt" doesn't work
+			//return 0;
 		}
 
-		*buf = curr_data->data[num_skip];
-		buf ++; num_skip ++; bytes_left --;
+		*(buf+i) = curr_data->data[num_skip];
+		//memcpy(buf+i, curr_data->data+num_skip, 1);
+		i++;
+		num_skip ++; bytes_left --;
 
 		if(num_skip == (four_kb-1)){ /* reach end of the block */
 			num_block ++;
@@ -270,7 +283,6 @@ int32_t open_sys(const uint8_t * fname){
   * OUTPUT:			file, dir: 	return the number of bytes read
 								return 0 if is the end of the file
 					rtc:		return 0
-
   *					-1 when fail: cannot read
   * SIDE EFFECT:	
   */
@@ -286,33 +298,23 @@ int32_t read_sys(int32_t fd, void * buf, int32_t nbytes){
   * 				-1 when failed 
   * SIDE EFFECT: 	filling the buffer with file chars
   */
-int32_t read_file( const int8_t* fname, void * buf, uint32_t nbytes){
+int32_t read_file(int32_t fd, void * buf, uint32_t nbytes){
 	/* case invalid fname and buffer */
-	if( fname == NULL || buf == NULL){
+	/*if( fname == NULL || buf == NULL){
 		printf("failed to read file \n");
 		return -1; 
-	}
-	/* getting current pcb*/
-	pcb* current_pcb = getting_to_know_yourself();
+	}*/
 
-	/* getting fd */
-	int fd = 0;
-	int fname_length = strlen(fname);
+	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
-	while(strncmp(fname, current_pcb->filenames[fd].filename, fname_length) != 0){/* means right fd*/
-			fd ++;
-	}
 	dentry_t file_dentry; /* dentry to hold inofrmation of this file */
+	//read_dentry_by_name((uint8_t*)fname, &file_dentry); /* read dentry by name */
+	//read_dentry_by_index(current_pcb->file_descriptor[fd].inode_num, &file_dentry);
 
-	read_dentry_by_name((uint8_t*)fname, &file_dentry); /* read dentry by name */
-
-	int ret = read_data(file_dentry.inode_num, current_pcb->file_descriptor[fd].file_pos, buf, nbytes); /* read file data into buffer */
-	/* updating file position */
-	current_pcb->file_descriptor[fd].file_pos += nbytes;
-	/* check return value */
-	if(ret == -1){
-		printf("file read failed \n");
-	}
+	int ret = read_data(current_pcb->file_descriptor[fd].inode_num, current_pcb->file_descriptor[fd].file_pos, buf, nbytes); /* read file data into buffer */
+		current_pcb->file_descriptor[fd].file_pos+=ret;
+	//printf("here!! ret: %s\n", buf);
+//	printf("here!! ret: %d\n", ret);
 	return ret;
 }
 
@@ -335,28 +337,29 @@ int32_t write_sys(int32_t fd, const void * buf, int32_t nbytes){
   * 				-1 when failed 
   * SIDE EFFECT: 	filling the buffer with file chars
   */
-int32_t read_dir(int8_t* fname, uint8_t * buf, uint32_t nbytes){
+int32_t read_dir(int32_t fd, uint8_t * buf, uint32_t nbytes){
 
-	if(*fname!='.') {
+	//don't need this anymore
+/*	if(*fname!='.') {
 		printf("fail to read directory\n");
 		return -1;
 	}
+*/
 
-	int fd;
+	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+
 	int pos;
-	/*only for this check point, set directory file descriptor fd=2*/
-	fd = 2;
 
 	/*pos=0 is the dir entry*/
-	file_desc[fd].file_pos++;
-	pos=file_desc[fd].file_pos;
+	current_pcb->file_descriptor[fd].file_pos++;
+	pos=current_pcb->file_descriptor[fd].file_pos;
 	
 	if(nbytes>=strlen(s_block->file_entries[pos].filename)&&pos<=s_block->dir_entries){
 		strcpy((int8_t*)buf, s_block->file_entries[pos].filename);
 		return strlen(s_block->file_entries[pos].filename);
 	}
 	else if(pos>s_block->dir_entries){
-		file_desc[fd].file_pos = 0;
+		file_desc[fd].file_pos=0;
 		return 0;
 	}
 	else{
@@ -553,8 +556,8 @@ int load_file_img(int8_t* fname)
 		output = read_data(file_dentry.inode_num, offset, (uint8_t*) buff, buffer_size);
 
 		if(output == 0){/* case hit the end of the file */
-			last_chunk = curr_inode->length - offset;
-			memcpy(load_ptr, buff, last_chunk); 
+			//last_chunk = curr_inode->length - offset;
+			//memcpy(load_ptr, buff, last_chunk); 
 		}
 		else if (output == -1){
 			printf("File load failed \n");
@@ -562,14 +565,16 @@ int load_file_img(int8_t* fname)
 		}
 		else{ /* else case, load 20 */
 
-			memcpy(load_ptr, buff, buffer_size);
+			//memcpy(load_ptr, buff, buffer_size);
+			memcpy(load_ptr, buff, output);
+			offset += output;
+			load_ptr += output;
+			//offset += buffer_size;
+			//load_ptr += buffer_size;
 
-			offset += buffer_size;
-			load_ptr += buffer_size;
 		}
-	}while(output != 0);
 
+	}while(output != 0);
 	return 0;
 	
 }
-

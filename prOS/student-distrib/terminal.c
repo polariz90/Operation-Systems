@@ -1,4 +1,5 @@
 #include "terminal.h"
+#include "file.h"
 #include "lib.h"
 
 #define NUM_COLS 80
@@ -48,7 +49,8 @@ int terminal_open()
 /* Reads count bytes from the terminal 
  * returns number of bytes sucessfully read
  */ 
-int terminal_read(int8_t* filename, char *buf, int32_t count )
+
+int terminal_read(int32_t fd, char *buf, int32_t count )
 {
 	//passed in a bad buffer
 	if(buf == NULL)
@@ -93,8 +95,10 @@ int terminal_read(int8_t* filename, char *buf, int32_t count )
 /* Writes count bytes to the buffer 
   * returns number of bytes written to the terminal
   */ 
-int terminal_write(char *buf, int32_t count )
+int terminal_write(int32_t fd, char *buf, int32_t count )
 {
+	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+    
 	//want to write zero bytes
 	if(count == 0)
 		return 0;
@@ -105,12 +109,35 @@ int terminal_write(char *buf, int32_t count )
 
 	
 	uint32_t curr_index =0 ;
-	//1.writing count bytes
-	while(curr_index < count)
-	{
-		printt(buf[curr_index]); 
-		curr_index++;
+	//writing count bytes
+
+	if(fd == magic_fd){
+		while(curr_index < count)
+		{
+			printt(buf[curr_index]); 
+			curr_index++;
+		}
 	}
+
+	//executable file
+	if(current_pcb->file_descriptor[fd].exe_flag == 0)
+	{	
+		while(curr_index < count)
+		{
+			printt(buf[curr_index]); 
+			curr_index++;
+		}
+	}
+	else
+	{
+		while(curr_index < count)
+		{
+			printt_hex(buf[curr_index]); 
+			curr_index++;
+		}
+
+	}
+
 
 	//returns the number of bytes written
 	return curr_index;
@@ -479,3 +506,61 @@ void printt(char c)
 
 
 }
+
+
+/* terminal print hex
+ * takes a char and a current screen location and prints the char there
+ * returns nothing
+ *
+ * should also set the current x and y correct
+ */
+void printt_hex(char c)
+{
+	//here is where I should code for special cases
+
+	//sets the screen loc in video mem
+	set_screen_y(terminals[curr_terminal].yloc);	
+	set_screen_x(terminals[curr_terminal].xloc);
+	
+	//last line
+	if(get_screen_y() == NUM_ROWS -1)
+	{
+		//character is an enter
+		if(c == '\n')
+		{
+			new_line();
+		}
+		//at the end 
+		else if(get_screen_x() == NUM_COLS -1)
+		{
+			printf("%x",c);
+			new_line();
+		}
+		//somewhere in the middle of the screen
+		else 
+		{
+			//prints the new character]
+			printf("%x",c);
+		}
+	}
+	//not on last line
+	else	
+	{
+			if(get_screen_x() ==  NUM_COLS -1)
+			{
+				printf("%x",c);
+				new_line();
+			}
+			else
+			{
+			printf("%x",c);
+			}
+	}
+
+	//gets the new screen loc from video mem
+	terminals[curr_terminal].yloc = get_screen_y();
+	terminals[curr_terminal].xloc = get_screen_x();
+
+
+}
+
