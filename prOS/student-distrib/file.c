@@ -304,7 +304,7 @@ int32_t read_file(int32_t fd, void * buf, uint32_t nbytes){
 		printf("failed to read file \n");
 		return -1; 
 	}*/
-
+	sti();
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
 	//dentry_t file_dentry; /* dentry to hold inofrmation of this file */
@@ -345,7 +345,7 @@ int32_t read_dir(int32_t fd, uint8_t * buf, uint32_t nbytes){
 		return -1;
 	}
 */
-
+	sti();
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
 	int pos;

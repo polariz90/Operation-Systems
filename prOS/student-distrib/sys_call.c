@@ -256,32 +256,14 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 	if(fd < 0 || fd > 7){
 		return -1;
 	}
-	sti();
-
-	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
-
-	if(current_pcb->file_descriptor[fd].flags == N_USED)
+	if((getting_to_know_yourself())->file_descriptor[fd].flags == N_USED)
 	{
 		return -1;
 	}
+	sti();
 
-	uint32_t fun_addr=(uint32_t)current_pcb->file_descriptor[fd].file_opt_ptr[1];
+	return (*(getting_to_know_yourself())->file_descriptor[fd].file_opt_ptr->opt_read) (fd, buf, nbytes);
 
-	asm volatile("pushal \n \
-		pushl %%ebx \n \
-		pushl %%eax \n \
-		pushl %%edx \n \
-		call  *%%ecx	\n \
-		addl $12, %%esp"
-		:
-		: "a"(buf), "b"(nbytes), "c"(fun_addr), "d"(fd)
-		: "cc", "memory");
-
-	/*return 0*/
-	asm("leave;ret");
-
-	//will never get here, stops compiler warnings 
-	return 0;
 }
 
 
@@ -295,30 +277,14 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
 		return -1;
 	}
 
-	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
-
 	//testing if file has not been used yet
-	if(current_pcb->file_descriptor[fd].flags == N_USED)
+	if((getting_to_know_yourself())->file_descriptor[fd].flags == N_USED)
 	{
 		return -1;
 	}
 
-	uint32_t fun_addr=(uint32_t)current_pcb->file_descriptor[fd].file_opt_ptr[2];
-	asm volatile("pushal \n \
-		pushl %%ebx \n \
-		pushl %%eax \n \
-		pushl %%edx \n \
-		call *%%ecx	\n \
-		addl $12, %%esp"
-		:
-		: "a"(buf), "b"(nbytes), "c"(fun_addr),"d"(fd)
-		: "cc", "memory");
+	return (*(getting_to_know_yourself())->file_descriptor[fd].file_opt_ptr->opt_write) (fd, buf, nbytes);
 
-	/*return 0*/
-	asm("leave;ret");
-
-	//will never get here, stops compiler warnings 
-	return 0;
 }
 
 

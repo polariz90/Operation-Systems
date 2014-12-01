@@ -52,6 +52,7 @@ int terminal_open()
 
 int terminal_read(int32_t fd, char *buf, int32_t count )
 {
+	sti();
 	//passed in a bad buffer
 	if(buf == NULL)
 		return -1;
@@ -62,9 +63,11 @@ int terminal_read(int32_t fd, char *buf, int32_t count )
 
 	terminals[curr_terminal].reading =1;
 	//need to wait until the buffer has been terminated with a \n or the buffer fills up
+
 	while( terminals[curr_terminal].reading  != 0 )
 	{
 		//do the dew and wait for reading to finish
+
 	}
 
 	int curr_index = 0;
