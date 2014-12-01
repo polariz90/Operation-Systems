@@ -26,11 +26,11 @@ extern void * rtc_opt[4];
 
 
 extern int32_t rtc_read();
-extern int32_t rtc_write(const int32_t* buf, int32_t nbytes);
+extern int32_t rtc_write(int fd, const int32_t* buf, int32_t nbytes);
 extern int32_t rtc_open();
 extern int32_t rtc_close(int32_t fd);
 
 extern void test_read();
-extern void test_write(int ret_val, int32_t nbytes);
+//extern void test_write(int ret_val, int32_t nbytes);
 
 #endif

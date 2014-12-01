@@ -81,6 +81,13 @@ typedef struct
   dentry_t file_entries[63];
 }super_block;
 
+typedef struct 
+{
+   int  (*opt_open)(int fd, void* buf, int nbytes);
+   int  (*opt_read)(int fd, void* buf, int nbytes);
+   int  (*opt_write)(int fd, void* buf, int nbytes);
+   int  (*opt_close)(int fd, void* buf, int nbytes);
+}opt;
 
 /**
   * Basic entry for file system:
@@ -89,7 +96,8 @@ typedef struct
   */
 typedef struct 
 {
-  void ** file_opt_ptr;  /*4 bytes file operation table pointer*/
+  //void ** file_opt_ptr;  /*4 bytes file operation table pointer*/
+  opt * file_opt_ptr;
   inode_struct* inode_ptr;  /* 4 bytes inodes ptr */
   int inode_num;
   uint32_t file_pos; /* 4 bytes file position */

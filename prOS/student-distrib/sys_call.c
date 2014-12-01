@@ -259,38 +259,13 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 	if(fd < 0 || fd > 7){
 		return -1;
 	}
-	sti();
-
-	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
-
-	if(current_pcb->file_descriptor[fd].flags == N_USED)
+	if((getting_to_know_yourself())->file_descriptor[fd].flags == N_USED)
 	{
 		return -1;
 	}
-	//test 1
-	//int32_t (*test)(int32_t, void*, int32_t);
-	//test = (uint32_t)current_pcb->file_descriptor[fd].file_opt_ptr[1];
-	//return test(fd,buf,nbytes);
 
-	//return ((uint32_t)current_pcb->file_descriptor[fd].file_opt_ptr[1])(fd,buf,nbytes);
+	return (*(getting_to_know_yourself())->file_descriptor[fd].file_opt_ptr->opt_read) (fd, buf, nbytes);
 
-	uint32_t fun_addr=(uint32_t)current_pcb->file_descriptor[fd].file_opt_ptr[1];
-
-	asm volatile("pushal \n \
-		pushl %%ebx \n \
-		pushl %%eax \n \
-		pushl %%edx \n \
-		call  *%%ecx	\n \
-		addl $12, %%esp"
-		:
-		: "a"(buf), "b"(nbytes), "c"(fun_addr), "d"(fd)
-		: "cc", "memory");
-
-	/*return 0*/
-	asm("leave;ret");
-
-	//will never get here, stops compiler warnings 
-	return 0;
 }
 
 
@@ -304,30 +279,14 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
 		return -1;
 	}
 
-	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
-
 	//testing if file has not been used yet
-	if(current_pcb->file_descriptor[fd].flags == N_USED)
+	if((getting_to_know_yourself())->file_descriptor[fd].flags == N_USED)
 	{
 		return -1;
 	}
 
-	uint32_t fun_addr=(uint32_t)current_pcb->file_descriptor[fd].file_opt_ptr[2];
-	asm volatile("pushal \n \
-		pushl %%ebx \n \
-		pushl %%eax \n \
-		pushl %%edx \n \
-		call *%%ecx	\n \
-		addl $12, %%esp"
-		:
-		: "a"(buf), "b"(nbytes), "c"(fun_addr),"d"(fd)
-		: "cc", "memory");
+	return (*(getting_to_know_yourself())->file_descriptor[fd].file_opt_ptr->opt_write) (fd, buf, nbytes);
 
-	/*return 0*/
-	asm("leave;ret");
-
-	//will never get here, stops compiler warnings 
-	return 0;
 }
 
 
@@ -345,9 +304,8 @@ int32_t open(const uint8_t* filename){
 	}
 	/*don't need this if user never call open(terminal)*/
 	if(!strncmp((int8_t*)filename,(int8_t*) "terminal", 9)){
-	//	printf("get terminal argument\n");
+
 	}
-	//printf("in the open sys call*************\n");
 
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 

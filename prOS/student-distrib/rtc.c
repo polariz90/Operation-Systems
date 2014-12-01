@@ -58,7 +58,7 @@ extern int32_t rtc_read()
  * -1: failure
  * n: number of bytes written
  */
-extern int32_t rtc_write(const int32_t* buf, int32_t nbytes)
+extern int32_t rtc_write(int fd, const int32_t* buf, int32_t nbytes)
 {
 	unsigned char prev_a; // temporary 
 	int8_t freq;
@@ -172,8 +172,8 @@ int counter = 0;
  * Inputs: frequency value, bytes
  * Outputs: none
  */
-extern void test_write(int ret_val, int32_t nbytes)
+/*extern void test_write(int ret_val, int32_t nbytes)
 {
 	rtc_write(&ret_val, nbytes);
-}
+}*/
 
