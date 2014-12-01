@@ -19,4 +19,4 @@ rtc.o: rtc.c i8259.h types.h rtc.h lib.h idt.h
 sys_call.o: sys_call.c lib.h types.h sys_call.h file.h x86_desc.h \
   assembly_ops.h page.h terminal.h rtc.h
 terminal.o: terminal.c terminal.h lib.h types.h file.h x86_desc.h \
-  assembly_ops.h
+  assembly_ops.h sys_call.h

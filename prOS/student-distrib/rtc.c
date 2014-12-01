@@ -39,6 +39,7 @@ extern void rtc_disable()
  */
 extern int32_t rtc_read()
 {	
+	sti();
 	flag = 1;
 	while(flag);
 	//printf("i am read\n");

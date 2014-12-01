@@ -23,10 +23,6 @@
 uint32_t occupied[7] = {0,0,0,0,0,0,0};
 uint32_t entry_point;
 uint8_t ELF[4]={0x7f, 0x45, 0x4c, 0x46};
-//ELF[0]=0x7f; /* executable check for magic number ELF*/
-//ELF[1]=0x45;
-//ELF[2]=0x4c;
-//ELF[3]=0x46;
 
 
 /* Description:
@@ -243,10 +239,10 @@ int32_t execute(const uint8_t* command){
   * test function to call execute system call
   */
 void test_execute(){
-	//execute((uint8_t*)"shell abc");
-	int32_t (*test)(const uint8_t*);
-	test = execute;
-	test("shell abc");
+execute((uint8_t*)"shell abc");
+//	int32_t (*test)(const uint8_t*);
+//	test = execute;
+//	execute("shell abc");
 }
 
 /* Description:
@@ -327,13 +323,13 @@ int32_t open(const uint8_t* filename){
 				for(j=0;j<6;j++){
 					if(current_pcb->file_descriptor[j+2].flags==0){
 						if(type==0){
-							current_pcb->file_descriptor[j+2].file_opt_ptr=rtc_opt;
+							current_pcb->file_descriptor[j+2].file_opt_ptr=(opt*)rtc_opt;
 						}	//set this pcb to rtc
 						else if(type==1){
-							current_pcb->file_descriptor[j+2].file_opt_ptr=dir_opt;
+							current_pcb->file_descriptor[j+2].file_opt_ptr=(opt*)dir_opt;
 						}	//set this pcb to directory
 						else if(type==2){
-							current_pcb->file_descriptor[j+2].file_opt_ptr=file_opt;
+							current_pcb->file_descriptor[j+2].file_opt_ptr=(opt*)file_opt;
 							/*Excutable check*/
 							uint8_t buf[buffer_size];
 							if(read_file_img((int8_t*)s_block->file_entries[i].filename, (uint8_t*) buf, buffer_size) == -1){

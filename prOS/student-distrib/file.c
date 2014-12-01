@@ -65,14 +65,14 @@ void init_pcb(pcb* curr_pcb)
 	}
 	/* initialize stdin */
 
-	curr_pcb->file_descriptor[stdin_idx].file_opt_ptr = stdin_opt; /* initialize jump table */
+	curr_pcb->file_descriptor[stdin_idx].file_opt_ptr = (opt*)stdin_opt; /* initialize jump table */
 	curr_pcb->file_descriptor[stdin_idx].inode_ptr = NULL; /*stdin do not have inode */
 	curr_pcb->file_descriptor[stdin_idx].file_pos = 0; /*stdin is read only */
 	curr_pcb->file_descriptor[stdin_idx].flags=USED;
 
 
 	/* initialize stdout */
-	curr_pcb->file_descriptor[stdout_idx].file_opt_ptr = stdout_opt; /* initialize jump table */
+	curr_pcb->file_descriptor[stdout_idx].file_opt_ptr = (opt*)stdout_opt; /* initialize jump table */
 	curr_pcb->file_descriptor[stdout_idx].inode_ptr = NULL; /* stdout do not have inode */
 	curr_pcb->file_descriptor[stdout_idx].file_pos = 0; /* stdout is read only */
 	curr_pcb->file_descriptor[stdout_idx].flags = USED; /* set flag in use*/
@@ -299,11 +299,7 @@ int32_t read_sys(int32_t fd, void * buf, int32_t nbytes){
   * SIDE EFFECT: 	filling the buffer with file chars
   */
 int32_t read_file(int32_t fd, void * buf, uint32_t nbytes){
-	/* case invalid fname and buffer */
-	/*if( fname == NULL || buf == NULL){
-		printf("failed to read file \n");
-		return -1; 
-	}*/
+
 	sti();
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
@@ -339,12 +335,6 @@ int32_t write_sys(int32_t fd, const void * buf, int32_t nbytes){
   */
 int32_t read_dir(int32_t fd, uint8_t * buf, uint32_t nbytes){
 
-	//don't need this anymore
-/*	if(*fname!='.') {
-		printf("fail to read directory\n");
-		return -1;
-	}
-*/
 	sti();
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 

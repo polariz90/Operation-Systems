@@ -1,6 +1,7 @@
 #include "terminal.h"
 #include "file.h"
 #include "lib.h"
+#include "sys_call.h"
 
 #define NUM_COLS 80
 #define NUM_ROWS 25
@@ -216,6 +217,7 @@ int is_special_key(int key)
 		key == UPP 					||
 		key == UPR 					||
 		key == ALTP 				||
+		(key == Lc && terminals[curr_terminal].ctrl == 1) ||
 	    (key == Lp && terminals[curr_terminal].ctrl == 1)			
 	  )
 	{
@@ -317,6 +319,10 @@ void exe_special_key(int key)
 		case Lp :
 			terminals[curr_terminal].size =  0;
 			clear();
+			break;
+
+		case Lc :
+			halt( 4 );
 			break;
 
 		case UPP: /* case where up arrow key is pressed */
