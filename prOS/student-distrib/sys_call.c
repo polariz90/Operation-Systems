@@ -8,15 +8,16 @@
 #include "rtc.h"
 
 
-#define space_char 32
-#define vir_mem_add 0x08000000
-#define phy_mem_add 0x800000
-#define four_mb 0x400000
-#define eight_mb 0x800000
-#define eight_kb 0x2000
-#define size_of_occupied 7
-#define buffer_size 128
-
+#define space_char 			32
+#define vir_mem_add 		0x08000000
+#define phy_mem_add 		0x800000
+#define four_mb 			0x400000
+#define eight_mb 			0x800000
+#define eight_kb 			0x2000
+#define size_of_occupied 	7
+#define buffer_size 		128
+#define _132mb 				0x8400000
+#define _128mb 				0x8000000
 
 /* array to keep in check of process number */
 uint32_t occupied[7] = {0,0,0,0,0,0,0};
@@ -92,7 +93,6 @@ int32_t halt(uint8_t status){
  * which are operating in user level with new set of page directories. 
  */
 int32_t execute(const uint8_t* command){
-
 	int i,j; /* loop counter */
 	/* getting new pid for processes */
 	int pid = get_next_pid();
@@ -140,7 +140,7 @@ int32_t execute(const uint8_t* command){
 	arg_arr[j] = '\0';
 
 	/* checking special commands */
-	if(strncmp(com_arr, "clear", 5) == 0){ /* clear screen command */
+	if(strncmp((int8_t*)com_arr, "clear", 5) == 0){ /* clear screen command */
 		clear();
 		occupied[pid]=0;
 		//asm("movl $-1, %eax");
@@ -271,7 +271,7 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 		pushl %%ebx \n \
 		pushl %%eax \n \
 		pushl %%edx \n \
-		call  %%ecx	\n \
+		call  *%%ecx	\n \
 		addl $12, %%esp"
 		:
 		: "a"(buf), "b"(nbytes), "c"(fun_addr), "d"(fd)
@@ -331,7 +331,7 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
 int32_t open(const uint8_t* filename){
 	if(filename[0] == 0x72){
 		if(filename[1] == 'a'){
-			return 	open("frame0.txt");
+			return 	open((uint8_t*)"frame0.txt");
 		}
 	}
 	/*don't need this if user never call open(terminal)*/
@@ -383,7 +383,7 @@ int32_t open(const uint8_t* filename){
 								current_pcb->file_descriptor[j+2].exe_flag=1;
 							}
 						}	//set this pcb to regular file
-						current_pcb->file_descriptor[j+2].inode_ptr=(uint32_t)s_block+ (s_block->file_entries[i].inode_num+1)*four_kb;
+						current_pcb->file_descriptor[j+2].inode_ptr=(inode_struct*)(s_block+ (s_block->file_entries[i].inode_num+1)*four_kb);
 						current_pcb->file_descriptor[j+2].inode_num=s_block->file_entries[i].inode_num;
 						current_pcb->file_descriptor[j+2].flags=USED;
 						break;	
@@ -484,7 +484,6 @@ int32_t getargs(uint8_t* buf, int32_t nbytes){
  */
 int32_t vidmap(uint8_t** screen_start){
 	
-	
 	/* check screen_start memory location first */
 	if(screen_start == NULL){
 		return -1;
@@ -492,10 +491,10 @@ int32_t vidmap(uint8_t** screen_start){
 
 	pcb * current_pcb = getting_to_know_yourself(); /* getting current pcb */
 
-	int upper_bound = eight_mb + (current_pcb->pid*four_mb);
-	int lower_bound = eight_mb + ((current_pcb->pid - 1)*four_mb);
+	int upper_bound = _132mb;
+	int lower_bound = _128mb;
 	/* check bound if in the user code space */
-	if(screen_start > upper_bound|| screen_start < lower_bound )
+	if((int)screen_start > upper_bound|| (int)screen_start < lower_bound )
 	{
 		return -1;
 	}
@@ -511,7 +510,7 @@ int32_t vidmap(uint8_t** screen_start){
 
 	if(ret == 0){
 		/*not sure what to do here */
-		* screen_start = vir_add;
+		* screen_start = (uint8_t*)vir_add;
 		asm("movl $0, %eax");  //comment this line after add the function
 		asm("leave;ret");
 		return 0;
@@ -574,3 +573,4 @@ uint32_t get_next_pid(void){
 	}
 	return -1;
 }
+

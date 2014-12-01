@@ -252,7 +252,7 @@ int map_4kb_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32_t priv
 		return -1;
 	}
 	/* check if the virtual address is already signed */
-	uint32_t temp = (vir_add/four_MB) - 1; //should be the 63 entries at 256MB
+	uint32_t temp = (vir_add/four_MB); //should be the 64 entries at 256MB
 	if(cur_page_directory->dir_arr[temp].present == 1){
 		printf("page table at this vir_add is already present \n");
 		return -1;
@@ -290,3 +290,4 @@ int map_4kb_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32_t priv
 	return 0;
 
 }
+

@@ -307,7 +307,7 @@ int32_t read_file(int32_t fd, void * buf, uint32_t nbytes){
 
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
-	dentry_t file_dentry; /* dentry to hold inofrmation of this file */
+	//dentry_t file_dentry; /* dentry to hold inofrmation of this file */
 	//read_dentry_by_name((uint8_t*)fname, &file_dentry); /* read dentry by name */
 	//read_dentry_by_index(current_pcb->file_descriptor[fd].inode_num, &file_dentry);
 
@@ -537,7 +537,7 @@ int load_file_img(int8_t* fname)
 	dentry_t file_dentry; /* file_dentry to hold file */
 	int buffer_size = 20; /* size of buffer to read each time*/
 	uint32_t offset = 0; /* offset of read file */
-	uint32_t last_chunk = 0; /* last chunk of space to copy*/
+	//uint32_t last_chunk = 0; /* last chunk of space to copy*/
 	uint8_t buff[buffer_size] ; /* buffer to hold copy data */
 	void* load_ptr; /* memory address pointer */
 	int output; /* hold output value */
@@ -547,8 +547,8 @@ int load_file_img(int8_t* fname)
 	read_dentry_by_name((uint8_t *) fname, &file_dentry);
 
 
-	uint32_t dentry_add = (uint32_t)s_block + four_kb; /*first dentry block address */
-	inode_struct * curr_inode =(inode_struct*)(dentry_add + file_dentry.inode_num*four_kb);
+//	uint32_t dentry_add = (uint32_t)s_block + four_kb; /*first dentry block address */
+	//inode_struct * curr_inode =(inode_struct*)(dentry_add + file_dentry.inode_num*four_kb);
 
 	
 
@@ -578,3 +578,4 @@ int load_file_img(int8_t* fname)
 	return 0;
 	
 }
+
