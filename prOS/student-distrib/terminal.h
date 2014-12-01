@@ -28,6 +28,7 @@
 
 #define CAPS_CONV		0x20
 #define his_buff_size 	100
+#define magic_fd        -2
 
 
 
@@ -93,7 +94,7 @@ int terminal_read(int32_t fd, char *buf, int32_t count );
 /* Writes count bytes to the buffer 
   * returns number of bytes written to the terminal
   */ 
-int terminal_write(char *buf, int32_t count );
+int terminal_write(int32_t fd, char *buf, int32_t count );
 
 
 
@@ -108,6 +109,13 @@ int terminal_close();
  * returns nothing
  */
 void printt(char c);
+
+
+/* terminal print hex
+ * takes a char prints to the current screen location
+ * returns nothing
+ */
+void printt_hex(char c);
 
 /* 	Simple function that has a logic to check if the key pressed is a special case that should not be printed to the screen
  *

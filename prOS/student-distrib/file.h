@@ -94,6 +94,7 @@ typedef struct
   int inode_num;
   uint32_t file_pos; /* 4 bytes file position */
   uint32_t flags; /* 4 bytes flags -- 1 is in use, 0 is free */
+  uint8_t exe_flag; /*0 is exec 1 is non executable */
 }file_entry;
 
 /* Process control block
@@ -106,7 +107,6 @@ typedef struct
 
 typedef struct
 {
-  pcb_filename filenames[8];  /* store all file's file names with fd as index */
 	file_entry file_descriptor[8]; /* file descriptor array */
 	void* parent_page_dir_ptr; /* parent page directory pointer*/
   uint32_t parent_eip; /* parent eip */

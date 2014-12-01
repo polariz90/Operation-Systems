@@ -18,35 +18,35 @@ char pro_img[2000] = "                                                          
 	/* filling the booting image buffer */
 	int temp = 0;
 
-	terminal_write(pro_img, 2000);
+	terminal_write(magic_fd, pro_img, 2000);
 	while (temp != 100000000){
 		temp++;
 	}
 	temp = 0;
 	pro_img[1795] = 46;
 	clear();
-	terminal_write(pro_img, 2000);
+	terminal_write(magic_fd, pro_img, 2000);
 	while (temp != 100000000){
 		temp++;
 	}
 	pro_img[1796] = 46;
 	temp = 0;
 	clear();
-	terminal_write(pro_img, 2000);
+	terminal_write(magic_fd, pro_img, 2000);
 	while (temp != 100000000){
 		temp++;
 	}
 		pro_img[1797] = 46;
 		temp = 0;
 		clear();
-		terminal_write(pro_img, 2000);
+		terminal_write(magic_fd, pro_img, 2000);
 	while (temp != 100000000){
 		temp++;
 	}
 		pro_img[1798] = 46;
 		temp = 0;
 		clear();
-		terminal_write(pro_img, 2000);
+		terminal_write(magic_fd, pro_img, 2000);
 	while (temp != 100000000){
 		temp++;
 	}
@@ -56,7 +56,7 @@ char pro_img[2000] = "                                                          
 		pro_img[1798] = 32;
 			temp = 0;
 			clear();
-			terminal_write(pro_img, 2000);
+			terminal_write(magic_fd, pro_img, 2000);
 
 }
 

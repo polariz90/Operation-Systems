@@ -21,6 +21,12 @@
 /* array to keep in check of process number */
 uint32_t occupied[7] = {0,0,0,0,0,0,0};
 uint32_t entry_point;
+uint8_t ELF[4]={0x7f, 0x45, 0x4c, 0x46};
+//ELF[0]=0x7f; /* executable check for magic number ELF*/
+//ELF[1]=0x45;
+//ELF[2]=0x4c;
+//ELF[3]=0x46;
+
 
 /* Description:
  * system call halt.
@@ -86,6 +92,7 @@ int32_t halt(uint8_t status){
  * which are operating in user level with new set of page directories. 
  */
 int32_t execute(const uint8_t* command){
+
 	int i,j; /* loop counter */
 	/* getting new pid for processes */
 	int pid = get_next_pid();
@@ -104,6 +111,7 @@ int32_t execute(const uint8_t* command){
 	uint8_t com_arr[buffer_size];
 	uint8_t arg_arr[buffer_size];
 	/* special case check */
+
 	if(command == NULL){
 		/* case empty string */
 		occupied[pid]=0;
@@ -116,6 +124,7 @@ int32_t execute(const uint8_t* command){
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
+
 	i = 0;
 	while(!((command[i] == space_char)||(command[i] == '\0'))){/* copying command */
 		com_arr[i] = command[i];
@@ -123,6 +132,7 @@ int32_t execute(const uint8_t* command){
 	}
 	com_arr[i] = '\0';
 	j = 0; i++;
+
 	while(command[i] != '\0'){/* copying argument */
 		arg_arr[j] = command[i];
 		i++; j++;
@@ -145,11 +155,7 @@ int32_t execute(const uint8_t* command){
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
-	uint8_t ELF[4];
-	ELF[0]=0x7f; /* executable check for magic number ELF*/
-	ELF[1]=0x45;
-	ELF[2]=0x4c;
-	ELF[3]=0x46;
+
 	if(strncmp((int8_t*)buf, (int8_t*)ELF, (uint32_t)4)){
 //		printf("not Excutable!!\n");
 
@@ -186,7 +192,6 @@ int32_t execute(const uint8_t* command){
 
 	pcb* current_pcb = getting_to_know_yourself(); /* PCB at current process */
 
-
 	/* filling PCB with stuff */
 	new_pcb->pid = pid; /* saving new process pid */
 	strcpy((int8_t*)new_pcb->arg, (int8_t*)arg_arr); /* saving new process arg */
@@ -196,25 +201,20 @@ int32_t execute(const uint8_t* command){
 	asm volatile("movl %%ebp, %0" : "=g"(parent_ebp));
 	new_pcb->parent_ebp = parent_ebp; /* save parent ebp */
 	new_pcb->parent_pid = current_pcb->pid; /* loading parent pid */
-
 	//new_pcb->parent_eip=(uint32_t)tss.eip;
 	new_pcb->parent_page_dir_ptr= (void*)parent_pcb; /**/
 
 	/*context switch*/
-
 	int temp = eight_kb*pid;
 	tss.esp0= eight_mb - temp - 4;
 	tss.ss0= KERNEL_DS;
-
 	/*getting entry_point from file image*/
 	memcpy(&entry_point, buf+24, 4);
-
 
 
 	uint32_t eflag = 0;
 	cli_and_save(eflag);
 	sti();
-
 	asm volatile(
 			"pushl %%eax     		;"
 			"pushl $0x083FFFF0   	;"  
@@ -253,6 +253,10 @@ void test_execute(){
  * of the file
  */
 int32_t read(int32_t fd, void* buf, int32_t nbytes){
+	if(fd < 0 || fd > 7){
+		asm("movl $-1, %eax");
+		asm("leave;ret");
+	}
 	sti();
 
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
@@ -263,7 +267,7 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 		pushl %%ebx \n \
 		pushl %%eax \n \
 		pushl %%edx \n \
-		call %%ecx	\n \
+		call  %%ecx	\n \
 		addl $12, %%esp"
 		:
 		: "a"(buf), "b"(nbytes), "c"(fun_addr), "d"(fd)
@@ -283,6 +287,10 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
  * be write. Return number of bytes that write to the terminal. 
  */
 int32_t write(int32_t fd, void* buf, int32_t nbytes){
+	if (fd < 0 || fd > 7){
+		asm("movl $-1, %eax");
+		asm("leave;ret");
+	}
 
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
@@ -290,10 +298,11 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
 	asm volatile("pushal \n \
 		pushl %%ebx \n \
 		pushl %%eax \n \
+		pushl %%edx \n \
 		call *%%ecx	\n \
-		addl $8, %%esp"
+		addl $12, %%esp"
 		:
-		: "a"(buf), "b"(nbytes), "c"(fun_addr)
+		: "a"(buf), "b"(nbytes), "c"(fun_addr),"d"(fd)
 		: "cc", "memory");
 
 	/*return 0*/
@@ -315,7 +324,7 @@ int32_t open(const uint8_t* filename){
 	if(!strncmp((int8_t*)filename,(int8_t*) "terminal", 9)){
 	//	printf("get terminal argument\n");
 	}
-	printf("in the open sys call*************\n");
+	//printf("in the open sys call*************\n");
 
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
@@ -331,9 +340,9 @@ int32_t open(const uint8_t* filename){
 				/* using strncpy from lib to make deep copy*/
 				int type;
 				type= s_block->file_entries[i].file_type;
-				printf("filename: %s\n", s_block->file_entries[i].filename);
-				printf("file_type: %d\n", s_block->file_entries[i].file_type);
-				printf("inode num: %d\n", s_block->file_entries[i].inode_num);
+	//			printf("filename: %s\n", s_block->file_entries[i].filename);
+	//			printf("file_type: %d\n", s_block->file_entries[i].file_type);
+	//			printf("inode num: %d\n", s_block->file_entries[i].inode_num);
 				for(j=0;j<6;j++){
 					if(current_pcb->file_descriptor[j+2].flags==0){
 						if(type==0){
@@ -344,6 +353,22 @@ int32_t open(const uint8_t* filename){
 						}	//set this pcb to directory
 						else if(type==2){
 							current_pcb->file_descriptor[j+2].file_opt_ptr=file_opt;
+							/*Excutable check*/
+							uint8_t buf[buffer_size];
+							if(read_file_img((int8_t*)s_block->file_entries[i].filename, (uint8_t*) buf, buffer_size) == -1){
+								printf("Excutable check fail!\n");
+								while(1);
+							}
+							printf("************************start of the file************************%s\n", buf);
+							
+							if(strncmp((int8_t*)buf, (int8_t*)ELF, (uint32_t)4)){
+							//		printf("not Excutable!!\n");
+								current_pcb->file_descriptor[j+2].exe_flag=0;
+							}
+							else{
+						//		printf("this is executable\n");
+								current_pcb->file_descriptor[j+2].exe_flag=1;
+							}
 						}	//set this pcb to regular file
 						current_pcb->file_descriptor[j+2].inode_ptr=(uint32_t)s_block+ (s_block->file_entries[i].inode_num+1)*four_kb;
 						current_pcb->file_descriptor[j+2].inode_num=s_block->file_entries[i].inode_num;

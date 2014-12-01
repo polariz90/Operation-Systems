@@ -209,9 +209,8 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t * buf, uint32_t lengt
 			//return 0;
 		}
 
-		//*buf = curr_data->data[num_skip];
-		memcpy(buf+i, curr_data->data+num_skip, 1);
-		//buf ++; 
+		*(buf+i) = curr_data->data[num_skip];
+		//memcpy(buf+i, curr_data->data+num_skip, 1);
 		i++;
 		num_skip ++; bytes_left --;
 
@@ -315,7 +314,7 @@ int32_t read_file(int32_t fd, void * buf, uint32_t nbytes){
 	int ret = read_data(current_pcb->file_descriptor[fd].inode_num, current_pcb->file_descriptor[fd].file_pos, buf, nbytes); /* read file data into buffer */
 		current_pcb->file_descriptor[fd].file_pos+=ret;
 	//printf("here!! ret: %s\n", buf);
-	printf("here!! ret: %d\n", ret);
+//	printf("here!! ret: %d\n", ret);
 	return ret;
 }
 
