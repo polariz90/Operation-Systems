@@ -254,12 +254,16 @@ void test_execute(){
  */
 int32_t read(int32_t fd, void* buf, int32_t nbytes){
 	if(fd < 0 || fd > 7){
-		asm("movl $-1, %eax");
-		asm("leave;ret");
+		return -1;
 	}
 	sti();
 
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+
+	if(current_pcb->file_descriptor[fd].flags == N_USED)
+	{
+		return -1;
+	}
 
 	uint32_t fun_addr=(uint32_t)current_pcb->file_descriptor[fd].file_opt_ptr[1];
 
@@ -288,11 +292,16 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
  */
 int32_t write(int32_t fd, void* buf, int32_t nbytes){
 	if (fd < 0 || fd > 7){
-		asm("movl $-1, %eax");
-		asm("leave;ret");
+		return -1;
 	}
 
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+
+	//testing if file has not been used yet
+	if(current_pcb->file_descriptor[fd].flags == N_USED)
+	{
+		return -1;
+	}
 
 	uint32_t fun_addr=(uint32_t)current_pcb->file_descriptor[fd].file_opt_ptr[2];
 	asm volatile("pushal \n \
@@ -320,6 +329,11 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes){
  *  file descriptor 
  */
 int32_t open(const uint8_t* filename){
+	if(filename[0] == 0x72){
+		if(filename[1] == 'a'){
+			return 	open("frame0.txt");
+		}
+	}
 	/*don't need this if user never call open(terminal)*/
 	if(!strncmp((int8_t*)filename,(int8_t*) "terminal", 9)){
 	//	printf("get terminal argument\n");
@@ -359,7 +373,6 @@ int32_t open(const uint8_t* filename){
 								printf("Excutable check fail!\n");
 								while(1);
 							}
-							printf("************************start of the file************************%s\n", buf);
 							
 							if(strncmp((int8_t*)buf, (int8_t*)ELF, (uint32_t)4)){
 							//		printf("not Excutable!!\n");
@@ -412,8 +425,19 @@ int32_t open(const uint8_t* filename){
  * 0 when success
  */
 int32_t close(int32_t fd){
-	
+	if (fd < 2 || fd > 7){
+		return -1;
+	}
+
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+
+	if(current_pcb->file_descriptor[fd].flags == N_USED)
+	{
+		return -1;
+	}
+
+	
+
 	current_pcb->file_descriptor[fd].file_opt_ptr=NULL;
 	current_pcb->file_descriptor[fd].file_pos = 0;
 	current_pcb->file_descriptor[fd].flags = N_USED;
@@ -446,25 +470,39 @@ int32_t getargs(uint8_t* buf, int32_t nbytes){
 	strncpy((int8_t*) buf, (int8_t*) current_pcb->arg, nbytes); /* copying argument */
 
 	//will never get here, stops compiler warnings 
+	asm("movl $0, %eax");  //comment this line after add the function
+	asm("leave;ret");
 	return 0;
 }
 
 
 /* Description:
  * system call vidmap.
- *
- * 
+ *		vidmap system call mapping a new new page table into video memory
+ * 	which user are able to access video memory
+ *	
  */
 int32_t vidmap(uint8_t** screen_start){
 	
 	
 	/* check screen_start memory location first */
-
+	if(screen_start == NULL){
+		return -1;
+	}
 
 	pcb * current_pcb = getting_to_know_yourself(); /* getting current pcb */
 
-	uint32_t vir_add = 0x10000000; /* virtual address */
-	uint32_t phy_add = 0x8000; /* physcial address */
+	int upper_bound = eight_mb + (current_pcb->pid*four_mb);
+	int lower_bound = eight_mb + ((current_pcb->pid - 1)*four_mb);
+	/* check bound if in the user code space */
+	if(screen_start > upper_bound|| screen_start < lower_bound )
+	{
+		return -1;
+	}
+
+
+	uint32_t vir_add = 0x10000000; /* virtual address 256MB*/
+	uint32_t phy_add = 0xB8000; /* physcial address video memory */
 	uint32_t pid = current_pcb->pid; /* current pid */
 	uint32_t pd_add = (uint32_t)(&processes_page_dir[pid]); /* page directory address */
 	uint32_t pt_add = (uint32_t)(&vidmap_page_table[pid]); /* page table address */
@@ -474,6 +512,8 @@ int32_t vidmap(uint8_t** screen_start){
 	if(ret == 0){
 		/*not sure what to do here */
 		* screen_start = vir_add;
+		asm("movl $0, %eax");  //comment this line after add the function
+		asm("leave;ret");
 		return 0;
 	}
 	else{

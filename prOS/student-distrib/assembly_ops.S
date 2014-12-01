@@ -32,82 +32,9 @@ _sys_call_linkage:
 	cmpl $10, %eax		# Check that eax is less than 10
 	jg FAIL_EAX
 
-	cmpl 	$1,%eax
-	jne 	check_2
 	pushl	%edx
 	pushl	%ecx
 	pushl	%ebx
-	jmp		continue_sys_call
- 
-check_2:
-	cmpl 	$2,%eax
-	jne		check_3
-	pushl	%edx
-	pushl	%ecx
-	pushl	%ebx
-	jmp		continue_sys_call
-
-check_3:
-	cmpl 	$3,%eax
-	jne		check_4
-	pushl	%edx
-	pushl	%ecx
-	pushl	%ebx
-	jmp		continue_sys_call
-
-check_4:
-	cmpl 	$4,%eax
-	jne		check_5
-	pushl	%edx
-	pushl	%ecx
-	pushl	%ebx
-	jmp		continue_sys_call
-
-check_5:
-	cmpl 	$5,%eax
-	jne		check_6
-	pushl	%edx
-	pushl	%ecx
-	pushl	%ebx
-	jmp		continue_sys_call
-
-check_6:
-	cmpl 	$6,%eax
-	jne		check_7
-	pushl	%edx
-	pushl	%ecx
-	pushl	%ebx
-	jmp		continue_sys_call
-
-check_7:
-	cmpl 	$7,%eax
-	jne		check_8
-	pushl	%edx
-	pushl	%ecx
-	pushl	%ebx
-	jmp		continue_sys_call
-
-check_8:
-	cmpl 	$8,%eax
-	jne		check_9
-	pushl	%edx
-	pushl	%ecx
-	pushl	%ebx
-	jmp		continue_sys_call
-
-check_9:
-	cmpl 	$9,%eax
-	jne		check_10
-	pushl	%edx
-	pushl	%ecx
-	pushl	%ebx
-	jmp		continue_sys_call
-
-check_10:
-	cmpl 	$10,%eax
-	je		continue_sys_call		
-	movl 	$0,%eax
-	jmp		continue_sys_call
 
 continue_sys_call:	
 	call *sys_call_jumptable(,%eax,4)

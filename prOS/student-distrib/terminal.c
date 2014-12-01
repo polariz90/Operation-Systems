@@ -410,7 +410,7 @@ void new_line()
   * return 0
   */
 int stdin_write(){
-	return 0;
+	return -1;
 }
 
 /**
@@ -420,7 +420,7 @@ int stdin_write(){
   * return 0
   */
 int stdout_read(){
-	return 0;
+	return -1;
 }
 
 /**

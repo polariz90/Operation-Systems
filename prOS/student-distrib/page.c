@@ -104,7 +104,7 @@ void init_paging( ){
 	video_page_table[video_table_idx].PT_attribute_idx = 0;
 	video_page_table[video_table_idx].global_page = 1;
 	video_page_table[video_table_idx].avail = 0;
-//	video_page_table[video_table_idx].page_base_add = 0X8000;		
+//	video_page_table[video_table_idx].page_base_add = 0XB8;		
 
 	/* copies the address of the page directory into the CR3 register and enable paging*/
 
