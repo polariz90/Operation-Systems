@@ -127,7 +127,7 @@ extern int32_t rtc_open()
  * Inputs: 
  * Outputs:
  */
-extern int32_t rtc_close(int32_t fd)
+extern int32_t rtc_close()
 {
 	rtc_disable();
 	return 0;

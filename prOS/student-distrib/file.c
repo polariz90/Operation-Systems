@@ -401,7 +401,7 @@ int32_t write_file(){
   * OUTPUT:         none
   * SIDE EFFECT:    none
   */
-int32_t open_file( const uint8_t * filename){
+int32_t open_file(){
 	return 0;
 }
 
@@ -411,7 +411,7 @@ int32_t open_file( const uint8_t * filename){
   * OUTPUT:		   none
   * SIDE EFFECT:   none
   */
-int32_t open_dir( const uint8_t * filename){
+int32_t open_dir(){
 	return 0;
 }
 
@@ -421,7 +421,7 @@ int32_t open_dir( const uint8_t * filename){
   * OUTPUT:         none
   * SIDE EFFECT:    none
   */
-int32_t close_file(const uint8_t * filename){
+int32_t close_file(){
 	return 0;
 }
 
@@ -431,7 +431,7 @@ int32_t close_file(const uint8_t * filename){
   * OUTPUT:		   none
   * SIDE EFFECT:   none
   */
-int32_t close_dir(const uint8_t * filename){
+int32_t close_dir(){
 	return 0;
 }
 

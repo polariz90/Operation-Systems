@@ -83,10 +83,10 @@ typedef struct
 
 typedef struct 
 {
-   int  (*opt_open)(int fd, void* buf, int nbytes);
+   int  (*opt_open)();
    int  (*opt_read)(int fd, void* buf, int nbytes);
    int  (*opt_write)(int fd, void* buf, int nbytes);
-   int  (*opt_close)(int fd, void* buf, int nbytes);
+   int  (*opt_close)();
 }opt;
 
 /**
@@ -143,10 +143,10 @@ int32_t read_dir(int32_t fd, uint8_t * buf, uint32_t nbytes);
 int32_t write_sys(int32_t fd, const void * buf, int32_t nbytes);
 int32_t write_dir();
 int32_t write_file();
-int32_t open_file(const uint8_t *filename);
-int32_t open_dir(const uint8_t *filename);
-int32_t close_file(const uint8_t *filename);
-int32_t close_dir(const uint8_t *filename);
+int32_t open_file();
+int32_t open_dir();
+int32_t close_file();
+int32_t close_dir();
 
 /*added for pcb */
 void init_pcb(pcb* curr_pcb);

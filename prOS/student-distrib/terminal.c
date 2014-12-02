@@ -22,7 +22,7 @@ void * stdout_opt[4]={
 
 
 terminal_buffer terminals[3];
-
+history_node history_node_arr[15]; /*array hold all filenames 15 of them.*/
 
 history_buffer terminal_history;
 
@@ -326,40 +326,7 @@ void exe_special_key(int key)
 			break;
 
 		case UPP: /* case where up arrow key is pressed */
-			//printf("up key pressed\n");
-			/* load and print out prvious command */
 
-			/* copying over the new string */
-			if((terminal_history.current) == terminal_history.begin){ /* case reach beginning of buffer*/
-				/* do nothing */
-			//	printf("case 1\n");
-			}
-			else{/* case not at beginning of the buffer yet*/
-//				terminal_history.current --; /* move one position backwards */
-//	//			for( i = 0; i < 128; i++){ /* clear current terminal buffer*/
-//	//				terminal_buffer[i] = 0;
-//	//			}
-//				int count = 0;
-//				i = 0;
-//				while( terminal_buffer[i] != '\n' && terminal_buffer[i] != '\0'){
-//					terminal_buffer[i] = 0;
-//					count ++; i++; 
-//				}
-//			//	printf("case 2\n");
-//				strcpy((int8_t*)terminal_buffer, (int8_t*)terminal_history.command[terminal_history.current].cmd);
-//
-//				for( i = 0; i < 128; i++){ /* clear current terminal buffer*/
-//					terminals[curr_terminal].buf[i] = ' ';
-//				}
-//			//	printf("case 2\n");
-//				strcpy((int8_t*)terminals[curr_terminal].buf, (int8_t*)terminal_history.command[terminal_history.end-1].cmd);
-//
-//				/*print out the buffer */
-//			//	printf("%s\n", terminal_buffer);
-//				//printf("%s\n", terminal_history.command[terminal_history.end-1].cmd);
-			}
-//			curr_terminal_loc = 0; //terminal_history.pre_pos;
-//			printf("%s", terminal_history.command[terminal_history.current].cmd);
 			break;
 
 	return;
@@ -578,5 +545,113 @@ void printt_hex(char c)
 	terminals[curr_terminal].xloc = get_screen_x();
 
 
+}
+
+/**
+  * creating node history
+  *  	hard coding the node history for current image
+  */
+void creating_node_history(){
+
+	history_node_arr[0].match = 1;
+	history_node_arr[0].size = 10;
+	strcpy(history_node_arr[0].arr_, "frame1.txt");
+	//history_node_arr[0].arr_ = "frame1.txt"; 
+
+	history_node_arr[1].match = 1;
+	history_node_arr[1].size = 10;
+	strcpy(history_node_arr[1].arr_, "frame0.txt");
+//	history_node_arr[1].arr_ = "frame0.txt"; 
+
+	history_node_arr[2].match = 1;
+	history_node_arr[2].size = 4;
+	strcpy(history_node_arr[2].arr_, "fish");
+//	history_node_arr[2].arr_ = "fish"; 
+
+	history_node_arr[3].match = 1;
+	history_node_arr[3].size = 31;
+	strcpy(history_node_arr[3].arr_, "verylargetxtwithverylongname");
+//	history_node_arr[3].arr_ = "verylargetxtwithverylongname.tx"; 
+
+	history_node_arr[4].match = 1;
+	history_node_arr[4].size = 2;
+	strcpy(history_node_arr[4].arr_, "ls");
+//	history_node_arr[4].arr_ = "ls"; 
+
+	history_node_arr[5].match = 1;
+	history_node_arr[5].size = 4;
+	strcpy(history_node_arr[5].arr_, "grep");
+//	history_node_arr[5].arr_ = "grep"; 
+
+	history_node_arr[6].match = 1;
+	history_node_arr[6].size = 5;
+	strcpy(history_node_arr[6].arr_, "hello");
+//	history_node_arr[6].arr_ = "hello"; 
+
+	history_node_arr[7].match = 1;
+	history_node_arr[7].size = 3;
+	strcpy(history_node_arr[7].arr_, "rtc");
+//	history_node_arr[7].arr_ = "rtc"; 
+
+	history_node_arr[8].match = 1;
+	history_node_arr[8].size = 9;
+	strcpy(history_node_arr[8].arr_, "testprint");
+//	history_node_arr[8].arr_ = "testprint"; 
+
+	history_node_arr[9].match = 1;
+	history_node_arr[9].size = 7;
+	strcpy(history_node_arr[9].arr_, "sigtest");
+//	history_node_arr[9].arr_ = "sigtest"; 
+
+	history_node_arr[10].match = 1;
+	history_node_arr[10].size = 5;
+	strcpy(history_node_arr[10].arr_, "shell");
+//	history_node_arr[10].arr_ = "shell"; 
+
+	history_node_arr[11].match = 1;
+	history_node_arr[11].size = 6;
+	strcpy(history_node_arr[11].arr_, "syserr");
+//	history_node_arr[11].arr_ = "syserr"; 
+
+	history_node_arr[12].match = 1;
+	history_node_arr[12].size = 3;
+	strcpy(history_node_arr[12].arr_, "cat");
+//	history_node_arr[12].arr_ = "cat"; 
+
+	history_node_arr[13].match = 1;
+	history_node_arr[13].size = 7;
+	strcpy(history_node_arr[13].arr_, "counter");
+//	history_node_arr[13].arr_ = "counter"; 
+
+	history_node_arr[14].match = 1;
+	history_node_arr[14].size = 8;
+	strcpy(history_node_arr[14].arr_, "pingpong");
+//	history_node_arr[14].arr_ = "pingpong"; 
+
+
+}
+
+
+/**
+  * find tap match 
+  *		going through the history node array to find the 
+  * most match one that contains the buffer inside 
+  */
+
+void find_tap_match(const int8_t* buf){
+//	uint32_t num_match = 15; /* starting with all matches */
+//	uint32_t position = 0; /* character position for match */
+//	uint32_t buf_size = strlen(int8_t* buf);
+//	int i ; /* loop counter */
+//	while(num_match != 1){ /* until find the only match */
+//		for(i = 0; i < 15; i++){/* looping through entire array */
+//			
+//			if(history_node_arr[i].size <= buf_size){/* case buffer is longer*/
+//
+//			}
+//
+//
+//		}
+//	}
 }
 

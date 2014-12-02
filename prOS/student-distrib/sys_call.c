@@ -1,3 +1,10 @@
+/**
+  * sys_call.c
+  * Dec. 2nd 2014
+  * project prOS
+  *    primary system calls for OS
+  */
+
 #include "lib.h"
 #include "sys_call.h"
 #include "file.h"
@@ -37,6 +44,40 @@ int32_t halt(uint8_t status){
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
 	/*may want to prevent user to close the last shell*/
+	if(current_pcb->pid == 1){
+		uint8_t buf[buffer_size];
+		uint32_t shell_entry_point;
+		if(read_file_img((int8_t*)"shell",(uint8_t*) buf, buffer_size) == -1){
+			printf("read file in halt failed \n");
+			return -1;
+		}
+		printf("Are you Are you satisfied with your care? -- Big Hero 6 (y or n)\n");
+		printf("Do you want to build a snowman? -- Frozen (y or n)\n");
+
+		memcpy(&shell_entry_point, buf+24, 4);
+
+		uint32_t eflag = 0;
+		cli_and_save(eflag);
+		sti();
+		asm volatile(
+				"pushl %%eax     		;"
+				"pushl $0x083FFFF0   	;"  
+				"pushl %%edx      		;"		
+				"pushl %%ecx      		;"
+				"pushl %%ebx 			;"		
+				"movw %%ax, %%ds  		;"
+				"movw %%ax, %%gs  		;"
+				"movw %%ax, %%fs  		;"
+				"movw %%ax, %%es  		;"
+				: 
+				: "b"(shell_entry_point), "d"(eflag|0x4200), "c"(USER_CS), "a"(USER_DS) 
+				: "memory", "cc" );
+
+
+		asm ("iret");
+
+
+	}
 
 	/* set TSS back to point at parent's kernel stack */
 	tss.esp0 = eight_mb - (eight_kb*current_pcb->parent_pid) - 4;
@@ -139,8 +180,6 @@ int32_t execute(const uint8_t* command){
 	if(strncmp((int8_t*)com_arr, "clear", 5) == 0){ /* clear screen command */
 		clear();
 		occupied[pid]=0;
-		//asm("movl $-1, %eax");
-		//asm("leave;ret");
 		return 0;
 	}
 
@@ -227,12 +266,6 @@ int32_t execute(const uint8_t* command){
 
 
 	asm ("iret");
-
-	asm("movl $0, %eax");
-	asm("leave;ret");
-
-	return -1;
-
 }
 
 /**
@@ -317,9 +350,6 @@ int32_t open(const uint8_t* filename){
 				/* using strncpy from lib to make deep copy*/
 				int type;
 				type= s_block->file_entries[i].file_type;
-	//			printf("filename: %s\n", s_block->file_entries[i].filename);
-	//			printf("file_type: %d\n", s_block->file_entries[i].file_type);
-	//			printf("inode num: %d\n", s_block->file_entries[i].inode_num);
 				for(j=0;j<6;j++){
 					if(current_pcb->file_descriptor[j+2].flags==0){
 						if(type==0){
@@ -357,7 +387,8 @@ int32_t open(const uint8_t* filename){
 						asm("leave;ret");
 					}
 				}
-
+				/* call open function */
+				(*current_pcb->file_descriptor[j+2].file_opt_ptr->opt_open) ( );
 				//return fd number
 				asm("movl %%ebx, %%eax" 
 				:
@@ -399,7 +430,8 @@ int32_t close(int32_t fd){
 		return -1;
 	}
 
-	
+	/* calling close functions in fd*/
+	(*current_pcb->file_descriptor[fd].file_opt_ptr->opt_close) ( );
 
 	current_pcb->file_descriptor[fd].file_opt_ptr=NULL;
 	current_pcb->file_descriptor[fd].file_pos = 0;
@@ -422,6 +454,11 @@ int32_t close(int32_t fd){
   */
 int32_t getargs(uint8_t* buf, int32_t nbytes){
 	
+	/* check valid buffer */
+	if(buf == NULL){
+		return -1; 
+	}
+
 	pcb* current_pcb = getting_to_know_yourself(); /* PCB at current process */
 	
 	uint32_t length = strlen((int8_t*) current_pcb->arg); /* getting length of the argument */

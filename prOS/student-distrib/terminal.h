@@ -37,6 +37,12 @@
 /*Decleared variables for the terminal*/
 uint32_t curr_terminal;				/*current index into buffer to be written*/
 
+typedef struct 
+{
+	uint8_t match; /* indicate wheather this node matches or not */
+	uint32_t size; /* given the size of array stored in this node */
+	char arr_[32];  
+}history_node;
 
 typedef struct
 {
@@ -52,7 +58,6 @@ typedef struct
 
 extern terminal_buffer terminals[3];
 
-
 extern void * stdin_opt[4];
 extern void * stdout_opt[4];
 
@@ -67,13 +72,13 @@ typedef struct
 {
 	uint32_t begin; /* point at oldest command */
 	uint32_t end;  /* point at newest command */
-  uint32_t current; /* keep in track of the current history position*/
+ 	 uint32_t current; /* keep in track of the current history position*/
 	uint32_t pre_pos; /* keep in track of previous position */
 	cmd_line command[his_buff_size]; /* array to store all commands */
 }history_buffer;
 
 extern history_buffer terminal_history;
-
+extern history_node history_node_arr[15]; /* hold all file names for search */
 
 /** add_to_history
   * 	function which add current command into the 
@@ -85,7 +90,7 @@ void add_to_history(char* buffer);
   * Initializes important variables
   *	returns 0
   */ 
-int terminal_open( );
+int terminal_open();
 
 /* Reads count bytes from the terminal 
  * returns number of bytes sucessfully read
@@ -145,6 +150,11 @@ int stdin_write();
 
 int stdout_read();
 
+/* hard code node history for current file image */
+void creating_node_history();
+
+/* looking for a tap match */
+void find_tap_match(const int8_t* buf);
 
 
 
