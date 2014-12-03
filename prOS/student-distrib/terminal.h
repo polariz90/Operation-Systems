@@ -88,8 +88,8 @@ typedef struct
 }terminal_buffer;
 
 extern terminal_buffer terminals[3];
-extern uint32_t terminal_vid_buf[4];
-
+extern uint32_t terminal_vid_buf[3];
+extern int8_t* tap_file_names[15];
 
 extern void * stdin_opt[4];
 extern void * stdout_opt[4];
@@ -166,15 +166,17 @@ int stdin_write();
 
 int stdout_read();
 
-/* hard code node history for current file image */
-void creating_node_history();
-
 /* looking for a tap match */
 void find_tap_match(const int8_t* buf);
 
+/* printing out tap matches to the terminal */
+void print_tap_match(const int* mask, int length);
 
 /* functions to help switching terminals */
 void terminal_switch(uint32_t terminal_id);
+
+/* helper function to get tap buffer */
+void getting_tap_buffer(int8_t* buf);
 
 
 

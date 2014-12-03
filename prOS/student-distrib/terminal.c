@@ -22,7 +22,23 @@ void * stdout_opt[4]={
 
 
 terminal_buffer terminals[3];/* 3 terminal structs for 3 terminals opening */
-uint32_t terminal_vid_buf[4] = {term1_vid_buf, term2_vid_buf, term3_vid_buf};
+uint32_t terminal_vid_buf[3] = {term1_vid_buf, term2_vid_buf, term3_vid_buf};
+int8_t* tap_file_names[15] = {	"frame1.txt",
+								"verylargetxtwithverylongname.tx",
+								"ls",
+								"grep",
+								"hello",
+								"rtc",
+								"testprint",
+								"sigtest",
+								"shell",
+								"syserr",
+								"fish",
+								"cat",
+								"frame0.txt",
+								"pingpong",
+								"counter"
+};
 
  /* Opens the terminal
   * Initializes important variables
@@ -252,10 +268,19 @@ int is_special_key(int key)
 void exe_special_key(int key)
 {
 	int i; /* loop counter */
+	int8_t tap_buffer[32]; /* buffer to hold thing from tap */
 	switch(key)
 	{
 
 		case LTABP :
+			/* clear tap buffer first */
+			for (i = 0; i < 32; i++){
+				tap_buffer[i] = '\0';
+			}
+			cli();
+			getting_tap_buffer(tap_buffer);
+			find_tap_match(tap_buffer);
+			sti();
 			break;
 			
 		case CAPP :
@@ -723,23 +748,122 @@ void printt_hex(char c)
 }
 
 /**
-  * creating node history
-  *  	hard coding the node history for current image
-  */
-void creating_node_history(){
-
-
-}
-
-
-/**
   * find tap match 
   *		going through the history node array to find the 
   * most match one that contains the buffer inside 
   */
 
 void find_tap_match(const int8_t* buf){
+	int i, j; /* loop counter */
+	int length = strlen(buf) - 1; /* getting input buffer length */
+	int match_mask[15]; /* match mask */
+	int match_num = 0; /* match number */
+	for(i = 0; i < 15; i++){/* loop to find potential match */
+		if(strncmp(buf, tap_file_names[i], length) == 0){/* case potential match */
+			match_mask[i] = 1;
+			match_num ++;
+		}
+		else{
+			match_mask[i] = 0;
+		}
+	}
+	if(match_num == 1){ /*only 1 match */
+		i = 0; /* find position of match */
+		while(match_mask[i] != 1){
+			i++;
+		}
 
+		int position = length + 1; /* keep in trach of the name position */
+		int8_t temp_buffer[32]; /* buffer to hold rest of the name */
+		int8_t compare_buffer[32]; /*buffer to hold the name to compare */
+		strcpy(compare_buffer, tap_file_names[i]);
+		j = 0;
+		while(compare_buffer[position] != '\0'){
+			temp_buffer[j] = compare_buffer[position];
+			j++; position++;
+		}
+		temp_buffer[j] = '\0';
+		/*writing rest of them into terminal */
+		terminal_write(1, temp_buffer, (strlen(tap_file_names[i])-length));
+		/* store into the terminal buffer */
+		j = 0; position = terminals[curr_terminal].size;
+		while(temp_buffer[j] != '\0'){
+			terminals[curr_terminal].buf[position] = temp_buffer[j];
+			j++; position++; terminals[curr_terminal].size++;
+		}
+		terminals[curr_terminal].buf[position] = '\0';
+		terminals[curr_terminal].size++;
+	}
+	else if (match_num == 2){
+		print_tap_match(match_mask, length);
+	}
+}
+
+/**
+  *  print tap match
+  * 		function to print out the tap match
+  */
+void print_tap_match(const int* mask, int length){
+	int8_t buf[32]; /* buffer to hold the printing character */
+	//length ++;  /* starting with the next unread character */
+	int i, j; /* loop counter */
+	int position; 
+	int arr1_idx = -1;
+	int arr2_idx = -1;
+	int8_t buf_1[32], buf_2[32];
+
+	for(i = 0; i < 15; i++){/* loop though mask to find match */
+		if (mask[i] == 1){
+			if(arr1_idx == -1){
+				arr1_idx = i;
+				strcpy(buf_1, tap_file_names[i]);
+			}
+			else{
+				arr2_idx = i;
+				strcpy(buf_2, tap_file_names[i]);
+				break;
+			}
+		}
+	}
+	j = 0;
+	while(strncmp(buf_1, buf_2, length+1) == 0){ /* comparing up to length*/
+		buf[j] = buf_1[length+1];
+		j++; length ++;
+	}
+
+	/* write rest of the word into terminal */
+	terminal_write(1, buf, strlen(buf));
+	/* store into terminal buffer */
+	j = 0; position = terminals[curr_terminal].size;
+	while(buf[j] != '\0'){
+		terminals[curr_terminal].buf[position] = buf[j];
+		j++; position++; terminals[curr_terminal].size++;
+	}
+}
+
+/**
+  * getting tap buffer
+  *		which looping forward into terminal buffer and 
+  *  get the current word of tap, store the word into the buffer
+  */
+void getting_tap_buffer(int8_t* buf){
+	int curr_position = terminals[curr_terminal].size - 1; /* store current position */
+	int start = curr_position; /* pointer going forward search the starting of the world */
+	int i = 0; /* loop counter */
+
+	/* searching beginning */
+	while(start != 0 && terminals[curr_terminal].buf[start] != 32){
+		start --; 
+	}
+
+	if(terminals[curr_terminal].buf[start] == 32){
+		start ++;
+	}
+
+	while(start <= curr_position){
+		buf[i] = terminals[curr_terminal].buf[start];
+		i++; start ++;
+	}
 }
 
 
@@ -754,14 +878,33 @@ void find_tap_match(const int8_t* buf){
 
 void terminal_switch(uint32_t terminal_id){
 	cli();
+	int i;
+	uint32_t vir_add = 0x10000000; /* virtual address 256MB*/
+	uint32_t vid_add = 0xB8000; /* physcial address video memory */
 	/* getting the new terminal structure */
 	//curr_terminal = terminal_id; 
 
 	/* step 1: copying current video memory into corresponding terminal buffer */
 	memcpy((void*)terminal_vid_buf[curr_terminal], (void*)0xB8000, four_kb);
+	/* step 2: switching out all old terminal processes to terminal buffer */
+	for (i = 0; i < 6; i++){
+		if (terminals[curr_terminal].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
+			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
+			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
+			map_4kb_page(i, vir_add, terminal_vid_buf[terminal_id], 1, pd_add, pt_add, 1); /* mapping to the buffer */
+		}
+	}
 
 	/* step 3: copying new terminal buffer into video memory */
 	memcpy((void*)0xB8000, (void*)terminal_vid_buf[terminal_id], four_kb);
+	/* step 4: copying future video memory into the video memory address */
+	for(i = 0; i < 6; i ++){
+		if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in the future terminal */
+			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
+			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
+			map_4kb_page(i, vir_add, vid_add, 1, pd_add, pt_add, 1); /* mapping to the buffer */
+		}
+	}
 
 	curr_terminal = terminal_id; 
 
