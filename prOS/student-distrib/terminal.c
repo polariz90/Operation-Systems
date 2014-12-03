@@ -219,7 +219,11 @@ int is_special_key(int key)
 		key == CTLR    				||
 		key == UPP 					||
 		key == UPR 					||
-		key == ALTP 				||
+		key == F1P					||
+		key == F1P					||
+		(key == F1P && terminals[curr_terminal].alt == 1) ||
+		(key == F2P && terminals[curr_terminal].alt == 1) ||
+		(key == F3P && terminals[curr_terminal].alt == 1) ||
 		(key == Lc && terminals[curr_terminal].ctrl == 1) ||
 	    (key == Lp && terminals[curr_terminal].ctrl == 1)			
 	  )
@@ -312,7 +316,7 @@ void exe_special_key(int key)
 			break;
 
 		case ALTP :
-
+			toggle_alt();
 			break;
 
 		case CTLR :
@@ -365,6 +369,12 @@ void exe_special_key(int key)
 			terminal_write(1, terminals[curr_terminal].buf, strlen(terminals[curr_terminal].buf));
 			break;
 
+		case F1P:
+			break;
+		case F2P:
+			break;
+		case F3P:
+			break;
 	return;
 	}	
 }
@@ -395,6 +405,14 @@ void toggle_ctrl()
 
 }	
 
+void toggle_alt()
+{
+	if(terminals[curr_terminal].alt == 1)
+		terminals[curr_terminal].alt = 0;
+	else
+		terminals[curr_terminal].alt = 1;
+
+}	
 
 void new_line()
 {

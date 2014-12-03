@@ -25,8 +25,13 @@
 #define Lp			    38 
 #define UPP 	        72
 #define UPR     	    200
+#define DOWNP			80
 #define ALTP			56
 #define Lc 				46
+#define F1P				59
+#define F2P				60
+#define F3P				61
+
 
 #define CAPS_CONV		0x20
 #define his_buff_size 	50
@@ -71,6 +76,7 @@ typedef struct
 	uint32_t size;
 	uint32_t shift;						/*0 if not pressed, one if pressed*/
 	uint32_t ctrl; 						/*0 if not pressed, one if pressed*/
+	uint32_t alt;
 	volatile uint8_t reading;
 }terminal_buffer;
 
@@ -143,6 +149,7 @@ void new_line();
 /* these function simply toggle the vaule of the keys when called*/
 void toggle_caps();
 void toggle_shift();
+void toggle_alt();
 void toggle_ctrl(); 
 
 /*stdin/stdout useless functions */
