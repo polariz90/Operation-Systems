@@ -352,11 +352,13 @@ void exe_special_key(int key)
 			break;
 
 		case ALTP :
-			toggle_alt();
+			terminals[curr_terminal].alt = 1;
+			//toggle_alt();
 			break;
 
 		case ALTR :
-			toggle_alt();
+			terminals[curr_terminal].alt = 0;
+			//toggle_alt();
 			break;
 
 		//l is pressed as well as the ctrl
