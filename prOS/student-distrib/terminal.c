@@ -22,6 +22,7 @@ void * stdout_opt[4]={
 
 
 terminal_buffer terminals[3];/* 3 terminal structs for 3 terminals opening */
+uint32_t terminal_vid_buf[3] = {term1_vid_buf, term2_vid_buf, term3_vid_buf};
 
  /* Opens the terminal
   * Initializes important variables
@@ -29,6 +30,7 @@ terminal_buffer terminals[3];/* 3 terminal structs for 3 terminals opening */
   */ 
 int terminal_open()
 {
+	int i;
 	//opens the next terminal
 	//for now setting the current terminal to open is the 0th one
 	curr_terminal = 0; 
@@ -41,6 +43,9 @@ int terminal_open()
 	terminals[curr_terminal].shift = 0;
 	terminals[curr_terminal].ctrl = 0;
 	terminals[curr_terminal].reading  = 0;
+	for(i = 0; i < 6; i++){
+		terminals[curr_terminal].pros_pids[i] = 0;
+	}
 	/* initial terminal history structure */
 	terminals[curr_terminal].terminal_history.begin = 0;
 	terminals[curr_terminal].terminal_history.end = 0;
@@ -219,8 +224,9 @@ int is_special_key(int key)
 		key == CTLR    				||
 		key == UPP 					||
 		key == UPR 					||
-		key == F1P					||
-		key == F1P					||
+		key == ALTR					||
+		key == DOWNP 				||
+		key == ALTP 				||
 		(key == F1P && terminals[curr_terminal].alt == 1) ||
 		(key == F2P && terminals[curr_terminal].alt == 1) ||
 		(key == F3P && terminals[curr_terminal].alt == 1) ||
@@ -244,7 +250,7 @@ int is_special_key(int key)
  */
 void exe_special_key(int key)
 {
-	int i, temp; /* loop counter */
+	int i; /* loop counter */
 	switch(key)
 	{
 
@@ -319,6 +325,10 @@ void exe_special_key(int key)
 			toggle_alt();
 			break;
 
+		case ALTR :
+			toggle_alt();
+			break;
+
 		case CTLR :
 			toggle_ctrl();
 			break;
@@ -369,11 +379,62 @@ void exe_special_key(int key)
 			terminal_write(1, terminals[curr_terminal].buf, strlen(terminals[curr_terminal].buf));
 			break;
 
+		case DOWNP:
+			//move the screen location back to the beginning of the buffer
+			set_screen_x( terminals[curr_terminal].xloc - terminals[curr_terminal].size);
+			
+			//printing spaces
+			for(i =0; i< terminals[curr_terminal].size; i++)
+			{
+				putc(' ');
+			}
+			//moves the xlocation back
+			terminals[curr_terminal].xloc -= terminals[curr_terminal].size;
+		 
+			/* clear current terminal buffer */
+			for( i = 0; i < BUF_SIZE; i++){
+				terminals[curr_terminal].buf[i] = '\0';
+			}
+			/* put old command into terminal buffer */
+			strcpy(terminals[curr_terminal].buf, terminals[curr_terminal].terminal_history.command[terminals[curr_terminal].terminal_history.pre_pos].cmd);
+			/* updating the size of the buffer */
+			terminals[curr_terminal].size = strlen(terminals[curr_terminal].terminal_history.command[terminals[curr_terminal].terminal_history.pre_pos].cmd);
+			terminals[curr_terminal].terminal_history.pre_pos ++; 
+			if(terminals[curr_terminal].terminal_history.pre_pos == terminals[curr_terminal].terminal_history.end){
+				/* case reach the last history*/
+				terminals[curr_terminal].terminal_history.pre_pos --; 
+			}
+			else{
+				
+				if(terminals[curr_terminal].terminal_history.pre_pos > his_buff_size){/* case reach the beginning */
+					terminals[curr_terminal].terminal_history.pre_pos = 0;
+				}
+			}
+			/* output the new command to terminal */
+			terminal_write(1, terminals[curr_terminal].buf, strlen(terminals[curr_terminal].buf));
+			break;
+
+
+
 		case F1P:
+			if (curr_terminal == 1){
+				break;
+			}
+			terminal_switch(1);
 			break;
+
 		case F2P:
+			if(curr_terminal == 2){
+				break;
+			}
+			terminal_switch(2);
 			break;
+
 		case F3P:
+			if(curr_terminal == 3){
+				break;
+			}
+			terminal_switch(3);
 			break;
 	return;
 	}	
@@ -469,6 +530,13 @@ void add_to_history(char* buffer, uint32_t terminal_idx){
 	//terminal_write(1,"add to history reached ",24);
 	cli();
 	int i = 0;
+	/* copying terminal buffer into history buffer */
+	while(buffer[i] != '\n'){
+		terminals[terminal_idx].terminal_history.command[terminals[terminal_idx].terminal_history.end].cmd[i] = buffer[i];
+		i++;
+	}
+	terminals[terminal_idx].terminal_history.command[terminals[terminal_idx].terminal_history.end].cmd[i] = '\0' ;
+
 	terminals[terminal_idx].terminal_history.pre_pos = terminals[terminal_idx].terminal_history.end;
 	terminals[terminal_idx].terminal_history.end ++;
 	if(terminals[terminal_idx].terminal_history.end >= his_buff_size){ /* case reach out range of buffer  */
@@ -480,12 +548,7 @@ void add_to_history(char* buffer, uint32_t terminal_idx){
 			terminals[terminal_idx].terminal_history.begin = 0; /* loop it around */
 		}
 	}
-	/* copying terminal buffer into history buffer */
-	while(buffer[i] != '\n'){
-		terminals[terminal_idx].terminal_history.command[terminals[terminal_idx].terminal_history.end].cmd[i] = buffer[i];
-		i++;
-	}
-	terminals[terminal_idx].terminal_history.command[terminals[terminal_idx].terminal_history.end].cmd[i] = '\0' ;
+	
 	sti();
 }
 
@@ -635,10 +698,17 @@ void find_tap_match(const int8_t* buf){
 void terminal_switch(uint32_t terminal_id){
 	cli();
 	/* getting the new terminal structure */
-	curr_terminal = terminal_id; 
+	//curr_terminal = terminal_id; 
 
 	/* step 1: copying current video memory into corresponding terminal buffer */
-	
+	memcpy((void*)terminal_vid_buf[curr_terminal], (void*)0xB8000, four_kb);
+
+	/* step 3: copying new terminal buffer into video memory */
+	memcpy((void*)0xB8000, (void*)terminal_vid_buf[terminal_id], four_kb);
+
+	curr_terminal = terminal_id; 
+
+
 	sti();
 }
 

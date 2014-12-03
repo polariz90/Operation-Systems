@@ -105,7 +105,7 @@ int32_t halt(uint8_t status){
 						"ret 			;"
 						: : :"eax","memory","cc"
 						);
-
+			terminals[curr_terminal].pros_pids[current_pcb->pid] = 0;
 			return status;
 		}
 		//printf("Are you Are you satisfied with your care? -- Big Hero 6 (y or n)\n");
@@ -168,7 +168,7 @@ int32_t halt(uint8_t status){
 				"ret 			;"
 				: : :"eax","memory","cc"
 				);
-
+	terminals[curr_terminal].pros_pids[current_pcb->pid] = 0;
 	return status;
 
 }
@@ -188,10 +188,14 @@ int32_t execute(const uint8_t* command){
 	int i,j; /* loop counter */
 	/* getting new pid for processes */
 	int pid = get_next_pid();
+	/* store the pid ino the terminal structure */
+	terminals[curr_terminal].pros_pids[pid] = 1;
+
 	if(pid == -1){
 
 		printf("Warning!!! Reaching maximum process capacity!! Calm Down Pls!!!!\n");
-		
+		terminals[curr_terminal].pros_pids[pid] = 0;
+		return 0;
 		asm("movl $-1, %eax");
 		asm("leave;ret"); /* fail execute */
 
@@ -207,12 +211,16 @@ int32_t execute(const uint8_t* command){
 	if(command == NULL){
 		/* case empty string */
 		occupied[pid]=0;
+		terminals[curr_terminal].pros_pids[pid] = 0;
+		return 0;
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
 	if(command[0] == space_char){
 		/* case single space string */
 		occupied[pid]=0;
+		terminals[curr_terminal].pros_pids[pid] = 0;
+		return 0;
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
@@ -242,6 +250,8 @@ int32_t execute(const uint8_t* command){
 	uint8_t buf[buffer_size];
 	if(read_file_img((int8_t*)com_arr,(uint8_t*) buf, buffer_size) == -1){
 		occupied[pid]=0;
+		terminals[curr_terminal].pros_pids[pid] = 0;
+		return -1;
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
@@ -250,6 +260,8 @@ int32_t execute(const uint8_t* command){
 //		printf("not Excutable!!\n");
 
 		occupied[pid]=0;
+		terminals[curr_terminal].pros_pids[pid] = 0;
+		return -1;
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
@@ -271,6 +283,8 @@ int32_t execute(const uint8_t* command){
 	/*File loader*/
 	if(load_file_img((int8_t*)com_arr) == -1){
 		occupied[pid]=0;
+		terminals[curr_terminal].pros_pids[pid] = 0;
+		return -1;
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 

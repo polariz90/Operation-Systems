@@ -207,7 +207,7 @@ entry (unsigned long magic, unsigned long addr)
 	
 	clear();
 
-	printf("ghost in the sell~~!\n");
+	printf("ghost in the shell~~!\n");
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
 }

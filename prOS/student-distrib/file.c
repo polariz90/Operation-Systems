@@ -33,17 +33,6 @@ void * dir_opt[4]={
   close_dir
 };
 
-/*set the default value of file descriptor*/
-
-/* NOT SURE IF WE NEED THIS ANYMORE
-void init_file_desc(void){
-	int i;
-	for(i=0;i<8;i++){
-		file_desc[i].flags=0; //mark as unused
-		file_desc[i].file_pos=0; 
-	}
-}
-  */
 
 
 /* init_pcb

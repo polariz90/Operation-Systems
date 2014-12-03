@@ -31,6 +31,7 @@
 #define F1P				59
 #define F2P				60
 #define F3P				61
+#define ALTR			184
 
 
 #define CAPS_CONV		0x20
@@ -82,9 +83,12 @@ typedef struct
 	uint32_t ctrl; 						/*0 if not pressed, one if pressed*/
 	uint32_t alt;
 	volatile uint8_t reading;
+	uint32_t pros_pids[6];      /* bit map for the process in the terminal */
+
 }terminal_buffer;
 
 extern terminal_buffer terminals[3];
+extern uint32_t terminal_vid_buf[3];
 
 extern void * stdin_opt[4];
 extern void * stdout_opt[4];
