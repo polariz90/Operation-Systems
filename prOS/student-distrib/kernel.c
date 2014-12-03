@@ -171,7 +171,7 @@ entry (unsigned long magic, unsigned long addr)
 
 	/* printing out booting image */
 	clear();
-	booting_img();
+	//booting_img();
 	clear();
 
 	/* Init the PIC */
@@ -197,14 +197,7 @@ entry (unsigned long magic, unsigned long addr)
 	kernel_pcb_ptr->parent_ebp = 0;
 	kernel_pcb_ptr->parent_pid = 0;
 
-	/*temporary initializing terminal structure */
-	terminal_history.begin = 0;
-	terminal_history.end = 0;
-	terminal_history.pre_pos = 8;
-	terminal_history.current = 0;
-
 	test_execute();
-
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
@@ -214,32 +207,7 @@ entry (unsigned long magic, unsigned long addr)
 	
 	clear();
 
-
-/*	//WRITE SYSTEM CALL TEST(terminal)
-	uint8_t buf[]="if you see this, terminal write sys call success!!!";
-	int fd;
-	int nbyte=100;
-	fd=1;
-	asm("movl $4, %%eax"
-		: : "b"(fd), "c"(buf), "d"(nbyte)
-		:"eax", "cc");
-
-	asm("int $0x80");
-*/
-
-/*	//READ SYSTEM CALL TEST(terminal)
-	uint8_t buf[100];
-	int fd;
-	int nbyte=100;
-	fd=0;
-	asm("movl $3, %%eax"
-		: : "b"(fd), "c"(buf), "d"(nbyte)
-		:"eax", "cc");
-	asm("int $0x80");
-	printf("finish terminal read!\n");
-	printf("keyboard buffer= %s\n", buf);
-*/
-
+	printf("ghost in the sell~~!\n");
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
 }

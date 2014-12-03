@@ -30,6 +30,17 @@
 uint32_t occupied[7] = {0,0,0,0,0,0,0};
 uint32_t entry_point;
 uint8_t ELF[4]={0x7f, 0x45, 0x4c, 0x46};
+/*char* quotes[10] = {"Do you want to build a snowman? (y or n)",
+					"Are you satisfied with your care? (y or n)",
+					"My Mama always said, 'Life was like a box of chocolates; you never know what you're gonna get.",
+					"Frankly, my dear, I don't give a damn!",
+					"I could dance with you till the cows come home...On second thought, I'd rather dance with the cows when you came home.",
+					"...Bond. James Bond.",
+					"knock, knock ... ",
+					"Of all the gin joints in all the towns in all the world, she walks into mine.",
+					"Well, it's not the men in your life that counts, it's the life in your men.",
+					"I'll be back.",
+};*/
 
 
 /* Description:
@@ -51,9 +62,53 @@ int32_t halt(uint8_t status){
 			printf("read file in halt failed \n");
 			return -1;
 		}
-		printf("Are you Are you satisfied with your care? -- Big Hero 6 (y or n)\n");
-		printf("Do you want to build a snowman? -- Frozen (y or n)\n");
+//		/* getting random quotes */
+//		char* quote[100];
+//		strcpy((int8_t*)quote, quotes[rand()%10]);
+//		int32_t quote_length = strlen((int8_t*)quote);
 
+		terminal_write(1,"Are you satisfied with your care (y or n)  ", 43);
+		char temp_buf[1];
+		terminal_read(1,temp_buf, 1);
+		if(temp_buf[0] == 'y'){
+				/* set TSS back to point at parent's kernel stack */
+			tss.esp0 = eight_mb - (eight_kb*current_pcb->parent_pid) - 4;
+
+			int parent_page = (int)current_pcb->parent_page_dir_ptr;
+
+			/* reset current processes mask for other process use */
+			occupied[current_pcb->pid] = 0;
+
+				/*restore parent's paging*/
+			asm(
+				"movl %%eax, %%cr3			;"
+				: 
+				: "a"(parent_page) 
+				: "memory","cc"
+				);
+
+			/* transfer back to parent stack */
+			asm(
+				"movl %%eax, %%esp 			;"
+				"movl %%ebx, %%ebp 			;"
+				"pushl %%ecx 				;"
+				:
+				: "a"(current_pcb->parent_esp), "b"(current_pcb->parent_ebp), "c"(status)
+				: "memory", "cc"
+				);
+
+				sti();
+
+			asm volatile(
+						"movl $0,  %%eax;"
+						"leave			;"
+						"ret 			;"
+						: : :"eax","memory","cc"
+						);
+
+			return status;
+		}
+		//printf("Are you Are you satisfied with your care? -- Big Hero 6 (y or n)\n");
 		memcpy(&shell_entry_point, buf+24, 4);
 
 		uint32_t eflag = 0;

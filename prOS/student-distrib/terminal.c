@@ -21,10 +21,7 @@ void * stdout_opt[4]={
 };
 
 
-terminal_buffer terminals[3];
-history_node history_node_arr[15]; /*array hold all filenames 15 of them.*/
-
-history_buffer terminal_history;
+terminal_buffer terminals[3];/* 3 terminal structs for 3 terminals opening */
 
  /* Opens the terminal
   * Initializes important variables
@@ -44,6 +41,12 @@ int terminal_open()
 	terminals[curr_terminal].shift = 0;
 	terminals[curr_terminal].ctrl = 0;
 	terminals[curr_terminal].reading  = 0;
+	/* initial terminal history structure */
+	terminals[curr_terminal].terminal_history.begin = 0;
+	terminals[curr_terminal].terminal_history.end = 0;
+	terminals[curr_terminal].terminal_history.pre_pos = 0;
+	terminals[curr_terminal].terminal_history.current = 0;
+
 	return 0;
 }
 
@@ -237,6 +240,7 @@ int is_special_key(int key)
  */
 void exe_special_key(int key)
 {
+	int i, temp; /* loop counter */
 	switch(key)
 	{
 
@@ -291,8 +295,8 @@ void exe_special_key(int key)
 			}
 
 			/*store entire line into the history */
-			add_to_history((char*)terminals[curr_terminal].buf );
-			terminal_history.current = terminal_history.end; /* reset current position */
+			add_to_history((char*)terminals[curr_terminal].buf, curr_terminal);
+
 			break;
 
 		case RSHFTP :
@@ -322,11 +326,43 @@ void exe_special_key(int key)
 			break;
 
 		case Lc :
-			halt( 4 );
+			halt(4);
 			break;
 
 		case UPP: /* case where up arrow key is pressed */
+			//move the screen location back to the beginning of the buffer
+			set_screen_x( terminals[curr_terminal].xloc - terminals[curr_terminal].size);
+			
+			//printing spaces
+			for(i =0; i< terminals[curr_terminal].size; i++)
+			{
+				putc(' ');
+			}
 
+			//moves the xlocation back
+			terminals[curr_terminal].xloc -= terminals[curr_terminal].size;
+   
+
+			/* clear current terminal buffer */
+			for( i = 0; i < BUF_SIZE; i++){
+				terminals[curr_terminal].buf[i] = '\0';
+			}
+			/* put old command into terminal buffer */
+			strcpy(terminals[curr_terminal].buf, terminals[curr_terminal].terminal_history.command[terminals[curr_terminal].terminal_history.pre_pos].cmd);
+			/* updating the size of the buffer */
+			terminals[curr_terminal].size = strlen(terminals[curr_terminal].terminal_history.command[terminals[curr_terminal].terminal_history.pre_pos].cmd);
+			if(terminals[curr_terminal].terminal_history.pre_pos == terminals[curr_terminal].terminal_history.begin){
+				/* case reach the last history*/
+				/*do nothing */
+			}
+			else{
+				terminals[curr_terminal].terminal_history.pre_pos --; 
+				if(terminals[curr_terminal].terminal_history.pre_pos < 0){/* case reach the beginning */
+					terminals[curr_terminal].terminal_history.pre_pos = his_buff_size-1;
+				}
+			}
+			/* output the new command to terminal */
+			terminal_write(1, terminals[curr_terminal].buf, strlen(terminals[curr_terminal].buf));
 			break;
 
 	return;
@@ -411,26 +447,27 @@ int stdout_read(){
   *   function which add entire command line into 
   *  terminal history buffer for future use
   */
-void add_to_history(char* buffer){
+void add_to_history(char* buffer, uint32_t terminal_idx){
+	//terminal_write(1,"add to history reached ",24);
 	cli();
 	int i = 0;
-	terminal_history.end ++;
-	if(terminal_history.end >= his_buff_size){ /* case reach out range of buffer  */
-		terminal_history.end = 0; /* loop it around to 0*/
+	terminals[terminal_idx].terminal_history.pre_pos = terminals[terminal_idx].terminal_history.end;
+	terminals[terminal_idx].terminal_history.end ++;
+	if(terminals[terminal_idx].terminal_history.end >= his_buff_size){ /* case reach out range of buffer  */
+		terminals[terminal_idx].terminal_history.end = 0; /* loop it around to 0*/
 	}
-	if(terminal_history.end == terminal_history.begin){ /* case buffer is full */
-		terminal_history.begin ++; /* move begin over 1*/
-		if(terminal_history.begin >= his_buff_size){ /*case begin reach the end*/
-			terminal_history.begin = 0; /* loop it around */
+	if(terminals[terminal_idx].terminal_history.end == terminals[terminal_idx].terminal_history.begin){ /* case buffer is full */
+		terminals[terminal_idx].terminal_history.begin ++; /* move begin over 1*/
+		if(terminals[terminal_idx].terminal_history.begin >= his_buff_size){ /*case begin reach the end*/
+			terminals[terminal_idx].terminal_history.begin = 0; /* loop it around */
 		}
 	}
 	/* copying terminal buffer into history buffer */
 	while(buffer[i] != '\n'){
-		terminal_history.command[terminal_history.end].cmd[i] = buffer[i];
+		terminals[terminal_idx].terminal_history.command[terminals[terminal_idx].terminal_history.end].cmd[i] = buffer[i];
 		i++;
 	}
-	terminal_history.command[terminal_history.end].cmd[i] = '\0' ;
-	//strcpy((int8_t*)terminal_history.command[terminal_history.end].cmd, (int8_t*)buffer);
+	terminals[terminal_idx].terminal_history.command[terminals[terminal_idx].terminal_history.end].cmd[i] = '\0' ;
 	sti();
 }
 
@@ -553,81 +590,6 @@ void printt_hex(char c)
   */
 void creating_node_history(){
 
-	history_node_arr[0].match = 1;
-	history_node_arr[0].size = 10;
-	strcpy(history_node_arr[0].arr_, "frame1.txt");
-	//history_node_arr[0].arr_ = "frame1.txt"; 
-
-	history_node_arr[1].match = 1;
-	history_node_arr[1].size = 10;
-	strcpy(history_node_arr[1].arr_, "frame0.txt");
-//	history_node_arr[1].arr_ = "frame0.txt"; 
-
-	history_node_arr[2].match = 1;
-	history_node_arr[2].size = 4;
-	strcpy(history_node_arr[2].arr_, "fish");
-//	history_node_arr[2].arr_ = "fish"; 
-
-	history_node_arr[3].match = 1;
-	history_node_arr[3].size = 31;
-	strcpy(history_node_arr[3].arr_, "verylargetxtwithverylongname");
-//	history_node_arr[3].arr_ = "verylargetxtwithverylongname.tx"; 
-
-	history_node_arr[4].match = 1;
-	history_node_arr[4].size = 2;
-	strcpy(history_node_arr[4].arr_, "ls");
-//	history_node_arr[4].arr_ = "ls"; 
-
-	history_node_arr[5].match = 1;
-	history_node_arr[5].size = 4;
-	strcpy(history_node_arr[5].arr_, "grep");
-//	history_node_arr[5].arr_ = "grep"; 
-
-	history_node_arr[6].match = 1;
-	history_node_arr[6].size = 5;
-	strcpy(history_node_arr[6].arr_, "hello");
-//	history_node_arr[6].arr_ = "hello"; 
-
-	history_node_arr[7].match = 1;
-	history_node_arr[7].size = 3;
-	strcpy(history_node_arr[7].arr_, "rtc");
-//	history_node_arr[7].arr_ = "rtc"; 
-
-	history_node_arr[8].match = 1;
-	history_node_arr[8].size = 9;
-	strcpy(history_node_arr[8].arr_, "testprint");
-//	history_node_arr[8].arr_ = "testprint"; 
-
-	history_node_arr[9].match = 1;
-	history_node_arr[9].size = 7;
-	strcpy(history_node_arr[9].arr_, "sigtest");
-//	history_node_arr[9].arr_ = "sigtest"; 
-
-	history_node_arr[10].match = 1;
-	history_node_arr[10].size = 5;
-	strcpy(history_node_arr[10].arr_, "shell");
-//	history_node_arr[10].arr_ = "shell"; 
-
-	history_node_arr[11].match = 1;
-	history_node_arr[11].size = 6;
-	strcpy(history_node_arr[11].arr_, "syserr");
-//	history_node_arr[11].arr_ = "syserr"; 
-
-	history_node_arr[12].match = 1;
-	history_node_arr[12].size = 3;
-	strcpy(history_node_arr[12].arr_, "cat");
-//	history_node_arr[12].arr_ = "cat"; 
-
-	history_node_arr[13].match = 1;
-	history_node_arr[13].size = 7;
-	strcpy(history_node_arr[13].arr_, "counter");
-//	history_node_arr[13].arr_ = "counter"; 
-
-	history_node_arr[14].match = 1;
-	history_node_arr[14].size = 8;
-	strcpy(history_node_arr[14].arr_, "pingpong");
-//	history_node_arr[14].arr_ = "pingpong"; 
-
 
 }
 
@@ -639,19 +601,6 @@ void creating_node_history(){
   */
 
 void find_tap_match(const int8_t* buf){
-//	uint32_t num_match = 15; /* starting with all matches */
-//	uint32_t position = 0; /* character position for match */
-//	uint32_t buf_size = strlen(int8_t* buf);
-//	int i ; /* loop counter */
-//	while(num_match != 1){ /* until find the only match */
-//		for(i = 0; i < 15; i++){/* looping through entire array */
-//			
-//			if(history_node_arr[i].size <= buf_size){/* case buffer is longer*/
-//
-//			}
-//
-//
-//		}
-//	}
+
 }
 

@@ -29,7 +29,7 @@
 #define Lc 				46
 
 #define CAPS_CONV		0x20
-#define his_buff_size 	100
+#define his_buff_size 	50
 #define magic_fd        -2
 
 
@@ -43,23 +43,6 @@ typedef struct
 	uint32_t size; /* given the size of array stored in this node */
 	char arr_[32];  
 }history_node;
-
-typedef struct
-{
-	char buf[BUF_SIZE];
-	uint32_t xloc;
-	uint32_t yloc;
-	uint32_t caps;
-	uint32_t size;
-	uint32_t shift;						/*0 if not pressed, one if pressed*/
-	uint32_t ctrl; 						/*0 if not pressed, one if pressed*/
-	volatile uint8_t reading;
-}terminal_buffer;
-
-extern terminal_buffer terminals[3];
-
-extern void * stdin_opt[4];
-extern void * stdout_opt[4];
 
 /*structure to hold specific command */
 typedef	struct 
@@ -77,14 +60,31 @@ typedef struct
 	cmd_line command[his_buff_size]; /* array to store all commands */
 }history_buffer;
 
-extern history_buffer terminal_history;
-extern history_node history_node_arr[15]; /* hold all file names for search */
+/* terminal buffer which store the status for the specific terminal */
+typedef struct
+{
+	history_buffer terminal_history; /* store history of the terminal */
+	char buf[BUF_SIZE];
+	uint32_t xloc;
+	uint32_t yloc;
+	uint32_t caps;
+	uint32_t size;
+	uint32_t shift;						/*0 if not pressed, one if pressed*/
+	uint32_t ctrl; 						/*0 if not pressed, one if pressed*/
+	volatile uint8_t reading;
+}terminal_buffer;
+
+extern terminal_buffer terminals[3];
+
+extern void * stdin_opt[4];
+extern void * stdout_opt[4];
+
 
 /** add_to_history
   * 	function which add current command into the 
   * terminal_history buffer, return nothing, always success
   */
-void add_to_history(char* buffer);
+void add_to_history(char* buffer, uint32_t terminal_idx);
 
  /* Opens the terminal
   * Initializes important variables

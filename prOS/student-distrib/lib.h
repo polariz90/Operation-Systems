@@ -60,6 +60,9 @@ void set_screen_y(uint32_t yloc);
 /*setd the screen_x()*/
 void set_screen_x(uint32_t xloc);
 
+/* random number generator */
+int rand();
+
 
 /* Userspace address-check functions */
 int32_t bad_userspace_addr(const void* addr, int32_t len);
