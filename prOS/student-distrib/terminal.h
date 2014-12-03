@@ -37,6 +37,10 @@
 #define his_buff_size 	50
 #define magic_fd        -2
 
+#define term1_vid_buf   0xB9000
+#define term2_vid_buf   0xBA000
+#define term3_vid_buf   0xBB000
+
 
 
 /*Decleared variables for the terminal*/
@@ -163,6 +167,9 @@ void creating_node_history();
 /* looking for a tap match */
 void find_tap_match(const int8_t* buf);
 
+
+/* functions to help switching terminals */
+void terminal_switch(uint32_t terminal_id);
 
 
 

@@ -622,3 +622,24 @@ void find_tap_match(const int8_t* buf){
 
 }
 
+
+/**
+  * terminal_switch
+  * 	  helper functions to switch terminals, steps that includes:
+  * 	1. copying current video memory into corresponding terminal bffer 
+  * 	2. map current terminal video memory page into the buffer 
+  * 	3. copying new terminal buffer into video memory
+  *		4. map new terminal video memory page into the video memory
+  */
+
+void terminal_switch(uint32_t terminal_id){
+	cli();
+	/* getting the new terminal structure */
+	curr_terminal = terminal_id; 
+
+	/* step 1: copying current video memory into corresponding terminal buffer */
+	
+	sti();
+}
+
+

@@ -80,7 +80,6 @@ void init_paging( ){
 
 
 	/* set up video page directory  entries */
-
 	kernel_page_dir[0].present = 1;
 	kernel_page_dir[0].read_write = 1;
 	kernel_page_dir[0].user_supervisor = 0;
@@ -104,7 +103,22 @@ void init_paging( ){
 	video_page_table[video_table_idx].PT_attribute_idx = 0;
 	video_page_table[video_table_idx].global_page = 1;
 	video_page_table[video_table_idx].avail = 0;
-//	video_page_table[video_table_idx].page_base_add = 0XB8;		
+//	video_page_table[video_table_idx].page_base_add = 0XB8;	
+
+	/* set up terminal pages */	
+	for(i = 1; i < 4; i++){
+		video_page_table[video_table_idx+i].present = 1;
+		video_page_table[video_table_idx+i].read_write = 1;
+		video_page_table[video_table_idx+i].user_supervisor = 0;
+		video_page_table[video_table_idx+i].write_through = 0;
+		video_page_table[video_table_idx+i].cache_disabled = 0;
+		video_page_table[video_table_idx+i].accessed = 0;
+		video_page_table[video_table_idx+i].dirty = 0;
+		video_page_table[video_table_idx+i].PT_attribute_idx = 0;
+		video_page_table[video_table_idx+i].global_page = 1;
+		video_page_table[video_table_idx+i].avail = 0;
+	}
+
 
 	/* copies the address of the page directory into the CR3 register and enable paging*/
 

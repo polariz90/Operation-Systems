@@ -156,3 +156,5 @@ _vidmap_page_table:
 	.quad 0
 	.endr
 vidmap_page_table_bottom:
+
+
