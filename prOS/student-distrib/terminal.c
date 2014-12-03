@@ -22,7 +22,7 @@ void * stdout_opt[4]={
 
 
 terminal_buffer terminals[3];/* 3 terminal structs for 3 terminals opening */
-uint32_t terminal_vid_buf[3] = {term1_vid_buf, term2_vid_buf, term3_vid_buf};
+uint32_t terminal_vid_buf[4] = {term1_vid_buf, term2_vid_buf, term3_vid_buf};
 
  /* Opens the terminal
   * Initializes important variables
@@ -42,6 +42,7 @@ int terminal_open()
 	terminals[curr_terminal].caps = 0;
 	terminals[curr_terminal].shift = 0;
 	terminals[curr_terminal].ctrl = 0;
+	terminals[curr_terminal].alt = 0;
 	terminals[curr_terminal].reading  = 0;
 	for(i = 0; i < 6; i++){
 		terminals[curr_terminal].pros_pids[i] = 0;
@@ -321,16 +322,16 @@ void exe_special_key(int key)
 			toggle_ctrl();
 			break;
 
+		case CTLR :
+			toggle_ctrl();
+			break;
+
 		case ALTP :
 			toggle_alt();
 			break;
 
 		case ALTR :
 			toggle_alt();
-			break;
-
-		case CTLR :
-			toggle_ctrl();
 			break;
 
 		//l is pressed as well as the ctrl
@@ -361,13 +362,28 @@ void exe_special_key(int key)
 			for( i = 0; i < BUF_SIZE; i++){
 				terminals[curr_terminal].buf[i] = '\0';
 			}
-			/* put old command into terminal buffer */
-			strcpy(terminals[curr_terminal].buf, terminals[curr_terminal].terminal_history.command[terminals[curr_terminal].terminal_history.pre_pos].cmd);
-			/* updating the size of the buffer */
-			terminals[curr_terminal].size = strlen(terminals[curr_terminal].terminal_history.command[terminals[curr_terminal].terminal_history.pre_pos].cmd);
-			if(terminals[curr_terminal].terminal_history.pre_pos == terminals[curr_terminal].terminal_history.begin){
+
+			/* moving position pointer */
+			if(terminals[curr_terminal].terminal_history.end == terminals[curr_terminal].terminal_history.begin){ /* case history is empty */
+				break;
+			}
+			else if(terminals[curr_terminal].terminal_history.pre_pos == terminals[curr_terminal].terminal_history.begin){
 				/* case reach the last history*/
 				/*do nothing */
+			}
+			else if(terminals[curr_terminal].terminal_history.pre_pos == terminals[curr_terminal].terminal_history.end){
+				terminals[curr_terminal].terminal_history.pre_pos --; 
+				if(terminals[curr_terminal].terminal_history.pre_pos < 0){/* case reach the beginning */
+					terminals[curr_terminal].terminal_history.pre_pos = his_buff_size-1;
+				}
+				/* put old command into terminal buffer */
+				strcpy(terminals[curr_terminal].buf, terminals[curr_terminal].terminal_history.command[terminals[curr_terminal].terminal_history.pre_pos].cmd);
+				/* updating the size of the buffer */
+				terminals[curr_terminal].size = strlen(terminals[curr_terminal].terminal_history.command[terminals[curr_terminal].terminal_history.pre_pos].cmd);
+
+				/* output the new command to terminal */
+				terminal_write(1, terminals[curr_terminal].buf, strlen(terminals[curr_terminal].buf));
+				break;
 			}
 			else{
 				terminals[curr_terminal].terminal_history.pre_pos --; 
@@ -375,6 +391,12 @@ void exe_special_key(int key)
 					terminals[curr_terminal].terminal_history.pre_pos = his_buff_size-1;
 				}
 			}
+
+			/* put old command into terminal buffer */
+			strcpy(terminals[curr_terminal].buf, terminals[curr_terminal].terminal_history.command[terminals[curr_terminal].terminal_history.pre_pos].cmd);
+			/* updating the size of the buffer */
+			terminals[curr_terminal].size = strlen(terminals[curr_terminal].terminal_history.command[terminals[curr_terminal].terminal_history.pre_pos].cmd);
+
 			/* output the new command to terminal */
 			terminal_write(1, terminals[curr_terminal].buf, strlen(terminals[curr_terminal].buf));
 			break;
@@ -395,21 +417,55 @@ void exe_special_key(int key)
 			for( i = 0; i < BUF_SIZE; i++){
 				terminals[curr_terminal].buf[i] = '\0';
 			}
+			if(terminals[curr_terminal].terminal_history.end == terminals[curr_terminal].terminal_history.begin){ /* case history is empty */
+				break;
+			}
+			else if(terminals[curr_terminal].terminal_history.pre_pos == terminals[curr_terminal].terminal_history.end){
+				/* case reach the last history*/
+				terminals[curr_terminal].terminal_history.pre_pos --; 
+				if(terminals[curr_terminal].terminal_history.pre_pos < 0){/* case reach the beginning */
+					terminals[curr_terminal].terminal_history.pre_pos = his_buff_size-1;
+				}
+				/* put old command into terminal buffer */
+				strcpy(terminals[curr_terminal].buf, terminals[curr_terminal].terminal_history.command[terminals[curr_terminal].terminal_history.pre_pos].cmd);
+				/* updating the size of the buffer */
+				terminals[curr_terminal].size = strlen(terminals[curr_terminal].terminal_history.command[terminals[curr_terminal].terminal_history.pre_pos].cmd);
+				/* output the new command to terminal */
+				terminal_write(1, terminals[curr_terminal].buf, strlen(terminals[curr_terminal].buf));
+				terminals[curr_terminal].terminal_history.pre_pos ++;
+				if(terminals[curr_terminal].terminal_history.pre_pos > his_buff_size){/* case reach the beginning */
+					terminals[curr_terminal].terminal_history.pre_pos = 0;
+				}
+				break;
+			}
+			else{
+				terminals[curr_terminal].terminal_history.pre_pos ++;
+				if(terminals[curr_terminal].terminal_history.pre_pos > his_buff_size){/* case reach the beginning */
+					terminals[curr_terminal].terminal_history.pre_pos = 0;
+				}
+				if(terminals[curr_terminal].terminal_history.pre_pos == terminals[curr_terminal].terminal_history.end){
+					/* case reach the last history*/
+					terminals[curr_terminal].terminal_history.pre_pos --; 
+					if(terminals[curr_terminal].terminal_history.pre_pos < 0){/* case reach the beginning */
+						terminals[curr_terminal].terminal_history.pre_pos = his_buff_size-1;
+					}
+					/* put old command into terminal buffer */
+					strcpy(terminals[curr_terminal].buf, terminals[curr_terminal].terminal_history.command[terminals[curr_terminal].terminal_history.pre_pos].cmd);
+					/* updating the size of the buffer */
+					terminals[curr_terminal].size = strlen(terminals[curr_terminal].terminal_history.command[terminals[curr_terminal].terminal_history.pre_pos].cmd);
+					/* output the new command to terminal */
+					terminal_write(1, terminals[curr_terminal].buf, strlen(terminals[curr_terminal].buf));
+					terminals[curr_terminal].terminal_history.pre_pos ++;
+					if(terminals[curr_terminal].terminal_history.pre_pos > his_buff_size){/* case reach the beginning */
+						terminals[curr_terminal].terminal_history.pre_pos = 0;
+					}
+					break;
+				}
+			}
 			/* put old command into terminal buffer */
 			strcpy(terminals[curr_terminal].buf, terminals[curr_terminal].terminal_history.command[terminals[curr_terminal].terminal_history.pre_pos].cmd);
 			/* updating the size of the buffer */
 			terminals[curr_terminal].size = strlen(terminals[curr_terminal].terminal_history.command[terminals[curr_terminal].terminal_history.pre_pos].cmd);
-			terminals[curr_terminal].terminal_history.pre_pos ++; 
-			if(terminals[curr_terminal].terminal_history.pre_pos == terminals[curr_terminal].terminal_history.end){
-				/* case reach the last history*/
-				terminals[curr_terminal].terminal_history.pre_pos --; 
-			}
-			else{
-				
-				if(terminals[curr_terminal].terminal_history.pre_pos > his_buff_size){/* case reach the beginning */
-					terminals[curr_terminal].terminal_history.pre_pos = 0;
-				}
-			}
 			/* output the new command to terminal */
 			terminal_write(1, terminals[curr_terminal].buf, strlen(terminals[curr_terminal].buf));
 			break;
@@ -417,24 +473,24 @@ void exe_special_key(int key)
 
 
 		case F1P:
-			if (curr_terminal == 1){
+			if (curr_terminal == 0){
+				break;
+			}
+			terminal_switch(0);
+			break;
+
+		case F2P:
+			if(curr_terminal == 1){
 				break;
 			}
 			terminal_switch(1);
 			break;
 
-		case F2P:
+		case F3P:
 			if(curr_terminal == 2){
 				break;
 			}
 			terminal_switch(2);
-			break;
-
-		case F3P:
-			if(curr_terminal == 3){
-				break;
-			}
-			terminal_switch(3);
 			break;
 	return;
 	}	
@@ -537,8 +593,9 @@ void add_to_history(char* buffer, uint32_t terminal_idx){
 	}
 	terminals[terminal_idx].terminal_history.command[terminals[terminal_idx].terminal_history.end].cmd[i] = '\0' ;
 
-	terminals[terminal_idx].terminal_history.pre_pos = terminals[terminal_idx].terminal_history.end;
+	/* increment the end pointer */
 	terminals[terminal_idx].terminal_history.end ++;
+	terminals[terminal_idx].terminal_history.pre_pos = terminals[terminal_idx].terminal_history.end;
 	if(terminals[terminal_idx].terminal_history.end >= his_buff_size){ /* case reach out range of buffer  */
 		terminals[terminal_idx].terminal_history.end = 0; /* loop it around to 0*/
 	}

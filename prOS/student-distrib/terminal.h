@@ -88,7 +88,8 @@ typedef struct
 }terminal_buffer;
 
 extern terminal_buffer terminals[3];
-extern uint32_t terminal_vid_buf[3];
+extern uint32_t terminal_vid_buf[4];
+
 
 extern void * stdin_opt[4];
 extern void * stdout_opt[4];
