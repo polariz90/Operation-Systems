@@ -5,8 +5,15 @@
 #include "file.h"
 #ifndef ASM_SYS
 
+typedef struct 
+{
+	uint8_t occupied[7];
+	uint32_t num_process;
+}process_arr;
 
-extern uint32_t occupied[7];
+
+//extern uint32_t occupied[7];
+extern process_arr process_occupy;
 
 extern int32_t halt(uint8_t status);
 extern int32_t execute(const uint8_t* command);
@@ -19,6 +26,7 @@ extern int32_t set_handler(int32_t signum, void* handler_address);
 extern int32_t sigreturn(void);
 extern void test_execute();
 	   uint32_t get_next_pid(void); 
+	   void release_cur_pid(uint32_t pid);
 
 
 #endif /* ASM_SYS*/

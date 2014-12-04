@@ -65,7 +65,7 @@ void init_paging( ){
 		video_page_table[i].page_base_add = i;
 	}
 
-	/* set up kernel page entries */
+	/* set up kernel page entries -- the 4MB mapping to kernel code */
 	kernel_page_dir[1].present = 1; /* enable page entry */
 	kernel_page_dir[1].read_write = 1; /* read and write enable*/
 	kernel_page_dir[1].user_supervisor = 0; /* 0 for supervisor privilege lvl */
@@ -79,7 +79,7 @@ void init_paging( ){
 	kernel_page_dir[1].PT_base_add = 1024;
 
 
-	/* set up video page directory  entries */
+	/* set up video page directory  entries -- the page directory which video memory in */
 	kernel_page_dir[0].present = 1;
 	kernel_page_dir[0].read_write = 1;
 	kernel_page_dir[0].user_supervisor = 0;
@@ -92,7 +92,7 @@ void init_paging( ){
 	kernel_page_dir[0].avail = 0;
 	kernel_page_dir[0].PT_base_add = ((int)video_page_table >> 12);
 
-	/* set up video page table entries*/
+	/* set up video page table entries -- the 4KB video memory in */
 	video_page_table[video_table_idx].present = 1;
 	video_page_table[video_table_idx].read_write = 1;
 	video_page_table[video_table_idx].user_supervisor = 0;
@@ -105,7 +105,8 @@ void init_paging( ){
 	video_page_table[video_table_idx].avail = 0;
 //	video_page_table[video_table_idx].page_base_add = 0XB8;	
 
-	/* set up terminal pages */	
+	/* set up terminal pages -- 4KB for each terminal video buffer */
+	/* they are right after the real video memory spaces */	
 	for(i = 1; i < 4; i++){
 		video_page_table[video_table_idx+i].present = 1;
 		video_page_table[video_table_idx+i].read_write = 1;
@@ -179,6 +180,7 @@ int change_process_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32
 		
 
 		/*initialize the 4MB memory, at Virtual 128MB, physical 4MB+pid*4MB */
+		/* this is the new page memory for process */
 			new_page_dir->dir_arr[vir_address].present = 1; /* enable page entry */
 			new_page_dir->dir_arr[vir_address].read_write = 1; /* read and write enable */
 			new_page_dir->dir_arr[vir_address].user_supervisor = privilage; /* set to user privilage */

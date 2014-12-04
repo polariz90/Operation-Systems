@@ -163,6 +163,7 @@ entry (unsigned long magic, unsigned long addr)
 		ltr(KERNEL_TSS);
 	}
 
+
 	/*initializing idt values*/
 	init_idt(); 
 
@@ -188,9 +189,13 @@ entry (unsigned long magic, unsigned long addr)
 	terminal_open();
 
 	//set up current pcb, pid should be 0
-	int pid= get_next_pid();
+	process_occupy.num_process = 0; /* booting with 0 process at beginning */
+	int i; 
+	for(i = 0; i < 7; i++){/* clear array mask */
+		process_occupy.occupied[i] = 0;
+	}
 	pcb * kernel_pcb_ptr;
-	kernel_pcb_ptr = add_process_stack(pid); /* creating kernel pcb*/
+	kernel_pcb_ptr = add_process_stack(get_next_pid()); /* creating kernel pcb*/
 	kernel_pcb_ptr->parent_page_dir_ptr = NULL; /* kernel doesn't have parent process */
 	kernel_pcb_ptr->pid = 0; /* kernel is the 0 process always */
 	kernel_pcb_ptr->parent_esp = 0; 

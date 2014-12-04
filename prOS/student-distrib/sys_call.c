@@ -27,20 +27,10 @@
 #define _128mb 				0x8000000
 
 /* array to keep in check of process number */
-uint32_t occupied[7] = {0,0,0,0,0,0,0};
+//uint32_t occupied[7] = {0,0,0,0,0,0,0};
+process_arr process_occupy;
 uint32_t entry_point;
 uint8_t ELF[4]={0x7f, 0x45, 0x4c, 0x46};
-/*char* quotes[10] = {"Do you want to build a snowman? (y or n)",
-					"Are you satisfied with your care? (y or n)",
-					"My Mama always said, 'Life was like a box of chocolates; you never know what you're gonna get.",
-					"Frankly, my dear, I don't give a damn!",
-					"I could dance with you till the cows come home...On second thought, I'd rather dance with the cows when you came home.",
-					"...Bond. James Bond.",
-					"knock, knock ... ",
-					"Of all the gin joints in all the towns in all the world, she walks into mine.",
-					"Well, it's not the men in your life that counts, it's the life in your men.",
-					"I'll be back.",
-};*/
 
 
 /* Description:
@@ -55,17 +45,13 @@ int32_t halt(uint8_t status){
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
 	/*may want to prevent user to close the last shell*/
-	if(current_pcb->pid == 1){
+	if(process_occupy.num_process == 2){ /* kernel + last shell */
 		uint8_t buf[buffer_size];
 		uint32_t shell_entry_point;
 		if(read_file_img((int8_t*)"shell",(uint8_t*) buf, buffer_size) == -1){
 			printf("read file in halt failed \n");
 			return -1;
 		}
-//		/* getting random quotes */
-//		char* quote[100];
-//		strcpy((int8_t*)quote, quotes[rand()%10]);
-//		int32_t quote_length = strlen((int8_t*)quote);
 
 		terminal_write(1,"Are you satisfied with your care (y or n)  ", 43);
 		char temp_buf[1];
@@ -77,7 +63,7 @@ int32_t halt(uint8_t status){
 			int parent_page = (int)current_pcb->parent_page_dir_ptr;
 
 			/* reset current processes mask for other process use */
-			occupied[current_pcb->pid] = 0;
+			release_cur_pid(current_pcb->pid);
 
 				/*restore parent's paging*/
 			asm(
@@ -140,7 +126,7 @@ int32_t halt(uint8_t status){
 	int parent_page = (int)current_pcb->parent_page_dir_ptr;
 
 	/* reset current processes mask for other process use */
-	occupied[current_pcb->pid] = 0;
+	release_cur_pid(current_pcb->pid);
 
 		/*restore parent's paging*/
 	asm(
@@ -185,6 +171,7 @@ int32_t halt(uint8_t status){
  * which are operating in user level with new set of page directories. 
  */
 int32_t execute(const uint8_t* command){
+//	printf("*****execute check 1\n");
 	int i,j; /* loop counter */
 	/* getting new pid for processes */
 	int pid = get_next_pid();
@@ -193,15 +180,14 @@ int32_t execute(const uint8_t* command){
 
 	if(pid == -1){
 
-		printf("Warning!!! Reaching maximum process capacity!! Calm Down Pls!!!!\n");
+		terminal_write(1, "Warning!!! Reaching maximum process capacity!! Calm Down Pls!!!!\n", 65);
 		terminals[curr_terminal].pros_pids[pid] = 0;
 		return 0;
 		asm("movl $-1, %eax");
 		asm("leave;ret"); /* fail execute */
 
 	}
-
-//	printf("command input : %s\n", command);
+//	printf("**********execute check 2\n");
 
 	/*Parse*/
 	uint8_t com_arr[buffer_size];
@@ -210,7 +196,8 @@ int32_t execute(const uint8_t* command){
 
 	if(command == NULL){
 		/* case empty string */
-		occupied[pid]=0;
+		release_cur_pid(pid);
+		//occupied[pid]=0;
 		terminals[curr_terminal].pros_pids[pid] = 0;
 		return 0;
 		asm("movl $-1, %eax");
@@ -218,13 +205,14 @@ int32_t execute(const uint8_t* command){
 	}
 	if(command[0] == space_char){
 		/* case single space string */
-		occupied[pid]=0;
+		release_cur_pid(pid);
+		//occupied[pid]=0;
 		terminals[curr_terminal].pros_pids[pid] = 0;
 		return 0;
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
-
+//	printf("*************execute check 3\n");
 	i = 0;
 	while(!((command[i] == space_char)||(command[i] == '\0'))){/* copying command */
 		com_arr[i] = command[i];
@@ -242,34 +230,35 @@ int32_t execute(const uint8_t* command){
 	/* checking special commands */
 	if(strncmp((int8_t*)com_arr, "clear", 5) == 0){ /* clear screen command */
 		clear();
-		occupied[pid]=0;
+		release_cur_pid(pid);
+		//occupied[pid]=0;
 		return 0;
 	}
-
+//	printf("**********execute check 4\n");
 	/*Excutable check*/
 	uint8_t buf[buffer_size];
 	if(read_file_img((int8_t*)com_arr,(uint8_t*) buf, buffer_size) == -1){
-		occupied[pid]=0;
+		release_cur_pid(pid);
+		//occupied[pid]=0;
 		terminals[curr_terminal].pros_pids[pid] = 0;
 		return -1;
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
-
+//	printf("*****execute check 5\n");
 	if(strncmp((int8_t*)buf, (int8_t*)ELF, (uint32_t)4)){
-//		printf("not Excutable!!\n");
 
-		occupied[pid]=0;
+		release_cur_pid(pid);
+		//occupied[pid]=0;
 		terminals[curr_terminal].pros_pids[pid] = 0;
 		return -1;
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
 	else{
-//		printf("this is executable\n");
-
+		/* it is executable, do nothing */
 	}
-
+//	printf("**********execute check 6\n");
 	/*Paging*/
 	uint32_t parent_pcb;
 	asm volatile("movl %%cr3, %%eax "               \
@@ -279,10 +268,11 @@ int32_t execute(const uint8_t* command){
 	change_process_page(pid, vir_mem_add, phy_mem_add+(pid-1)*four_mb, 1);
 	/* paging test */
 
-
+//	printf("***************execute check 7\n");
 	/*File loader*/
 	if(load_file_img((int8_t*)com_arr) == -1){
-		occupied[pid]=0;
+		release_cur_pid(pid);
+		//occupied[pid]=0;
 		terminals[curr_terminal].pros_pids[pid] = 0;
 		return -1;
 		asm("movl $-1, %eax");
@@ -290,7 +280,7 @@ int32_t execute(const uint8_t* command){
 
 	}
 
-
+//	printf("**********execute check 8\n");
 	/*new PCB*/
 	pcb* new_pcb = add_process_stack(pid); /* new PCB for new process */
 
@@ -307,7 +297,7 @@ int32_t execute(const uint8_t* command){
 	new_pcb->parent_pid = current_pcb->pid; /* loading parent pid */
 	//new_pcb->parent_eip=(uint32_t)tss.eip;
 	new_pcb->parent_page_dir_ptr= (void*)parent_pcb; /**/
-
+//	printf("*****execute check 9\n");
 	/*context switch*/
 	int temp = eight_kb*pid;
 	tss.esp0= eight_mb - temp - 4;
@@ -319,6 +309,7 @@ int32_t execute(const uint8_t* command){
 	uint32_t eflag = 0;
 	cli_and_save(eflag);
 	sti();
+//	printf("**********execute check 10\n");
 	asm volatile(
 			"pushl %%eax     		;"
 			"pushl $0x083FFFF0   	;"  
@@ -630,16 +621,33 @@ int32_t sigreturn(void){
   * SIDE EFFECT: none
   */
 uint32_t get_next_pid(void){
-	int i = 0; /* loop counter */
+	cli();
+	uint32_t i = 0; /* loop counter */
 	while(i < size_of_occupied){
-		if(occupied[i] == N_USED){/* case avaliable*/
-			occupied[i] = USED;
+		if(process_occupy.occupied[i] == N_USED){/* case avaliable*/
+			process_occupy.occupied[i] = USED;
+			process_occupy.num_process += 1;
+			sti();
 			return i;
 		}
 		else{
 			i++;
 		}
 	}
+	sti();
 	return -1;
 }
+
+/**
+  * release cur pid 
+  *		release current pid mask in the process occupy
+  *	control tracking structure 
+  */
+void release_cur_pid(uint32_t pid){
+	cli();
+		process_occupy.occupied[pid] = 0;
+		process_occupy.num_process -= 1;
+	sti();
+}
+
 
