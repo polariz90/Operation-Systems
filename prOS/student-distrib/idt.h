@@ -16,7 +16,7 @@ void general_handler();
 /*interrupt specific handlers*/
 void keyboard_handler();
 void rtc_handler();
-
+void pit_handler();
 
 #endif /* _IDT_H  */
 

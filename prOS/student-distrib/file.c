@@ -484,6 +484,7 @@ pcb* getting_to_know_yourself(){
  */
 int32_t read_file_img(const int8_t * fname, uint8_t* buffer, int nbytes)
 {
+	printf("read_file_img function!!!!!!!\n");
 	dentry_t file_dentry;
 
 	if( fname == NULL){
