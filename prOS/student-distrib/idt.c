@@ -22,6 +22,7 @@
 #include "clock.h"
 #include "assembly_ops.h"
 #include "pit.h"
+#include "scheduler.h"
 
 #define NUM_COLS 80
 #define NUM_ROWS 25
@@ -148,7 +149,8 @@ void pit_handler()
 {
 	asm("pushal");
 	//sti();
-	printf("get pit interrupt\n");
+	//printf("get pit interrupt\n");
+	//call scheduler
 	send_eoi(PIT_IRQ);
 	//while(1);
 	asm("popal;leave;iret");
