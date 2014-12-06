@@ -979,6 +979,7 @@ void terminal_switch(uint32_t terminal_id){
 	}
 
 	curr_terminal = terminal_id; 
+	terminal_open();
 
 
 	sti();
