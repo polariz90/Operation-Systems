@@ -1,6 +1,9 @@
 #ifndef _PIT_H
 #define _PIT_H
 
+#define PIT_CH1_PORT 0x40
+#define PIT_REG_PORT 0x43    //     Mode/Command register (write only, a read is ignored)
+
 #define PIT_PORT 0x70
 #define PIT_CMOS_PORT 0x71
 #define PIT_IRQ	0

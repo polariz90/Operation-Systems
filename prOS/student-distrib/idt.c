@@ -21,7 +21,7 @@
 #include "terminal.h"
 #include "clock.h"
 #include "assembly_ops.h"
-#include "sys_call.h"
+#include "pit.h"
 
 #define NUM_COLS 80
 #define NUM_ROWS 25
@@ -147,8 +147,9 @@ void rtc_handler()
 void pit_handler()
 {
 	asm("pushal");
-	sti();
-	//printf("get pit interrupt\n");
+	//sti();
+	printf("get pit interrupt\n");
+	send_eoi(PIT_IRQ);
 	//while(1);
 	asm("popal;leave;iret");
 }

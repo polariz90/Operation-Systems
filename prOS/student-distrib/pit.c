@@ -4,8 +4,22 @@
 
 extern void pit_enable()
 {
-/*	outb(PIT_B, PIT_PORT);		// select register B, and disable NMI
-	char prev=inb(PIT_CMOS_PORT);	// read the current value of register B
+	int counter;
+	counter=0;
+	uint16_t load_value;
+	uint16_t temp;
+
+
+	outb(0, PIT_REG_PORT);
+	temp= inb(PIT_CH1_PORT);
+	load_value= inb(PIT_CH1_PORT);
+	load_value<<=8;
+	load_value|=temp;
+	printf("load vlue: %d\n", load_value);
+
+	outb(counter, PIT_CH1_PORT);		// select register B, and disable NMI
+	outb(counter, PIT_CH1_PORT);		// select register B, and disable NMI
+/*	char prev=inb(PIT_CMOS_PORT);	// read the current value of register B
 	outb(PIT_B, PIT_PORT);		// set the index again (a read will reset the index to register D)
 	outb(prev | 0x40, PIT_CMOS_PORT);	// write the previous value ORed with 0x40. This turns on bit 6 of register B
 */	enable_irq(PIT_IRQ);
