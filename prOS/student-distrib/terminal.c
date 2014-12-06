@@ -915,9 +915,9 @@ void terminal_switch(uint32_t terminal_id){
 	//curr_terminal = terminal_id; 
 
 	/* step 1: copying current video memory into corresponding terminal buffer */
-	//memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
+	memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
 	/* step 3: copying new terminal buffer into video memory */
-	//memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
+	memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
 
 	/* step 2: switching out all old terminal processes to terminal buffer */
 	for (i = 0; i < 6; i++){
@@ -926,9 +926,9 @@ void terminal_switch(uint32_t terminal_id){
 
 			/* step 1: copying current video memory into corresponding terminal buffer */
 			//printf("********copy into buffer**********\n");
-			memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
-			/* step 3: copying new terminal buffer into video memory */
-			memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
+	//		memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
+	//		/* step 3: copying new terminal buffer into video memory */
+	//		memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
 
 
 			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
@@ -969,10 +969,10 @@ void terminal_switch(uint32_t terminal_id){
 				: : : "eax", "cc"
 			);
 
-			/* step 1: copying current video memory into corresponding terminal buffer */
-			memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
-			/* step 3: copying new terminal buffer into video memory */
-			memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
+		//	/* step 1: copying current video memory into corresponding terminal buffer */
+		//	memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
+		//	/* step 3: copying new terminal buffer into video memory */
+		//	memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
 			//printf("********copy back to vid**********\n");
 
 		}
@@ -981,8 +981,8 @@ void terminal_switch(uint32_t terminal_id){
 	curr_terminal = terminal_id; 
 	terminal_open();
 
-
 	sti();
+	terminal_open();
 }
 
 
