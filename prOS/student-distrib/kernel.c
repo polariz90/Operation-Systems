@@ -190,7 +190,7 @@ entry (unsigned long magic, unsigned long addr)
 	terminal_open();
 
 	/*enable IRQ0*/
-	pit_enable();
+//	pit_enable();
 
 	//set up current pcb, pid should be 0
 	process_occupy.num_process = 0; /* booting with 0 process at beginning */
@@ -208,7 +208,7 @@ entry (unsigned long magic, unsigned long addr)
 
 
 //	printf("call 'test_execute!'\n\n\n");	
-//	test_execute();
+	test_execute();
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your

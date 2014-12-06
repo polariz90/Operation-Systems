@@ -906,6 +906,7 @@ void terminal_switch(uint32_t terminal_id){
 	int temp = curr_terminal;
 	uint32_t vir_add = 0x10000000; /* virtual address 256MB*/
 	uint32_t vid_add = 0xB8000; /* physcial address video memory */
+	uint32_t new_page_dir_add;
 	pcb * current_pcb = getting_to_know_yourself(); /* getting current pcb */
 	/* getting the new terminal structure */
 	//curr_terminal = terminal_id; 
@@ -919,43 +920,42 @@ void terminal_switch(uint32_t terminal_id){
 			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
 			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
 			//uint32_t pt_add = (uint32_t)(video_page_table); /* page table address */
-			//map_4kb_page(i, vir_add, terminal_vid_buf[curr_terminal], 1, pd_add, pt_add, 1); /* mapping to the buffer */
-			
 			uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
+			map_4kb_page(i, vir_add, terminal_vid_buf[curr_terminal], 1, pd_add, pt_add, 1); /* mapping to the buffer */
 			map_4kb_page(i, vid_add, terminal_vid_buf[curr_terminal], 0, pd_add, video_pt_add, 1);
 			printf("change pt id:%d vid: 0x%x phy:0x%x\n", i, vid_add, terminal_vid_buf[curr_terminal]);
 
-
-					/* set up video page table entries -- the 4KB video memory in */
-			for(j = 0; j < 7; j++){
-	//			video_page_table[j].dir_arr[video_table_idx].present = 1;
-	//			video_page_table[j].dir_arr[video_table_idx].read_write = 1;
-	//			video_page_table[j].dir_arr[video_table_idx].user_supervisor = 0;
-	//			video_page_table[j].dir_arr[video_table_idx].write_through = 0;
-	//			video_page_table[j].dir_arr[video_table_idx].cache_disabled = 0;
-	//			video_page_table[j].dir_arr[video_table_idx].accessed = 0;
-	//			video_page_table[j].dir_arr[video_table_idx].dirty = 0;
-	//			video_page_table[j].dir_arr[video_table_idx].PT_attribute_idx = 0;
-	//			video_page_table[j].dir_arr[video_table_idx].global_page = 1;
-	//			video_page_table[j].dir_arr[video_table_idx].avail = 0;
-				video_page_table[j].dir_arr[video_table_idx].page_base_add = 0XB9;	
-			}
+			/* flushing TLB*/
+			new_page_dir_add = (uint32_t)(&processes_page_dir[i]);
+			asm(
+				"movl new_page_dir_add, %%eax 		;"
+				"movl %%eax, %%cr3 					;"
+				: : : "eax", "cc"
+				);
 		}
 	}
 
 	/* step 3: copying new terminal buffer into video memory */
-	//memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
-	///* step 4: copying future video memory into the video memory address */
-	//for(i = 0; i < 6; i ++){
-//	//	printf("*******************************swap in loop %d \n", i );
-	//	if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in the future terminal */
-	//		uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
-	//		uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
-	//		uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
-	//		map_4kb_page(i, vir_add, vid_add, 1, pd_add, pt_add, 1); /* mapping to the buffer */
-	//		map_4kb_page(i, vid_add, vid_add, 0, pd_add, video_pt_add, 1);
-	//	}
-	//}
+	memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
+	/* step 4: copying future video memory into the video memory address */
+	for(i = 0; i < 6; i ++){
+//		printf("*******************************swap in loop %d \n", i );
+		if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in the future terminal */
+			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
+			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
+			uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
+			map_4kb_page(i, vir_add, vid_add, 1, pd_add, pt_add, 1); /* mapping to the buffer */
+			map_4kb_page(i, vid_add, vid_add, 0, pd_add, video_pt_add, 1);
+
+			/* flushing TLB*/
+			new_page_dir_add = (uint32_t)(&processes_page_dir[i]);
+			asm(
+				"movl new_page_dir_add, %%eax 		;"
+				"movl %%eax, %%cr3 					;"
+				: : : "eax", "cc"
+			);
+		}
+	}
 
 	curr_terminal = terminal_id; 
 
