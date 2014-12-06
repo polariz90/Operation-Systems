@@ -34,7 +34,7 @@
 void init_paging( ){
 
 
-	int i; /* counter for loops */
+	int i, j; /* counter for loops */
 
 	/* initialize kernel_page_dir and video_page table */
 	for( i = 0; i < PAGE_DIRECTORY_SIZE; i++){
@@ -50,19 +50,20 @@ void init_paging( ){
 		kernel_page_dir[i].avail = 0;
 		kernel_page_dir[i].PT_base_add = i*1024;
 	}
-
-	for(i = 0; i < PAGE_TABLE_SIZE; i++){
-		video_page_table[i].present = 0;
-		video_page_table[i].read_write = 0;
-		video_page_table[i].user_supervisor = 0;
-		video_page_table[i].write_through = 0;
-		video_page_table[i].cache_disabled = 0;
-		video_page_table[i].accessed = 0;
-		video_page_table[i].dirty = 0;
-		video_page_table[i].PT_attribute_idx = 0;
-		video_page_table[i].global_page = 0;
-		video_page_table[i].avail = 0;
-		video_page_table[i].page_base_add = i;
+	for(j = 0; j < 7; j++){
+		for(i = 0; i < PAGE_TABLE_SIZE; i++){
+			video_page_table[j].dir_arr[i].present = 0;
+			video_page_table[j].dir_arr[i].read_write = 0;
+			video_page_table[j].dir_arr[i].user_supervisor = 0;
+			video_page_table[j].dir_arr[i].write_through = 0;
+			video_page_table[j].dir_arr[i].cache_disabled = 0;
+			video_page_table[j].dir_arr[i].accessed = 0;
+			video_page_table[j].dir_arr[i].dirty = 0;
+			video_page_table[j].dir_arr[i].PT_attribute_idx = 0;
+			video_page_table[j].dir_arr[i].global_page = 0;
+			video_page_table[j].dir_arr[i].avail = 0;
+			video_page_table[j].dir_arr[i].page_base_add = i;
+		}
 	}
 
 	/* set up kernel page entries -- the 4MB mapping to kernel code */
@@ -90,35 +91,23 @@ void init_paging( ){
 	kernel_page_dir[0].page_size =0;
 	kernel_page_dir[0].global_page = 1;
 	kernel_page_dir[0].avail = 0;
-	kernel_page_dir[0].PT_base_add = ((int)video_page_table >> 12);
+	kernel_page_dir[0].PT_base_add = ((int)(&video_page_table[0]) >> 12);
 
 	/* set up video page table entries -- the 4KB video memory in */
-	video_page_table[video_table_idx].present = 1;
-	video_page_table[video_table_idx].read_write = 1;
-	video_page_table[video_table_idx].user_supervisor = 0;
-	video_page_table[video_table_idx].write_through = 0;
-	video_page_table[video_table_idx].cache_disabled = 0;
-	video_page_table[video_table_idx].accessed = 0;
-	video_page_table[video_table_idx].dirty = 0;
-	video_page_table[video_table_idx].PT_attribute_idx = 0;
-	video_page_table[video_table_idx].global_page = 1;
-	video_page_table[video_table_idx].avail = 0;
-//	video_page_table[video_table_idx].page_base_add = 0XB8;	
-
-	/* set up terminal pages -- 4KB for each terminal video buffer */
-	/* they are right after the real video memory spaces */	
-	for(i = 1; i < 4; i++){
-		video_page_table[video_table_idx+i].present = 1;
-		video_page_table[video_table_idx+i].read_write = 1;
-		video_page_table[video_table_idx+i].user_supervisor = 0;
-		video_page_table[video_table_idx+i].write_through = 0;
-		video_page_table[video_table_idx+i].cache_disabled = 0;
-		video_page_table[video_table_idx+i].accessed = 0;
-		video_page_table[video_table_idx+i].dirty = 0;
-		video_page_table[video_table_idx+i].PT_attribute_idx = 0;
-		video_page_table[video_table_idx+i].global_page = 1;
-		video_page_table[video_table_idx+i].avail = 0;
+	for(j = 0; j < 7; j++){
+		video_page_table[j].dir_arr[video_table_idx].present = 1;
+		video_page_table[j].dir_arr[video_table_idx].read_write = 1;
+		video_page_table[j].dir_arr[video_table_idx].user_supervisor = 0;
+		video_page_table[j].dir_arr[video_table_idx].write_through = 0;
+		video_page_table[j].dir_arr[video_table_idx].cache_disabled = 0;
+		video_page_table[j].dir_arr[video_table_idx].accessed = 0;
+		video_page_table[j].dir_arr[video_table_idx].dirty = 0;
+		video_page_table[j].dir_arr[video_table_idx].PT_attribute_idx = 0;
+		video_page_table[j].dir_arr[video_table_idx].global_page = 1;
+		video_page_table[j].dir_arr[video_table_idx].avail = 0;
+//		video_page_table[j].dir_arr[video_table_idx].page_base_add = 0XB8;	
 	}
+
 
 
 	/* copies the address of the page directory into the CR3 register and enable paging*/
@@ -204,7 +193,8 @@ int change_process_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32
 			new_page_dir->dir_arr[0].page_size =0;
 			new_page_dir->dir_arr[0].global_page = 1;
 			new_page_dir->dir_arr[0].avail = 0;
-			new_page_dir->dir_arr[0].PT_base_add = ((int)video_page_table >> 12);
+			new_page_dir->dir_arr[0].PT_base_add = ((int)(&video_page_table[pid]) >> 12);
+			printf("******************************change pt to pid: %d\n", pid);
 
 			/* set up kernel page entries */
 			new_page_dir->dir_arr[1].present = 1; /* enable page entry */

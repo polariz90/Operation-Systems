@@ -39,7 +39,7 @@ void update_time(){
 
 
 	time_tracker ++;
-	if(time_tracker%1024 ==0){ /* updating time in every second*/
+	if(time_tracker%1024 == 0){ /* updating time in every second*/
 	int temp_x, temp_y;
 	cli();
 	temp_x = get_screen_x(); temp_y = get_screen_y();

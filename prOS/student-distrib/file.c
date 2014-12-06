@@ -508,7 +508,7 @@ int32_t read_file_img(const int8_t * fname, uint8_t* buffer, int nbytes)
  * Inputs:
  * fname: name of file
  *
- * Retvals:
+ * Retvals: return the size of file in KB if success, return -1 when failed 
  */
 int load_file_img(int8_t* fname)
 {
@@ -520,14 +520,20 @@ int load_file_img(int8_t* fname)
 	uint8_t buff[buffer_size] ; /* buffer to hold copy data */
 	void* load_ptr; /* memory address pointer */
 	int output; /* hold output value */
+	uint32_t file_size; /* store the current file size -- in KB*/
+
 	//int i;
 
 	load_ptr = (void*)file_vir_addr;
 	read_dentry_by_name((uint8_t *) fname, &file_dentry);
 
 
-//	uint32_t dentry_add = (uint32_t)s_block + four_kb; /*first dentry block address */
-	//inode_struct * curr_inode =(inode_struct*)(dentry_add + file_dentry.inode_num*four_kb);
+	uint32_t dentry_add = (uint32_t)s_block + four_kb; /*first dentry block address */
+	/* getting the inode of this file */
+	inode_struct * curr_inode =(inode_struct*)(dentry_add + file_dentry.inode_num*four_kb);
+	/* getting the file size in KB */
+	file_size = (curr_inode->length)/one_kb + 1;
+	/* getting the file */
 
 	
 
@@ -554,6 +560,8 @@ int load_file_img(int8_t* fname)
 		}
 
 	}while(output != 0);
+
+	return file_size;
 	return 0;
 	
 }

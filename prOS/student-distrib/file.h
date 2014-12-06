@@ -14,7 +14,8 @@
 #define SIZE_128MB  0x8000000 /*size of 128mb*/
 #define file_vir_addr 0x08048000
 
-#define four_kb 4096 /* 4KB = 4096 bytes */
+#define four_kb     4096 /* 4KB = 4096 bytes */
+#define one_kb      1024 /* 1KB = 1024 bytes */
 #define name_length 32 /* length of the name string */
 
 #define USED 1 /*flag in file array*/
@@ -118,7 +119,7 @@ typedef struct
 	file_entry file_descriptor[8]; /* file descriptor array */
 	void* parent_page_dir_ptr; /* parent page directory pointer*/
   uint32_t parent_eip; /* parent eip */
-	uint32_t debug_info; /* not sure what is this */
+  uint32_t process_size; /* file size in KB, round into the next KBs */
   uint32_t pid; /* current process pid */
   uint8_t arg[128]; /* current process argument */
   uint32_t parent_esp; /* parent esp */

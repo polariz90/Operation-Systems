@@ -182,7 +182,7 @@ int32_t execute(const uint8_t* command){
 
 		terminal_write(1, "Warning!!! Reaching maximum process capacity!! Calm Down Pls!!!!\n", 65);
 		terminals[curr_terminal].pros_pids[pid] = 0;
-		return 0;
+		return -1;
 		asm("movl $-1, %eax");
 		asm("leave;ret"); /* fail execute */
 
@@ -199,7 +199,7 @@ int32_t execute(const uint8_t* command){
 		release_cur_pid(pid);
 		//occupied[pid]=0;
 		terminals[curr_terminal].pros_pids[pid] = 0;
-		return 0;
+		return -1;
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
@@ -208,7 +208,7 @@ int32_t execute(const uint8_t* command){
 		release_cur_pid(pid);
 		//occupied[pid]=0;
 		terminals[curr_terminal].pros_pids[pid] = 0;
-		return 0;
+		return -1;
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
@@ -270,7 +270,9 @@ int32_t execute(const uint8_t* command){
 
 //	printf("***************execute check 7\n");
 	/*File loader*/
-	if(load_file_img((int8_t*)com_arr) == -1){
+	int file_size; 
+	file_size = load_file_img((int8_t*)com_arr);
+	if(file_size == -1){
 		release_cur_pid(pid);
 		//occupied[pid]=0;
 		terminals[curr_terminal].pros_pids[pid] = 0;
@@ -295,8 +297,9 @@ int32_t execute(const uint8_t* command){
 	asm volatile("movl %%ebp, %0" : "=g"(parent_ebp));
 	new_pcb->parent_ebp = parent_ebp; /* save parent ebp */
 	new_pcb->parent_pid = current_pcb->pid; /* loading parent pid */
-	//new_pcb->parent_eip=(uint32_t)tss.eip;
 	new_pcb->parent_page_dir_ptr= (void*)parent_pcb; /**/
+	new_pcb->process_size = file_size;
+
 //	printf("*****execute check 9\n");
 	/*context switch*/
 	int temp = eight_kb*pid;
@@ -326,6 +329,7 @@ int32_t execute(const uint8_t* command){
 
 
 	asm ("iret");
+	return 0;
 }
 
 /**

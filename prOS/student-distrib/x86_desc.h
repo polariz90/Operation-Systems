@@ -240,16 +240,20 @@ typedef struct page_table{
 	page_pte_t dir_arr[1024];
 }page_table;
 
+
 /* currently declare array of 6 page tables for process vidmap use */
 extern page_table vidmap_page_table[6];
 
 /* declare array of 6 page directories for processes use only */
 extern page_directory processes_page_dir[6];
+/* declare array of 6 page tables for process use only */
+extern page_table process_page_table[6];
 
 /* declare kernel page directory */
 extern page_pde_t kernel_page_dir[PAGE_DIRECTORY_SIZE];
 /* declare page only 1 for video memory*/
-extern page_pte_t video_page_table[PAGE_TABLE_SIZE];
+extern page_table video_page_table[7];
+//extern page_pte_t video_page_table[PAGE_TABLE_SIZE];
 
 
 /* Sets runtime parameters for an IDT entry */

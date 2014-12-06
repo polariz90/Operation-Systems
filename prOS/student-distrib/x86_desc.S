@@ -12,7 +12,7 @@
 .globl  gdt_ptr
 .globl  idt_desc_ptr, idt
 .globl  kernel_page_dir, video_page_table
-.globl  processes_page_dir
+.globl  processes_page_dir, process_page_table
 .globl  vidmap_page_table
 
 .align 4
@@ -123,7 +123,7 @@ idt_bottom:
 kernel_page_dir:
 _kernel_page_dir: 
 	.rept PAGE_DIRECTORY_SIZE
-	.quad 0
+	.long 0
 	.endr
 
 kernel_page_dir_bottom:
@@ -133,8 +133,8 @@ kernel_page_dir_bottom:
 	.align 4096 #4KB aligned
 video_page_table:
 _video_page_table:
-	.rept PAGE_TABLE_SIZE
-	.quad 0
+	.rept PAGE_DIRECTORY_ARR_SIZE
+	.long 0
 	.endr
 video_page_table_bottom:
 
@@ -143,17 +143,25 @@ video_page_table_bottom:
 processes_page_dir:
 _processes_page_dir:
 	.rept PAGE_DIRECTORY_ARR_SIZE
-	.quad 0
+	.long 0
 	.endr
 processes_page_dir_bottom:
 
+# initializing page directories for processes
+	.align 4096 #4KB aligned
+processes_page_table:
+_processes_page_table:
+	.rept PAGE_DIRECTORY_ARR_SIZE
+	.long 0
+	.endr
+processes_page_table_bottom:
 
 # initializing page table for vidmap
 	.align 4096 #4kb aligned
 vidmap_page_table:
 _vidmap_page_table:
 	.rept PAGE_DIRECTORY_ARR_SIZE
-	.quad 0
+	.long 0
 	.endr
 vidmap_page_table_bottom:
 
