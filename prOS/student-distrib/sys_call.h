@@ -7,8 +7,10 @@
 
 typedef struct 
 {
-	uint8_t occupied[7];
-	uint32_t num_process;
+	uint8_t 	occupied[7];
+	uint32_t 	num_process;
+//	int8_t* 	names[7]; 
+	uint8_t 	top_process_flag[7];
 }process_arr;
 
 
@@ -25,7 +27,7 @@ extern int32_t vidmap(uint8_t** screen_start);
 extern int32_t set_handler(int32_t signum, void* handler_address);
 extern int32_t sigreturn(void);
 extern void test_execute();
-	   uint32_t get_next_pid(void); 
+	   uint32_t get_next_pid(int8_t* buf); 
 	   void release_cur_pid(uint32_t pid);
 
 

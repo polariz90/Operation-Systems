@@ -68,3 +68,14 @@ prOS/student-distrib/bootimg
 *.o
 *.o
 *.o
+prOS/student-distrib/kernel.o
+*.o
+*.o
+*.o
+*.o
+prOS/student-distrib/kernel.o
+*.o
+*.o
+prOS/student-distrib/lib.o
+*.o
+*.o

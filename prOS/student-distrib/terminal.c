@@ -42,17 +42,16 @@ int8_t* tap_file_names[15] = {	"frame1.txt",
 								"counter"
 };
 
- /* Opens the terminal
-  * Initializes important variables
-  *	returns 0
-  */ 
-int terminal_open()
-{
-	int i;
-	//opens the next terminal
-	//for now setting the current terminal to open is the 0th one
-	curr_terminal = 0; 
-	/* initializing all three terminals */
+/** 
+  * terminal_bootup
+  * 		initial booting up, initialize all three temrinals 
+  *		do not booting up any shells 
+  * INPUT: none
+  * OUTPUT: none 
+  */
+void terminal_bootup(){
+	int i, j;
+		/* initializing all three terminals */
 	for (i = 0; i < 2; i++){
 		terminals[i].size = 0;
 		terminals[i].yloc = 0;
@@ -62,8 +61,8 @@ int terminal_open()
 		terminals[i].ctrl = 0;
 		terminals[i].alt = 0;
 		terminals[i].reading  = 0;
-		for(i = 0; i < 6; i++){
-			terminals[i].pros_pids[i] = 0;
+		for(j = 0; i < 6; i++){
+			terminals[i].pros_pids[j] = 0;
 		}
 		/* initial terminal history structure */
 		terminals[i].terminal_history.begin = 0;
@@ -71,26 +70,30 @@ int terminal_open()
 		terminals[i].terminal_history.pre_pos = 0;
 		terminals[i].terminal_history.current = 0;
 	}
+}
 
-//	//initilizes element	
-//	terminals[curr_terminal].size = 0;
-//	terminals[curr_terminal].yloc = 0;
-//	terminals[curr_terminal].xloc = 0;
-//	terminals[curr_terminal].caps = 0;
-//	terminals[curr_terminal].shift = 0;
-//	terminals[curr_terminal].ctrl = 0;
-//	terminals[curr_terminal].alt = 0;
-//	terminals[curr_terminal].reading  = 0;
-//	for(i = 0; i < 6; i++){
-//		terminals[curr_terminal].pros_pids[i] = 0;
-//	}
-//	/* initial terminal history structure */
-//	terminals[curr_terminal].terminal_history.begin = 0;
-//	terminals[curr_terminal].terminal_history.end = 0;
-//	terminals[curr_terminal].terminal_history.pre_pos = 0;
-//	terminals[curr_terminal].terminal_history.current = 0;
-
-	return 0;
+ /* Opens the terminal
+  *    Openning another terminal, depending on the terminal status
+  *  choise booting up new shells or not 
+  *	returns 0
+  */ 
+int terminal_open()
+{
+	/* check if current terminal contain process shell */
+	int i;
+	int shell_flag = 0;
+	for (i = 0; i < 6; i++){/*looping through all 6 processes and find shell under this terminal */
+		if(terminals[curr_terminal].pros_pids[i] == 1){ /* find a process that is under this terminal */
+			/* when the terminal contains at least 1 process, it at least will have a shell */
+			shell_flag = 1;
+			break;
+		}
+	}
+	if( shell_flag == 0){
+		/* case no shell in this terminal */
+		execute((uint8_t*)"shell Bazinga!");
+	}
+	return 0; 
 }
 
 /* Reads count bytes from the terminal 
@@ -902,28 +905,39 @@ void getting_tap_buffer(int8_t* buf){
 void terminal_switch(uint32_t terminal_id){
 	cli();
 //	printf("terminal switch called %d \n", terminal_id);
-	int i,j;
-	int temp = curr_terminal;
+	int i/*, j*/;
+	//int temp = curr_terminal;
 	uint32_t vir_add = 0x10000000; /* virtual address 256MB*/
 	uint32_t vid_add = 0xB8000; /* physcial address video memory */
 	uint32_t new_page_dir_add;
-	pcb * current_pcb = getting_to_know_yourself(); /* getting current pcb */
+	//pcb * current_pcb = getting_to_know_yourself(); /* getting current pcb */
 	/* getting the new terminal structure */
 	//curr_terminal = terminal_id; 
 
 	/* step 1: copying current video memory into corresponding terminal buffer */
-//	memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
+	//memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
+	/* step 3: copying new terminal buffer into video memory */
+	//memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
+
 	/* step 2: switching out all old terminal processes to terminal buffer */
 	for (i = 0; i < 6; i++){
 //		printf("********** swap out loop %d \n", i);
 		if (terminals[curr_terminal].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
+
+			/* step 1: copying current video memory into corresponding terminal buffer */
+			//printf("********copy into buffer**********\n");
+			memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
+			/* step 3: copying new terminal buffer into video memory */
+			memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
+
+
 			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
 			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
 			//uint32_t pt_add = (uint32_t)(video_page_table); /* page table address */
 			uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
 			map_4kb_page(i, vir_add, terminal_vid_buf[curr_terminal], 1, pd_add, pt_add, 1); /* mapping to the buffer */
 			map_4kb_page(i, vid_add, terminal_vid_buf[curr_terminal], 0, pd_add, video_pt_add, 1);
-			printf("change pt id:%d vid: 0x%x phy:0x%x\n", i, vid_add, terminal_vid_buf[curr_terminal]);
+//			printf("change pt id:%d vid: 0x%x phy:0x%x\n", i, vid_add, terminal_vid_buf[curr_terminal]);
 
 			/* flushing TLB*/
 			new_page_dir_add = (uint32_t)(&processes_page_dir[i]);
@@ -935,12 +949,12 @@ void terminal_switch(uint32_t terminal_id){
 		}
 	}
 
-	/* step 3: copying new terminal buffer into video memory */
-	memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
+
 	/* step 4: copying future video memory into the video memory address */
 	for(i = 0; i < 6; i ++){
 //		printf("*******************************swap in loop %d \n", i );
 		if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in the future terminal */
+//		printf("something fun ******** terminal id: %d pid : %d \n", terminal_id, i);
 			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
 			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
 			uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
@@ -954,13 +968,20 @@ void terminal_switch(uint32_t terminal_id){
 				"movl %%eax, %%cr3 					;"
 				: : : "eax", "cc"
 			);
+
+			/* step 1: copying current video memory into corresponding terminal buffer */
+			memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
+			/* step 3: copying new terminal buffer into video memory */
+			memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
+			//printf("********copy back to vid**********\n");
+
 		}
 	}
 
 	curr_terminal = terminal_id; 
 
-
 	sti();
+	terminal_open();
 }
 
 

@@ -13,12 +13,12 @@ int scheduler(void){
 	else
 	{
 		pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
-		int curr_pid= current_pcb->pid;
+		int current_pid= current_pcb->pid;
 		for (i = 0; i < 7; ++i)
 		{
 			/* code */
 			//get next process pid
-			int pid= (current_pcb+i+1)%7; //exclude kernel process
+			int pid= (current_pid+i+1) % 7; //exclude kernel process
 			
 		//	if(process_occupy.occupied[pid]==1&&process_occupy.top_process_flag[pid]==1){
 				return pid;
