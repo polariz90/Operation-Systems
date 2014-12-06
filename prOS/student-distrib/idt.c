@@ -23,6 +23,7 @@
 #include "assembly_ops.h"
 #include "pit.h"
 #include "scheduler.h"
+#include "file.h"
 
 #define NUM_COLS 80
 #define NUM_ROWS 25
@@ -151,8 +152,23 @@ void pit_handler()
 	//sti();
 	//printf("get pit interrupt\n");
 	//call scheduler
-	send_eoi(PIT_IRQ);
-	//while(1);
+	int next_pid= scheduler();
+	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+	asm("movl %%esp, %%eax  \n  \
+		movl %%ebp, %%ebx"
+		: "=a"(current_pcb->current_esp), "=b"(current_pcb->current_ebp)
+		:
+		: "cc", "memory");
+//	pcb* next_pcb = getting_the_ghost(next_pid);
+//
+//	asm("movl %%eax, %%esp  \n  \
+//		movl %%ebx, %%ebp"
+//		: 
+//		: "a"(next_pcb->current_esp), "b"(next_pcb->current_ebp)
+//		: "cc", "memory");
+//	
+//	send_eoi(PIT_IRQ);
+
 	asm("popal;leave;iret");
 }
 

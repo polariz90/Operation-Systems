@@ -1,28 +1,31 @@
 #include "lib.h"
 #include "scheduler.h"
 #include "sys_call.h"
+#include "file.h"
 
-int current_pid;
-
-void scheduler(void){
-	int i;	
+int scheduler(void){
+	int i;
 
 	//check running process
 	if(process_occupy.num_process==0){
-		return;
+		return -1;
 	}
 	else
 	{
-		for (i = 0; i < 6; ++i)
+		pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+		int curr_pid= current_pcb->pid;
+		for (i = 0; i < 7; ++i)
 		{
 			/* code */
-			int pid=i+1; //exclude kernel process
-			if(process_occupy.occupied[pid]==1){
-
-			}
+			//get next process pid
+			int pid= (current_pcb+i+1)%7; //exclude kernel process
+			
+		//	if(process_occupy.occupied[pid]==1&&process_occupy.top_process_flag[pid]==1){
+				return pid;
+		//	}
 		}
 	}
 
-
-	return;
+	//should nerver get here
+	return -1;
 }
