@@ -178,6 +178,9 @@ void terminal_switch(uint32_t terminal_id);
 /* helper function to get tap buffer */
 void getting_tap_buffer(int8_t* buf);
 
+/* initial terminal booting up function */
+void terminal_bootup(); 
+
 
 
 

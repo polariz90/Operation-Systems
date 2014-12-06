@@ -171,23 +171,9 @@ int32_t halt(uint8_t status){
  * which are operating in user level with new set of page directories. 
  */
 int32_t execute(const uint8_t* command){
-//	printf("*****execute check 1\n");
+
 	int i,j; /* loop counter */
-	/* getting new pid for processes */
-	int pid = get_next_pid();
-	/* store the pid ino the terminal structure */
-	terminals[curr_terminal].pros_pids[pid] = 1;
 
-	if(pid == -1){
-
-		terminal_write(1, "Warning!!! Reaching maximum process capacity!! Calm Down Pls!!!!\n", 65);
-		terminals[curr_terminal].pros_pids[pid] = 0;
-		return -1;
-		asm("movl $-1, %eax");
-		asm("leave;ret"); /* fail execute */
-
-	}
-//	printf("**********execute check 2\n");
 
 	/*Parse*/
 	uint8_t com_arr[buffer_size];
@@ -195,24 +181,12 @@ int32_t execute(const uint8_t* command){
 	/* special case check */
 
 	if(command == NULL){
-		/* case empty string */
-		release_cur_pid(pid);
-		//occupied[pid]=0;
-		terminals[curr_terminal].pros_pids[pid] = 0;
 		return -1;
-		asm("movl $-1, %eax");
-		asm("leave;ret");
 	}
 	if(command[0] == space_char){
-		/* case single space string */
-		release_cur_pid(pid);
-		//occupied[pid]=0;
-		terminals[curr_terminal].pros_pids[pid] = 0;
 		return -1;
-		asm("movl $-1, %eax");
-		asm("leave;ret");
 	}
-//	printf("*************execute check 3\n");
+
 	i = 0;
 	while(!((command[i] == space_char)||(command[i] == '\0'))){/* copying command */
 		com_arr[i] = command[i];
@@ -227,6 +201,19 @@ int32_t execute(const uint8_t* command){
 	}
 	arg_arr[j] = '\0';
 
+
+	/* getting new pid for processes */
+	int pid = get_next_pid(com_arr);
+	/* store the pid ino the terminal structure */
+	terminals[curr_terminal].pros_pids[pid] = 1;
+	if(pid == -1){
+
+		terminal_write(1, "Warning!!! Reaching maximum process capacity!! Calm Down Pls!!!!\n", 65);
+		terminals[curr_terminal].pros_pids[pid] = 0;
+		return -1;
+	}
+
+
 	/* checking special commands */
 	if(strncmp((int8_t*)com_arr, "clear", 5) == 0){ /* clear screen command */
 		clear();
@@ -234,11 +221,11 @@ int32_t execute(const uint8_t* command){
 		//occupied[pid]=0;
 		return 0;
 	}
-//	printf("**********execute check 4\n");
+
 	/*Excutable check*/
 	uint8_t buf[buffer_size];
 	if(read_file_img((int8_t*)com_arr,(uint8_t*) buf, buffer_size) == -1){
-		printf("**********execute check 4-2\n");
+		//printf("**********execute check 4-2\n");
 		release_cur_pid(pid);
 		//occupied[pid]=0;
 		terminals[curr_terminal].pros_pids[pid] = 0;
@@ -246,7 +233,7 @@ int32_t execute(const uint8_t* command){
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
-//	printf("*****execute check 5\n");
+
 	if(strncmp((int8_t*)buf, (int8_t*)ELF, (uint32_t)4)){
 
 		release_cur_pid(pid);
@@ -259,7 +246,7 @@ int32_t execute(const uint8_t* command){
 	else{
 		/* it is executable, do nothing */
 	}
-//	printf("**********execute check 6\n");
+
 	/*Paging*/
 	uint32_t parent_pcb;
 	asm volatile("movl %%cr3, %%eax "               \
@@ -269,7 +256,7 @@ int32_t execute(const uint8_t* command){
 	change_process_page(pid, vir_mem_add, phy_mem_add+(pid-1)*four_mb, 1);
 	/* paging test */
 
-//	printf("***************execute check 7\n");
+
 	/*File loader*/
 	int file_size; 
 	file_size = load_file_img((int8_t*)com_arr);
@@ -283,7 +270,7 @@ int32_t execute(const uint8_t* command){
 
 	}
 
-//	printf("**********execute check 8\n");
+
 	/*new PCB*/
 	pcb* new_pcb = add_process_stack(pid); /* new PCB for new process */
 
@@ -301,7 +288,7 @@ int32_t execute(const uint8_t* command){
 	new_pcb->parent_page_dir_ptr= (void*)parent_pcb; /**/
 	new_pcb->process_size = file_size;
 
-//	printf("*****execute check 9\n");
+
 	/*context switch*/
 	int temp = eight_kb*pid;
 	tss.esp0= eight_mb - temp - 4;
@@ -313,7 +300,7 @@ int32_t execute(const uint8_t* command){
 	uint32_t eflag = 0;
 	cli_and_save(eflag);
 	sti();
-//	printf("**********execute check 10\n");
+
 	asm volatile(
 			"pushl %%eax     		;"
 			"pushl $0x083FFFF0   	;"  
@@ -625,13 +612,14 @@ int32_t sigreturn(void){
   * OUTPUT: pid for the new process
   * SIDE EFFECT: none
   */
-uint32_t get_next_pid(void){
+uint32_t get_next_pid(int8_t* buf){
 	cli();
 	uint32_t i = 0; /* loop counter */
 	while(i < size_of_occupied){
 		if(process_occupy.occupied[i] == N_USED){/* case avaliable*/
 			process_occupy.occupied[i] = USED;
 			process_occupy.num_process += 1;
+//			strcpy(process_occupy.names[i], buf);
 			sti();
 			return i;
 		}
@@ -652,6 +640,7 @@ void release_cur_pid(uint32_t pid){
 	cli();
 		process_occupy.occupied[pid] = 0;
 		process_occupy.num_process -= 1;
+//		process_occupy.names[pid] = NULL;
 	sti();
 }
 

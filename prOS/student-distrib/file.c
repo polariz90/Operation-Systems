@@ -14,6 +14,8 @@
 #define pcb_bitmask 0xFFFFE000
 #define stdin_idx 0
 #define stdout_idx 1
+#define _8MB 		800000
+#define _8KB		2000
 
 /*extern var: file descriptor*/
 file_entry file_desc[8];
@@ -462,8 +464,19 @@ pcb* getting_to_know_yourself(){
 		"movl %%esp, %0" : "=g"(curr_pcb_add)
 		);
 
-//	curr_pcb_add = tss.esp0;
 	curr_pcb_add &= pcb_bitmask; 
+
+	return (pcb*)curr_pcb_add;
+}
+
+/**getting_the_ghost 
+  *    function which get the the pid process's 
+  *   PCB structure by it's pid
+  */
+pcb* getting_the_ghost(uint8_t pid){
+
+	uint32_t curr_pcb_add;
+	curr_pcb_add = _8MB	- (pid*(_8KB));
 
 	return (pcb*)curr_pcb_add;
 }
@@ -484,7 +497,7 @@ pcb* getting_to_know_yourself(){
  */
 int32_t read_file_img(const int8_t * fname, uint8_t* buffer, int nbytes)
 {
-	printf("read_file_img function!!!!!!!\n");
+	//printf("read_file_img function!!!!!!!\n");
 	dentry_t file_dentry;
 
 	if( fname == NULL){

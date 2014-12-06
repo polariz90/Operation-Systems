@@ -118,13 +118,15 @@ typedef struct
 {
 	file_entry file_descriptor[8]; /* file descriptor array */
 	void* parent_page_dir_ptr; /* parent page directory pointer*/
-  uint32_t parent_eip; /* parent eip */
+ // uint32_t parent_eip; /* parent eip */
   uint32_t process_size; /* file size in KB, round into the next KBs */
   uint32_t pid; /* current process pid */
   uint8_t arg[128]; /* current process argument */
   uint32_t parent_esp; /* parent esp */
   uint32_t parent_ebp; /* parent ebp */
   uint32_t parent_pid; /* parent pid */
+  uint32_t current_esp; /* current esp */
+  uint32_t current_ebp; /* current ebp */
   tss_t tss; /* not sure what is this */
 }pcb;
 
@@ -153,6 +155,7 @@ int32_t close_dir();
 void init_pcb(pcb* curr_pcb);
 pcb* add_process_stack(uint8_t num );
 pcb* getting_to_know_yourself();
+pcb* getting_the_ghost(uint8_t pid);
 
 int32_t read_file_img(const int8_t * fname, uint8_t* buffer, int nbytes);
 int load_file_img(int8_t* fname);

@@ -108,7 +108,20 @@ void init_paging( ){
 //		video_page_table[j].dir_arr[video_table_idx].page_base_add = 0XB8;	
 	}
 
-
+	for(j = 0; j < 7; j++){
+		for(i = 1; i < 4; i++){
+			video_page_table[j].dir_arr[video_table_idx + i].present = 1;
+			video_page_table[j].dir_arr[video_table_idx + i].read_write = 1;
+			video_page_table[j].dir_arr[video_table_idx + i].user_supervisor = 1;
+			video_page_table[j].dir_arr[video_table_idx + i].write_through = 0;
+			video_page_table[j].dir_arr[video_table_idx + i].cache_disabled = 0;
+			video_page_table[j].dir_arr[video_table_idx + i].accessed = 0;
+			video_page_table[j].dir_arr[video_table_idx + i].dirty = 0;
+			video_page_table[j].dir_arr[video_table_idx + i].PT_attribute_idx = 0;
+			video_page_table[j].dir_arr[video_table_idx + i].global_page = 1;
+			video_page_table[j].dir_arr[video_table_idx + i].avail = 0;
+		}
+	}
 
 	/* copies the address of the page directory into the CR3 register and enable paging*/
 
@@ -194,7 +207,7 @@ int change_process_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32
 			new_page_dir->dir_arr[0].global_page = 1;
 			new_page_dir->dir_arr[0].avail = 0;
 			new_page_dir->dir_arr[0].PT_base_add = ((int)(&video_page_table[pid]) >> 12);
-			printf("******************************change pt to pid: %d\n", pid);
+			//printf("******************************change pt to pid: %d\n", pid);
 
 			/* set up kernel page entries */
 			new_page_dir->dir_arr[1].present = 1; /* enable page entry */
