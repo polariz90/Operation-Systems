@@ -17,6 +17,7 @@
 #include "assembly_ops.h"
 #include "sys_call.h"
 #include "clock.h"
+#include "pit.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -188,6 +189,9 @@ entry (unsigned long magic, unsigned long addr)
 	/*opens the terminal, done by user*/
 	terminal_open();
 
+	/*enable IRQ0*/
+	pit_enable();
+
 	//set up current pcb, pid should be 0
 	process_occupy.num_process = 0; /* booting with 0 process at beginning */
 	int i; 
@@ -202,15 +206,18 @@ entry (unsigned long magic, unsigned long addr)
 	kernel_pcb_ptr->parent_ebp = 0;
 	kernel_pcb_ptr->parent_pid = 0;
 
-	test_execute();
+
+//	printf("call 'test_execute!'\n\n\n");	
+//	test_execute();
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
 	sti();
+
 	
-	clear();
+	//clear();
 
 	printf("ghost in the shell~~!\n");
 	/* Spin (nicely, so we don't chew up cycles) */

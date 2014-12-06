@@ -234,10 +234,11 @@ int32_t execute(const uint8_t* command){
 		//occupied[pid]=0;
 		return 0;
 	}
-//	printf("**********execute check 4\n");
+	printf("**********execute check 4\n");
 	/*Excutable check*/
 	uint8_t buf[buffer_size];
 	if(read_file_img((int8_t*)com_arr,(uint8_t*) buf, buffer_size) == -1){
+		printf("**********execute check 4-2\n");
 		release_cur_pid(pid);
 		//occupied[pid]=0;
 		terminals[curr_terminal].pros_pids[pid] = 0;
@@ -245,7 +246,7 @@ int32_t execute(const uint8_t* command){
 		asm("movl $-1, %eax");
 		asm("leave;ret");
 	}
-//	printf("*****execute check 5\n");
+	printf("*****execute check 5\n");
 	if(strncmp((int8_t*)buf, (int8_t*)ELF, (uint32_t)4)){
 
 		release_cur_pid(pid);

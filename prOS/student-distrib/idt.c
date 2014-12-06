@@ -21,7 +21,7 @@
 #include "terminal.h"
 #include "clock.h"
 #include "assembly_ops.h"
-#include "sys_call.h"
+#include "pit.h"
 
 #define NUM_COLS 80
 #define NUM_ROWS 25
@@ -78,6 +78,8 @@ void init_idt()
 	SET_IDT_ENTRY(idt[19],SIMD_F_P_excpn_19);
 
 	//initilizing the other idt 
+
+	SET_IDT_ENTRY(idt[32], pit_handler);
 	SET_IDT_ENTRY(idt[33], keyboard_handler);     			//keyboard 
 	SET_IDT_ENTRY(idt[40], rtc_handler);     				//rtc 
 
@@ -127,6 +129,30 @@ void rtc_handler()
 }
 
 
+
+
+/* Description:
+ * Handler for the keyboard interruption. The function receives keyboard signals and converts 
+ * the signal into keys to be written.
+ *
+ * Exception Class:
+ *
+ *
+ * Exception Error Code:
+ * 
+ *
+ * Saved Instruction Pointer:
+ * 
+ */
+void pit_handler()
+{
+	asm("pushal");
+	//sti();
+	printf("get pit interrupt\n");
+	send_eoi(PIT_IRQ);
+	//while(1);
+	asm("popal;leave;iret");
+}
 
 /* Description:
  * Handler for the keyboard interruption. The function receives keyboard signals and converts 
