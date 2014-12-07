@@ -22,6 +22,9 @@ void * stdout_opt[4]={
   terminal_close
 };
 
+/*page dir address holder*/
+	uint32_t next_page_dir_add;
+	uint32_t curr_page_dir_add;
 
 terminal_buffer terminals[3];/* 3 terminal structs for 3 terminals opening */
 uint32_t terminal_vid_buf[3] = {term1_vid_buf, term2_vid_buf, term3_vid_buf};
@@ -909,8 +912,23 @@ void terminal_switch(uint32_t terminal_id){
 	//int temp = curr_terminal;
 	uint32_t vir_add = 0x10000000; /* virtual address 256MB*/
 	uint32_t vid_add = 0xB8000; /* physcial address video memory */
-	uint32_t new_page_dir_add;
 
+	/* looking for the top process in the current terminal */
+	for(i = 0; i < 7; i++){
+		if(terminals[curr_terminal].pros_pids[i] == 1){ /* case this process is in this terminal */
+			/* check if this process is the top terminal */
+			if(process_occupy.top_process_flag[i] == 1){/* case this is the top process*/
+				/* switch to its page table and break */
+				curr_page_dir_add = (uint32_t)(&processes_page_dir[i]);
+				asm(
+				"movl curr_page_dir_add, %%eax 		;"
+				"movl %%eax, %%cr3 					;"
+				: : : "eax", "cc"
+				);
+				break;
+			}
+		}
+	}
 
 			memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
 			/* step 3: copying new terminal buffer into video memory */
@@ -922,9 +940,9 @@ void terminal_switch(uint32_t terminal_id){
 		if (terminals[curr_terminal].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
 
 			/* flushing TLB*/
-			new_page_dir_add = (uint32_t)(&processes_page_dir[i]);
+			next_page_dir_add = (uint32_t)(&processes_page_dir[i]);
 			asm(
-				"movl new_page_dir_add, %%eax 		;"
+				"movl next_page_dir_add, %%eax 		;"
 				"movl %%eax, %%cr3 					;"
 				: : : "eax", "cc"
 				);
@@ -950,9 +968,9 @@ void terminal_switch(uint32_t terminal_id){
 		if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in the future terminal */
 
 			/* flushing TLB*/
-			new_page_dir_add = (uint32_t)(&processes_page_dir[i]);
+			next_page_dir_add = (uint32_t)(&processes_page_dir[i]);
 			asm(
-				"movl new_page_dir_add, %%eax 		;"
+				"movl next_page_dir_add, %%eax 		;"
 				"movl %%eax, %%cr3 					;"
 				: : : "eax", "cc"
 			);
@@ -965,6 +983,13 @@ void terminal_switch(uint32_t terminal_id){
 
 		}
 	}
+
+	/* change back to current page dir */
+	asm(
+				"movl curr_page_dir_add, %%eax 		;"
+				"movl %%eax, %%cr3 					;"
+				: : : "eax", "cc"
+				);
 
 	curr_terminal = terminal_id; 
 

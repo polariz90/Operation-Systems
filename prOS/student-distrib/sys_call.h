@@ -9,7 +9,6 @@ typedef struct
 {
 	uint8_t 	occupied[7];
 	uint32_t 	num_process;
-//	int8_t* 	names[7]; 
 	uint8_t 	top_process_flag[7];
 }process_arr;
 
