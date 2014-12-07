@@ -187,8 +187,11 @@ entry (unsigned long magic, unsigned long addr)
 	rtc_enable();
 	printf("chkp1\n");
 	/*enable IRQ0*/
-	pit_enable();
+//	pit_enable();
 	printf("chkp2\n");
+
+	/*init*/
+	scheduling_terminal=0;
 
 	/* initial process array structure */
 	process_occupy.num_process = 0; /* booting with 0 process at beginning */

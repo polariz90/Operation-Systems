@@ -173,7 +173,24 @@ void pit_handler()
 		: "=a"(current_pcb->current_esp), "=b"(current_pcb->current_ebp)
 		:
 		: "cc", "memory");
+	for (i = 0; i < 3; ++i)
+	{
+		if(terminals[i].pros_pids[next_pid]==1){
+			scheduling_terminal=i;
+			break;
+		}
+	}
 
+	//change page
+	if(next_pid!=current_pcb->pid){
+		uint32_t next_page_dir_add = (uint32_t)(&processes_page_dir[next_pid]);
+			asm(
+				"movl next_page_dir_add, %%eax 		;"
+				"movl %%eax, %%cr3 					;"
+				: : : "eax", "cc"
+				);
+	}
+	
 	//jump to next kernel stack
 	pcb* next_pcb = getting_the_ghost(next_pid);
 	asm("movl %%eax, %%esp  \n  \

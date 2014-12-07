@@ -228,6 +228,13 @@ int32_t execute(const uint8_t* command){
 		return 0;
 	}
 
+	if(strncmp((int8_t*)com_arr, "pid", 3) == 0){ /* clear screen command */
+		pcb* current_pcb = getting_to_know_yourself();
+		printf("********************%d\n", current_pcb->pid);
+		release_cur_pid(pid);
+		return 0;
+	}
+
 	/*Excutable check*/
 	uint8_t buf[buffer_size];
 	if(read_file_img((int8_t*)com_arr,(uint8_t*) buf, buffer_size) == -1){

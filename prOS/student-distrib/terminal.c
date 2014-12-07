@@ -94,6 +94,7 @@ int terminal_open()
 	}
 	if( shell_flag == 0){
 		/* case no shell in this terminal */
+		scheduling_terminal=curr_terminal;
 		execute((uint8_t*)"shell Bazinga!");
 	}
 	return 0;
@@ -109,7 +110,7 @@ int terminal_read(int32_t fd, char *buf, int32_t count )
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 	int pid= current_pcb->pid;
 	//if not, keep looping here
-	while(terminals[curr_terminal].pros_pids[pid]==0);
+//	while(terminals[curr_terminal].pros_pids[pid]==0);
 
 	sti();
 	//passed in a bad buffer
@@ -123,11 +124,12 @@ int terminal_read(int32_t fd, char *buf, int32_t count )
 	terminals[curr_terminal].reading =1;
 	//need to wait until the buffer has been terminated with a \n or the buffer fills up
 
+	//while( terminals[curr_terminal].reading  != 0 && curr_terminal!=scheduling_terminal)
 	while( terminals[curr_terminal].reading  != 0 )
 	{
 		//do the dew and wait for reading to finish
 		//if not, keep looping here
-		while(terminals[curr_terminal].pros_pids[pid]==0);
+//		while(terminals[curr_terminal].pros_pids[pid]==0);
 	}
 
 	int curr_index = 0;
@@ -920,22 +922,37 @@ void terminal_switch(uint32_t terminal_id){
 	uint32_t vir_add = 0x10000000; /* virtual address 256MB*/
 	uint32_t vid_add = 0xB8000; /* physcial address video memory */
 
-	/* looking for the top process in the current terminal */
-	for(i = 0; i < 7; i++){
-		if(terminals[curr_terminal].pros_pids[i] == 1){ /* case this process is in this terminal */
-			/* check if this process is the top terminal */
-			if(process_occupy.top_process_flag[i] == 1){/* case this is the top process*/
-				/* switch to its page table and break */
-				curr_page_dir_add = (uint32_t)(&processes_page_dir[i]);
-				asm(
+
+	//debug
+	curr_page_dir_add = (uint32_t)(&kernel_page_dir);
+	asm(
 				"movl curr_page_dir_add, %%eax 		;"
 				"movl %%eax, %%cr3 					;"
 				: : : "eax", "cc"
 				);
-				break;
-			}
-		}
-	}
+
+
+			memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
+			/* step 3: copying new terminal buffer into video memory */
+			memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
+
+//debug
+	/* looking for the top process in the current terminal */
+//	for(i = 0; i < 7; i++){
+//		if(terminals[curr_terminal].pros_pids[i] == 1){ /* case this process is in this terminal */
+//			/* check if this process is the top terminal */
+//			if(process_occupy.top_process_flag[i] == 1){/* case this is the top process*/
+//				/* switch to its page table and break */
+//				curr_page_dir_add = (uint32_t)(&processes_page_dir[i]);
+//				asm(
+//				"movl curr_page_dir_add, %%eax 		;"
+//				"movl %%eax, %%cr3 					;"
+//				: : : "eax", "cc"
+//				);
+//				break;
+//			}
+//		}
+//	}
 
 //			memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
 //			/* step 3: copying new terminal buffer into video memory */
@@ -944,15 +961,16 @@ void terminal_switch(uint32_t terminal_id){
 	/* step 2: switching out all old terminal processes to terminal buffer */
 	for (i = 0; i < 6; i++){
 //		printf("********** swap out loop %d \n", i);
-		if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
+//debug		if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
+		if (terminals[curr_terminal].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
 
 			/* flushing TLB*/
 			next_page_dir_add = (uint32_t)(&processes_page_dir[i]);
-			asm(
-				"movl next_page_dir_add, %%eax 		;"
-				"movl %%eax, %%cr3 					;"
-				: : : "eax", "cc"
-				);
+//debug			asm(
+//				"movl next_page_dir_add, %%eax 		;"
+//				"movl %%eax, %%cr3 					;"
+//				: : : "eax", "cc"
+//				);
 
 
 			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
@@ -961,10 +979,6 @@ void terminal_switch(uint32_t terminal_id){
 			map_4kb_page(i, vir_add, terminal_vid_buf[curr_terminal], 1, pd_add, pt_add, 1); /* mapping to the buffer */
 			map_4kb_page(i, vid_add, terminal_vid_buf[curr_terminal], 0, pd_add, video_pt_add, 1);
 		//	printf("change pt id:%d vid: 0x%x phy:0x%x\n", i, vid_add, terminal_vid_buf[curr_terminal]);
-
-
-
-
 		}
 	}
 
@@ -972,15 +986,16 @@ void terminal_switch(uint32_t terminal_id){
 	/* step 4: copying future video memory into the video memory address */
 	for(i = 0; i < 6; i ++){
 //		printf("*******************************swap in loop %d \n", i );
-		if (terminals[curr_terminal].pros_pids[i] == 1){ /* case the ith process is in the future terminal */
+		if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
+//debug		if (terminals[curr_terminal].pros_pids[i] == 1){ /* case the ith process is in the future terminal */
 
 			/* flushing TLB*/
 			next_page_dir_add = (uint32_t)(&processes_page_dir[i]);
-			asm(
-				"movl next_page_dir_add, %%eax 		;"
-				"movl %%eax, %%cr3 					;"
-				: : : "eax", "cc"
-			);
+//debug			asm(
+//				"movl next_page_dir_add, %%eax 		;"
+//				"movl %%eax, %%cr3 					;"
+//				: : : "eax", "cc"
+//			);
 
 			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
 			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
@@ -990,18 +1005,20 @@ void terminal_switch(uint32_t terminal_id){
 
 		}
 	}
-
-			memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
-			/* step 3: copying new terminal buffer into video memory */
-			memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
+//debug
+//			memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
+//			/* step 3: copying new terminal buffer into video memory */
+//			memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
 	/* change back to current page dir */
+	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+	next_page_dir_add = (uint32_t)(&processes_page_dir[current_pcb->pid]);
 	asm(
 				"movl curr_page_dir_add, %%eax 		;"
 				"movl %%eax, %%cr3 					;"
 				: : : "eax", "cc"
 				);
 
-	curr_terminal = terminal_id; 
+	curr_terminal = terminal_id;
 
 	sti();
 	terminal_open();
