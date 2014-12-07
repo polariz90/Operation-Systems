@@ -356,7 +356,13 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 		return -1;
 	}
 
-	return (*(getting_to_know_yourself())->file_descriptor[fd].file_opt_ptr->opt_read) (fd, buf, nbytes);
+	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+
+	int temp;
+	temp=(*(current_pcb->file_descriptor[fd].file_opt_ptr->opt_read)) (fd, buf, nbytes);
+
+	return temp;
+//	return (*(getting_to_know_yourself())->file_descriptor[fd].file_opt_ptr->opt_read) (fd, buf, nbytes);
 
 }
 
