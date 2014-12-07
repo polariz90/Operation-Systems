@@ -82,7 +82,7 @@ int terminal_open()
 	/* check if current terminal contain process shell */
 	int i;
 	int shell_flag = 0;
-	for (i = 0; i < 6; i++){/*looping through all 6 processes and find shell under this terminal */
+	for (i = 0; i < 7; i++){/*looping through all 6 processes and find shell under this terminal */
 		if(terminals[curr_terminal].pros_pids[i] == 1){ /* find a process that is under this terminal */
 			/* when the terminal contains at least 1 process, it at least will have a shell */
 			shell_flag = 1;
@@ -910,76 +910,95 @@ void terminal_switch(uint32_t terminal_id){
 	uint32_t vir_add = 0x10000000; /* virtual address 256MB*/
 	uint32_t vid_add = 0xB8000; /* physcial address video memory */
 	uint32_t new_page_dir_add;
-	//pcb * current_pcb = getting_to_know_yourself(); /* getting current pcb */
-	/* getting the new terminal structure */
-	//curr_terminal = terminal_id; 
+	uint32_t curr_pid;
 
-	/* step 1: copying current video memory into corresponding terminal buffer */
-	memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
-	/* step 3: copying new terminal buffer into video memory */
-	memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
+
+//	pcb * current_pcb = getting_to_know_yourself(); /* getting current pcb */
+//	
+//	curr_pid = current_pcb->pid;
+//	new_page_dir_add = (uint32_t)(&processes_page_dir[curr_terminal+1]);
+//	asm(
+//		"movl new_page_dir_add, %%eax 		;"
+//		"movl %%eax, %%cr3 					;"
+//		: : : "eax", "cc"
+//		);
+//
+			/* memory copying out of and into the video memory */
+			memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
+
+			memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
+
 
 	/* step 2: switching out all old terminal processes to terminal buffer */
-	for (i = 0; i < 6; i++){
-//		printf("********** swap out loop %d \n", i);
+	for (i = 1; i < 7; i++){
 		if (terminals[curr_terminal].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
 
-			/* step 1: copying current video memory into corresponding terminal buffer */
-			//printf("********copy into buffer**********\n");
-	//		memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
-	//		/* step 3: copying new terminal buffer into video memory */
-	//		memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
-
-
-			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
-			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
-			//uint32_t pt_add = (uint32_t)(video_page_table); /* page table address */
-			uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
-			map_4kb_page(i, vir_add, terminal_vid_buf[curr_terminal], 1, pd_add, pt_add, 1); /* mapping to the buffer */
-			map_4kb_page(i, vid_add, terminal_vid_buf[curr_terminal], 0, pd_add, video_pt_add, 1);
-//			printf("change pt id:%d vid: 0x%x phy:0x%x\n", i, vid_add, terminal_vid_buf[curr_terminal]);
-
-			/* flushing TLB*/
 			new_page_dir_add = (uint32_t)(&processes_page_dir[i]);
 			asm(
 				"movl new_page_dir_add, %%eax 		;"
 				"movl %%eax, %%cr3 					;"
 				: : : "eax", "cc"
 				);
+//			/* memory copying out of and into the video memory */
+//			memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
+//
+//			memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
+//
+			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
+			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
+			uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
+			map_4kb_page(i, vir_add, terminal_vid_buf[curr_terminal], 1, pd_add, pt_add, 1); /* mapping to the buffer */
+			map_4kb_page(i, vid_add, terminal_vid_buf[curr_terminal], 0, pd_add, video_pt_add, 1);
+
+	//		/* flushing TLB*/
+	//		new_page_dir_add = (uint32_t)(&processes_page_dir[i]);
+	//		asm(
+	//			"movl new_page_dir_add, %%eax 		;"
+	//			"movl %%eax, %%cr3 					;"
+	//			: : : "eax", "cc"
+	//			);
 		}
 	}
 
 
 	/* step 4: copying future video memory into the video memory address */
-	for(i = 0; i < 6; i ++){
-//		printf("*******************************swap in loop %d \n", i );
+	for(i = 1; i < 7; i ++){
 		if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in the future terminal */
-//		printf("something fun ******** terminal id: %d pid : %d \n", terminal_id, i);
-			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
-			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
-			uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
-			map_4kb_page(i, vir_add, vid_add, 1, pd_add, pt_add, 1); /* mapping to the buffer */
-			map_4kb_page(i, vid_add, vid_add, 0, pd_add, video_pt_add, 1);
 
-			/* flushing TLB*/
 			new_page_dir_add = (uint32_t)(&processes_page_dir[i]);
 			asm(
 				"movl new_page_dir_add, %%eax 		;"
 				"movl %%eax, %%cr3 					;"
 				: : : "eax", "cc"
 			);
+			/* memory copying out of and into the video memory */
+//			memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
+//
+//			memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
+//
+			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
+			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
+			uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
+			map_4kb_page(i, vir_add, vid_add, 1, pd_add, pt_add, 1); /* mapping to the buffer */
+			map_4kb_page(i, vid_add, vid_add, 0, pd_add, video_pt_add, 1);
 
-		//	/* step 1: copying current video memory into corresponding terminal buffer */
-		//	memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
-		//	/* step 3: copying new terminal buffer into video memory */
-		//	memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
-			//printf("********copy back to vid**********\n");
-
+//			/* flushing TLB*/
+//			new_page_dir_add = (uint32_t)(&processes_page_dir[i]);
+//			asm(
+//				"movl new_page_dir_add, %%eax 		;"
+//				"movl %%eax, %%cr3 					;"
+//				: : : "eax", "cc"
+//			);
+//
+//						/* memory copying out of and into the video memory */
+//			memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
+//
+//			memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
+//
 		}
 	}
 
 	curr_terminal = terminal_id; 
-	terminal_open();
 
 	sti();
 	terminal_open();
