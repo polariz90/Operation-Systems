@@ -105,6 +105,12 @@ int terminal_open()
 
 int terminal_read(int32_t fd, char *buf, int32_t count )
 {
+	//check if we are in current terminal
+	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+	int pid= current_pcb->pid;
+	//if not, keep looping here
+	while(terminals[curr_terminal].pros_pids[pid]==0);
+
 	sti();
 	//passed in a bad buffer
 	if(buf == NULL)
@@ -120,7 +126,8 @@ int terminal_read(int32_t fd, char *buf, int32_t count )
 	while( terminals[curr_terminal].reading  != 0 )
 	{
 		//do the dew and wait for reading to finish
-
+		//if not, keep looping here
+		while(terminals[curr_terminal].pros_pids[pid]==0);
 	}
 
 	int curr_index = 0;
@@ -338,7 +345,7 @@ void exe_special_key(int key)
 			break;
 
 		case ENTP :
-
+			cli();
 			//currenly executing terminal read
 			if( terminals[curr_terminal].reading == 1)
 			{
@@ -359,7 +366,7 @@ void exe_special_key(int key)
 
 			/*store entire line into the history */
 			add_to_history((char*)terminals[curr_terminal].buf, curr_terminal);
-
+			sti();
 			break;
 
 		case RSHFTP :

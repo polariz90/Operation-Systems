@@ -154,7 +154,7 @@ void pit_handler()
 {
 	cli();
 	int i=0;
-	while(i<1000000){i++;}
+	//while(i<1000000){i++;}
 
 	asm("pushal");
 	send_eoi(PIT_IRQ);
