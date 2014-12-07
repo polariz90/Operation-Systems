@@ -476,7 +476,7 @@ pcb* getting_to_know_yourself(){
 pcb* getting_the_ghost(uint8_t pid){
 
 	uint32_t curr_pcb_add;
-	curr_pcb_add = _8MB	- (pid*(_8KB));
+	curr_pcb_add = _8MB	- ((pid+1)*(_8KB));
 
 	return (pcb*)curr_pcb_add;
 }
