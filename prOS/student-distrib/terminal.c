@@ -300,6 +300,10 @@ void exe_special_key(int key)
 	{
 
 		case LTABP :
+			/* check if buffer is empty */
+			if(terminals[curr_terminal].buf[0] == '\0'){
+				break;
+			}
 			/* clear tap buffer first */
 			for (i = 0; i < 32; i++){
 				tap_buffer[i] = '\0';
@@ -936,7 +940,7 @@ void terminal_switch(uint32_t terminal_id){
 
 	/* step 2: switching out all old terminal processes to terminal buffer */
 	for (i = 0; i < 6; i++){
-//		printf("********** swap out loop %d \n", i);
+
 		if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
 
 			/* flushing TLB*/
@@ -951,9 +955,8 @@ void terminal_switch(uint32_t terminal_id){
 			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
 			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
 			uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
-			map_4kb_page(i, vir_add, terminal_vid_buf[curr_terminal], 1, pd_add, pt_add, 1); /* mapping to the buffer */
-			map_4kb_page(i, vid_add, terminal_vid_buf[curr_terminal], 0, pd_add, video_pt_add, 1);
-		//	printf("change pt id:%d vid: 0x%x phy:0x%x\n", i, vid_add, terminal_vid_buf[curr_terminal]);
+			map_4kb_page(i, vir_add, terminal_vid_buf[terminal_id], 1, pd_add, pt_add, 1); /* mapping to the buffer */
+			map_4kb_page(i, vid_add, terminal_vid_buf[terminal_id], 0, pd_add, video_pt_add, 1);
 
 
 
@@ -964,7 +967,6 @@ void terminal_switch(uint32_t terminal_id){
 
 	/* step 4: copying future video memory into the video memory address */
 	for(i = 0; i < 6; i ++){
-//		printf("*******************************swap in loop %d \n", i );
 		if (terminals[curr_terminal].pros_pids[i] == 1){ /* case the ith process is in the future terminal */
 
 			/* flushing TLB*/
