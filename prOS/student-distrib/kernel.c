@@ -187,7 +187,7 @@ entry (unsigned long magic, unsigned long addr)
 	rtc_enable();
 	printf("chkp1\n");
 	/*enable IRQ0*/
-	//pit_enable();
+	pit_enable();
 	printf("chkp2\n");
 
 	/* initial process array structure */

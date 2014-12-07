@@ -930,14 +930,14 @@ void terminal_switch(uint32_t terminal_id){
 		}
 	}
 
-			memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
-			/* step 3: copying new terminal buffer into video memory */
-			memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
+//			memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
+//			/* step 3: copying new terminal buffer into video memory */
+//			memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
 
 	/* step 2: switching out all old terminal processes to terminal buffer */
 	for (i = 0; i < 6; i++){
 //		printf("********** swap out loop %d \n", i);
-		if (terminals[curr_terminal].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
+		if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
 
 			/* flushing TLB*/
 			next_page_dir_add = (uint32_t)(&processes_page_dir[i]);
@@ -965,7 +965,7 @@ void terminal_switch(uint32_t terminal_id){
 	/* step 4: copying future video memory into the video memory address */
 	for(i = 0; i < 6; i ++){
 //		printf("*******************************swap in loop %d \n", i );
-		if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in the future terminal */
+		if (terminals[curr_terminal].pros_pids[i] == 1){ /* case the ith process is in the future terminal */
 
 			/* flushing TLB*/
 			next_page_dir_add = (uint32_t)(&processes_page_dir[i]);
@@ -984,6 +984,9 @@ void terminal_switch(uint32_t terminal_id){
 		}
 	}
 
+			memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
+			/* step 3: copying new terminal buffer into video memory */
+			memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
 	/* change back to current page dir */
 	asm(
 				"movl curr_page_dir_add, %%eax 		;"
