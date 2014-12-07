@@ -28,6 +28,10 @@
 #define NUM_COLS 80
 #define NUM_ROWS 25
 
+
+#define eight_mb 			0x800000
+#define eight_kb 			0x2000
+
 volatile int flag;
  unsigned char code_set[0x59];
  unsigned char code_set_shift[0x59];
@@ -148,27 +152,37 @@ void rtc_handler()
  */
 void pit_handler()
 {
+	cli();
 	asm("pushal");
-	//sti();
+	send_eoi(PIT_IRQ);
+	
 	//printf("get pit interrupt\n");
 	//call scheduler
 	int next_pid= scheduler();
+
+	//store TSS
+	int temp = eight_kb*next_pid;
+	tss.esp0= eight_mb - temp - 4;
+	tss.ss0= KERNEL_DS;
+
+	//store current esp, ebp
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 	asm("movl %%esp, %%eax  \n  \
 		movl %%ebp, %%ebx"
 		: "=a"(current_pcb->current_esp), "=b"(current_pcb->current_ebp)
 		:
 		: "cc", "memory");
-//	pcb* next_pcb = getting_the_ghost(next_pid);
-//
-//	asm("movl %%eax, %%esp  \n  \
-//		movl %%ebx, %%ebp"
-//		: 
-//		: "a"(next_pcb->current_esp), "b"(next_pcb->current_ebp)
-//		: "cc", "memory");
-//	
-//	send_eoi(PIT_IRQ);
 
+
+
+	pcb* next_pcb = getting_the_ghost(next_pid);
+
+	asm("movl %%eax, %%esp  \n  \
+		movl %%ebx, %%ebp"
+		: 
+		: "a"(next_pcb->current_esp), "b"(next_pcb->current_ebp)
+		: "cc", "memory");
+	sti();
 	asm("popal;leave;iret");
 }
 

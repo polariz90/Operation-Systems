@@ -93,7 +93,7 @@ int terminal_open()
 		/* case no shell in this terminal */
 		execute((uint8_t*)"shell Bazinga!");
 	}
-	return 0; 
+	return 0;
 }
 
 /* Reads count bytes from the terminal 
@@ -932,12 +932,12 @@ void terminal_switch(uint32_t terminal_id){
 
 
 			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
-			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
+		//	uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
 			//uint32_t pt_add = (uint32_t)(video_page_table); /* page table address */
 			uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
-			map_4kb_page(i, vir_add, terminal_vid_buf[curr_terminal], 1, pd_add, pt_add, 1); /* mapping to the buffer */
+		//	map_4kb_page(i, vir_add, terminal_vid_buf[curr_terminal], 1, pd_add, pt_add, 1); /* mapping to the buffer */
 			map_4kb_page(i, vid_add, terminal_vid_buf[curr_terminal], 0, pd_add, video_pt_add, 1);
-//			printf("change pt id:%d vid: 0x%x phy:0x%x\n", i, vid_add, terminal_vid_buf[curr_terminal]);
+		//	printf("change pt id:%d vid: 0x%x phy:0x%x\n", i, vid_add, terminal_vid_buf[curr_terminal]);
 
 			/* flushing TLB*/
 			new_page_dir_add = (uint32_t)(&processes_page_dir[i]);
@@ -946,6 +946,8 @@ void terminal_switch(uint32_t terminal_id){
 				"movl %%eax, %%cr3 					;"
 				: : : "eax", "cc"
 				);
+
+
 		}
 	}
 
@@ -956,9 +958,9 @@ void terminal_switch(uint32_t terminal_id){
 		if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in the future terminal */
 //		printf("something fun ******** terminal id: %d pid : %d \n", terminal_id, i);
 			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
-			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
+		//	uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
 			uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
-			map_4kb_page(i, vir_add, vid_add, 1, pd_add, pt_add, 1); /* mapping to the buffer */
+		//	map_4kb_page(i, vir_add, vid_add, 1, pd_add, pt_add, 1); /* mapping to the buffer */
 			map_4kb_page(i, vid_add, vid_add, 0, pd_add, video_pt_add, 1);
 
 			/* flushing TLB*/
@@ -968,6 +970,7 @@ void terminal_switch(uint32_t terminal_id){
 				"movl %%eax, %%cr3 					;"
 				: : : "eax", "cc"
 			);
+
 
 			/* step 1: copying current video memory into corresponding terminal buffer */
 			memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);

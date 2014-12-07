@@ -20,9 +20,9 @@ int scheduler(void){
 			//get next process pid
 			int pid= (current_pid+i+1) % 7; //exclude kernel process
 			
-		//	if(process_occupy.occupied[pid]==1&&process_occupy.top_process_flag[pid]==1){
+			if(process_occupy.occupied[pid]==1&&process_occupy.top_process_flag[pid]==1){
 				return pid;
-		//	}
+			}
 		}
 	}
 

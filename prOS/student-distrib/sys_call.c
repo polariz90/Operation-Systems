@@ -248,9 +248,9 @@ int32_t execute(const uint8_t* command){
 	}
 
 	/*Paging*/
-	uint32_t parent_pcb;
+	uint32_t parent_cr3_add;
 	asm volatile("movl %%cr3, %%eax "               \
-			: "=a"(parent_pcb)
+			: "=a"(parent_cr3_add)
 			: 
 			: "memory", "cc" );
 	change_process_page(pid, vir_mem_add, phy_mem_add+(pid-1)*four_mb, 1);
@@ -285,7 +285,7 @@ int32_t execute(const uint8_t* command){
 	asm volatile("movl %%ebp, %0" : "=g"(parent_ebp));
 	new_pcb->parent_ebp = parent_ebp; /* save parent ebp */
 	new_pcb->parent_pid = current_pcb->pid; /* loading parent pid */
-	new_pcb->parent_page_dir_ptr= (void*)parent_pcb; /**/
+	new_pcb->parent_page_dir_ptr= (void*)parent_cr3_add; /**/
 	new_pcb->process_size = file_size;
 
 
