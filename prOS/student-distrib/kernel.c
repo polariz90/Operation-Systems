@@ -187,7 +187,7 @@ entry (unsigned long magic, unsigned long addr)
 	rtc_enable();
 	printf("chkp1\n");
 	/*enable IRQ0*/
-	pit_enable();
+	//pit_enable();
 	printf("chkp2\n");
 
 	/* initial process array structure */
@@ -195,10 +195,8 @@ entry (unsigned long magic, unsigned long addr)
 	int i; 
 	for(i = 0; i < 7; i++){/* clear array mask */
 		process_occupy.occupied[i] = 0;
-	//	process_occupy.names[i] = NULL;
 		process_occupy.top_process_flag[i] = 0;
 	}
-
 	process_occupy.top_process_flag[0]=1;
 
 	pcb * kernel_pcb_ptr;
@@ -213,9 +211,6 @@ entry (unsigned long magic, unsigned long addr)
 	terminal_bootup();
 	curr_terminal = 0; /* set the booting terminal as 0;*/
 	terminal_open();
-	
-//	printf("call 'test_execute!'\n\n\n");	
-//	test_execute();
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
