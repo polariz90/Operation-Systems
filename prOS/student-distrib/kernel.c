@@ -199,7 +199,7 @@ entry (unsigned long magic, unsigned long addr)
 		process_occupy.top_process_flag[i] = 0;
 	}
 
-	process_occupy.top_process_flag[0]=1;
+//	process_occupy.top_process_flag[0]=0;
 
 	pcb * kernel_pcb_ptr;
 	kernel_pcb_ptr = add_process_stack(get_next_pid("kernel")); /* creating kernel pcb*/

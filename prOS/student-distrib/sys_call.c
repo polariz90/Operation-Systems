@@ -173,7 +173,7 @@ int32_t halt(uint8_t status){
 int32_t execute(const uint8_t* command){
 
 	int i,j; /* loop counter */
-	int new_term_flag = 0; /* flag to see if this is the new temrinal */
+	int new_term_flag = 1; /* flag to see if this is the new temrinal: 1 means this is called by new open terminal*/
 
 	/*Parse*/
 	uint8_t com_arr[buffer_size];
@@ -204,7 +204,7 @@ int32_t execute(const uint8_t* command){
 	/* loop to check if this is the new terminal*/
 	for( i = 0; i < 7; i++){/* looping through entire terminal process */
 		if(terminals[curr_terminal].pros_pids[i] == 1){
-			new_term_flag = 1;
+			new_term_flag = 0;
 		}
 	}
 

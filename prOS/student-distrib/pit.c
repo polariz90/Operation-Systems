@@ -15,7 +15,7 @@ extern void pit_enable()
 	load_value= inb(PIT_CH1_PORT);
 	load_value<<=8;
 	load_value|=temp;
-	printf("load vlue: %d\n", load_value);
+	//printf("load vlue: %d\n", load_value);
 
 	outb(counter, PIT_CH1_PORT);		// select register B, and disable NMI
 	outb(counter, PIT_CH1_PORT);		// select register B, and disable NMI

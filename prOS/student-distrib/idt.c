@@ -153,17 +153,18 @@ void rtc_handler()
 void pit_handler()
 {
 	cli();
+	int i=0;
+	while(i<1000000){i++;}
+
 	asm("pushal");
 	send_eoi(PIT_IRQ);
 	
-	//printf("get pit interrupt\n");
 	//call scheduler
 	int next_pid= scheduler();
 
 	//store TSS
 	int temp = eight_kb*next_pid;
 	tss.esp0= eight_mb - temp - 4;
-	tss.ss0= KERNEL_DS;
 
 	//store current esp, ebp
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
@@ -173,17 +174,18 @@ void pit_handler()
 		:
 		: "cc", "memory");
 
-
-
+	//jump to next kernel stack
 	pcb* next_pcb = getting_the_ghost(next_pid);
-
 	asm("movl %%eax, %%esp  \n  \
 		movl %%ebx, %%ebp"
 		: 
 		: "a"(next_pcb->current_esp), "b"(next_pcb->current_ebp)
 		: "cc", "memory");
 	sti();
-	asm("popal;leave;iret");
+	//asm("popal;leave;iret");
+	asm("popal");
+	asm("leave");
+	asm("iret");
 }
 
 /* Description:
