@@ -173,7 +173,7 @@ int32_t halt(uint8_t status){
 int32_t execute(const uint8_t* command){
 
 	int i,j; /* loop counter */
-
+	int new_term_flag = 0; /* flag to see if this is the new temrinal */
 
 	/*Parse*/
 	uint8_t com_arr[buffer_size];
@@ -201,6 +201,12 @@ int32_t execute(const uint8_t* command){
 	}
 	arg_arr[j] = '\0';
 
+	/* loop to check if this is the new terminal*/
+	for( i = 0; i < 7; i++){/* looping through entire terminal process */
+		if(terminals[curr_terminal].pros_pids[i] == 1){
+			new_term_flag = 1;
+		}
+	}
 
 	/* getting new pid for processes */
 	int pid = get_next_pid(com_arr);
@@ -287,6 +293,11 @@ int32_t execute(const uint8_t* command){
 	new_pcb->parent_pid = current_pcb->pid; /* loading parent pid */
 	new_pcb->parent_page_dir_ptr= (void*)parent_cr3_add; /**/
 	new_pcb->process_size = file_size;
+
+	if(new_term_flag != 1){
+		process_occupy.top_process_flag[current_pcb->pid] = 0; /* you are not top anymore */
+	}
+	process_occupy.top_process_flag[pid] = 1; /* your children is on the top*/
 
 
 	/*context switch*/

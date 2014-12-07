@@ -83,7 +83,7 @@ typedef struct
 	uint32_t ctrl; 						/*0 if not pressed, one if pressed*/
 	uint32_t alt;
 	volatile uint8_t reading;
-	uint32_t pros_pids[6];      /* bit map for the process in the terminal */
+	uint32_t pros_pids[7];      /* bit map for the process in the terminal */
 
 }terminal_buffer;
 
