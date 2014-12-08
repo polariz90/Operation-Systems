@@ -242,7 +242,7 @@ void keyboard_handler()
 	pcb* curr_pcb = getting_to_know_yourself();
 
 
-	uint32_t curr_base_add = video_page_table[curr_pcb->pid].dir_arr[184].page_base_add;;
+	uint32_t curr_base_add = video_page_table[curr_pcb->pid].dir_arr[184].page_base_add;
 
 	
 	/* getting terminal id for current process */
@@ -258,8 +258,13 @@ void keyboard_handler()
 	/*checking for the sepecial cases*/
 	if(is_special_key((int)temp) == 1)
 	{
+		video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = 184;
+		flush_tlb();
 		exe_special_key((int)temp);
+		video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;
+		flush_tlb();
 	}
+	
 	/*Writing to the buffer if it is a valid character*/
 	else if(terminals[curr_terminal].size < BUF_SIZE && (int) temp <= 58)
 	{
@@ -278,7 +283,6 @@ void keyboard_handler()
 		  	printt(code_set_shift[(int)temp]);
 			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;
 			flush_tlb();
-			//sti();
 		}
 
 		//non shifted version keys 
@@ -294,12 +298,11 @@ void keyboard_handler()
 		  	printt(code_set[(int)temp] - ((caps+shift)%2)*(CAPS_CONV));
 		  	video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;
 		  	flush_tlb();
-		  	//sti();
-
 		}
 
-	}	
-	sti();
+	}
+	sti();	
+
  	asm("popal;leave;iret");
 }
 

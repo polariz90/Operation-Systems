@@ -7,7 +7,7 @@
 #include "lib.h"
 
 /*Defined constants*/
-#define	BUF_SIZE   		128
+#define	BUF_SIZE   		127
 #define LTABP	    	15 
 #define LTABR 			143
 #define CAPP	     	58 
@@ -59,7 +59,7 @@ typedef struct
 /*structure to hold specific command */
 typedef	struct 
 {
-	char cmd[128]; 
+	char cmd[BUF_SIZE]; 
 }cmd_line;
 
 /*history buffer, max 20 buffers */
