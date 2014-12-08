@@ -936,7 +936,7 @@ void terminal_switch(uint32_t terminal_id){
 
 	/* step 2: switching out all old terminal processes to terminal buffer */
 
-	for (i = 1; i < 6; i++){
+	for (i = 1; i < 7; i++){
 		if (terminals[curr_terminal].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
 
 			next_page_dir_add = (uint32_t)(&processes_page_dir[i]);
@@ -977,7 +977,7 @@ void terminal_switch(uint32_t terminal_id){
 	pcb* current_pcb = getting_to_know_yourself(); // geeting current pcb
 	next_page_dir_add = (uint32_t)(&processes_page_dir[current_pcb->pid]);
 	asm(
-				"movl curr_page_dir_add, %%eax 		;"
+				"movl next_page_dir_add, %%eax 		;"
 				"movl %%eax, %%cr3 					;"
 				: : : "eax", "cc"
 				);   
