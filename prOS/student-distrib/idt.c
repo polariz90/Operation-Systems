@@ -154,10 +154,12 @@ void rtc_handler()
 void pit_handler()
 {
 	cli();
+	asm("pushal");
+
 	int i=0;
 	//while(i<1000000){i++;}
 
-	asm("pushal");
+	
 	send_eoi(PIT_IRQ);
 	
 	//call scheduler
@@ -223,8 +225,8 @@ void pit_handler()
  */
 void keyboard_handler()
 {
+	cli();
 	int i;
-	int pid;
 	uint32_t vir_add = 0x10000000; /* virtual address 256MB*/
 	uint32_t vid_add = 0xB8000; /* physcial address video memory */
 	asm("pushal");
@@ -239,12 +241,10 @@ void keyboard_handler()
 
 	pcb* curr_pcb = getting_to_know_yourself();
 
-	uint32_t pd_add = (uint32_t)(&processes_page_dir[curr_pcb->pid]);
-	uint32_t pt_add = (uint32_t)(&video_page_table[curr_pcb->pid]);
 
 	uint32_t curr_base_add = video_page_table[curr_pcb->pid].dir_arr[184].page_base_add;;
 
-	cli();
+	
 	/* getting terminal id for current process */
 	uint32_t c_t;
 	for(i = 0; i < 3; i++){
@@ -267,34 +267,39 @@ void keyboard_handler()
 		//prints the shifted key
 		if (shift ==1)
 		{
+			//cli();
 			//writes into the buffer
 			terminals[curr_terminal].buf[terminals[curr_terminal].size] = code_set_shift[(int)temp];
 			terminals[curr_terminal].size++;
 
+			
 			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = 184;
+			flush_tlb();
 		  	printt(code_set_shift[(int)temp]);
 			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;
-
+			flush_tlb();
+			//sti();
 		}
 
 		//non shifted version keys 
 		else
 		{
+			//cli();
 			//writes the buffer	
 			terminals[curr_terminal].buf[terminals[curr_terminal].size] =  code_set[(int)temp] - ((caps+shift)%2)*(CAPS_CONV);
 			terminals[curr_terminal].size++;
 
 			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = 184;
+			flush_tlb();
 		  	printt(code_set[(int)temp] - ((caps+shift)%2)*(CAPS_CONV));
 		  	video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;
-
+		  	flush_tlb();
+		  	//sti();
 
 		}
 
 	}	
 	sti();
-
-
  	asm("popal;leave;iret");
 }
 

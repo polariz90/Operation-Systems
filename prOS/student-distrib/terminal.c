@@ -310,10 +310,10 @@ void exe_special_key(int key)
 			for (i = 0; i < 32; i++){
 				tap_buffer[i] = '\0';
 			}
-			cli();
+//			cli();
 			getting_tap_buffer(tap_buffer);
 			find_tap_match(tap_buffer);
-			sti();
+//			sti();
 			break;
 			
 		case CAPP :
@@ -344,7 +344,7 @@ void exe_special_key(int key)
 			break;
 
 		case ENTP :
-			cli();
+//			cli();
 			//currenly executing terminal read
 			if( terminals[curr_terminal].reading == 1)
 			{
@@ -365,7 +365,7 @@ void exe_special_key(int key)
 
 			/*store entire line into the history */
 			add_to_history((char*)terminals[curr_terminal].buf, curr_terminal);
-			sti();
+//			sti();
 			break;
 
 		case RSHFTP :
@@ -666,7 +666,7 @@ void add_to_history(char* buffer, uint32_t terminal_idx){
 		}
 	}
 	
-	sti();
+//	sti();
 }
 
 /* terminal print
@@ -977,7 +977,7 @@ void terminal_switch(uint32_t terminal_id){
 	pcb* current_pcb = getting_to_know_yourself(); // geeting current pcb
 	next_page_dir_add = (uint32_t)(&processes_page_dir[current_pcb->pid]);
 	asm(
-				"movl curr_page_dir_add, %%eax 		;"
+				"movl next_page_dir_add, %%eax 		;"
 				"movl %%eax, %%cr3 					;"
 				: : : "eax", "cc"
 				);   

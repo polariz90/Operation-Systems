@@ -23,15 +23,15 @@
 #define F1024HZ 6
 #define NONE	0
 
-extern void PIT_enable();
-extern void PIT_disable();
+extern void pit_enable();
+extern void pit_disable();
 extern void * PIT_opt[4];
 
 
-extern int32_t PIT_read();
-extern int32_t PIT_write(int fd, const int32_t* buf, int32_t nbytes);
-extern int32_t PIT_open();
-extern int32_t PIT_close();
+extern int32_t pit_read();
+extern int32_t pit_write(int fd, const int32_t* buf, int32_t nbytes);
+extern int32_t pit_open();
+extern int32_t pit_close();
 
 extern void test_read();
 //extern void test_write(int ret_val, int32_t nbytes);
