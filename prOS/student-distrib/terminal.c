@@ -73,6 +73,7 @@ void terminal_bootup(){
 		terminals[i].terminal_history.pre_pos = 0;
 		terminals[i].terminal_history.current = 0;
 	}
+	terminals[0].pros_pids[0]=1; //kernel is in terminal 1
 }
 
  /* Opens the terminal

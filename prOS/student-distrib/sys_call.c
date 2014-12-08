@@ -130,7 +130,7 @@ int32_t halt(uint8_t status){
 	int parent_page = (int)current_pcb->parent_page_dir_ptr;
 
 	/* reset current processes mask for other process use */
-	release_cur_pid(current_pcb->pid);
+//	release_cur_pid(current_pcb->pid);  should not release here
 
 		/*restore parent's paging*/
 	asm(
@@ -154,6 +154,9 @@ int32_t halt(uint8_t status){
 	process_occupy.top_process_flag[current_pcb->pid]= 0;
 	process_occupy.occupied[current_pcb->pid] = N_USED;
 	process_occupy.top_process_flag[current_pcb->parent_pid] = 1;
+
+	/* reset current processes mask for other process use */
+	release_cur_pid(current_pcb->pid);
 	sti();
 
 	asm volatile(
