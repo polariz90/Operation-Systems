@@ -971,6 +971,7 @@ void terminal_switch(uint32_t terminal_id){
 
 			map_4kb_page(i, vir_add, vid_add, 1, pd_add, pt_add, 1); /* mapping to the buffer */
 			map_4kb_page(i, vid_add, vid_add, 0, pd_add, video_pt_add, 1);
+		}
 	}
 
 	sti();
