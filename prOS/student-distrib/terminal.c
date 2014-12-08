@@ -125,7 +125,7 @@ int terminal_read(int32_t fd, char *buf, int32_t count )
 	terminals[curr_terminal].reading =1;
 	//need to wait until the buffer has been terminated with a \n or the buffer fills up
 
-	while(( !(terminals[curr_terminal].reading)  == 0 && (curr_terminal == scheduling_terminal) ))
+	while(!((terminals[curr_terminal].reading== 0) && (curr_terminal == scheduling_terminal)))
 	//while( terminals[curr_terminal].reading  != 0 )
 	{
 		//do the dew and wait for reading to finish

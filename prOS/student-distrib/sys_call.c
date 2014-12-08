@@ -45,7 +45,8 @@ int32_t halt(uint8_t status){
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
 	/*may want to prevent user to close the last shell*/
-	if(process_occupy.num_process == 2){ /* kernel + last shell */
+	//if(process_occupy.num_process == 2){ /* kernel + last shell */
+	if(0){ /* kernel + last shell */
 		uint8_t buf[buffer_size];
 		uint32_t shell_entry_point;
 		if(read_file_img((int8_t*)"shell",(uint8_t*) buf, buffer_size) == -1){
@@ -123,6 +124,8 @@ int32_t halt(uint8_t status){
 
 
 	}
+
+
 	terminals[curr_terminal].pros_pids[current_pcb->pid] = 0;
 	process_occupy.top_process_flag[current_pcb->pid]= 0;
 	process_occupy.occupied[current_pcb->pid] = N_USED;
