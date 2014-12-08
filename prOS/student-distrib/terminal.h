@@ -46,6 +46,8 @@
 
 /*Decleared variables for the terminal*/
 uint32_t curr_terminal;				/*current index into buffer to be written*/
+uint32_t scheduling_terminal;				/*current terminal number for scheduler*/
+
 
 typedef struct 
 {

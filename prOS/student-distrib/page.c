@@ -52,7 +52,7 @@ void init_paging( ){
 	}
 	for(j = 0; j < 7; j++){
 		for(i = 0; i < PAGE_TABLE_SIZE; i++){
-			video_page_table[j].dir_arr[i].present = 0;
+			video_page_table[j].dir_arr[i].present = 1;
 			video_page_table[j].dir_arr[i].read_write = 0;
 			video_page_table[j].dir_arr[i].user_supervisor = 0;
 			video_page_table[j].dir_arr[i].write_through = 0;
@@ -271,40 +271,40 @@ int map_4kb_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32_t priv
 		return -1;
 	}
 	/* check if the virtual address is already signed */
-	uint32_t temp = (vir_add/four_MB); //should be the 64 entries at 256MB
-//	if(cur_page_directory->dir_arr[temp].present == 1){
+	uint32_t pd_dir_entries = (vir_add/four_MB); //should be the 64 entries at 256MB
+//	if(cur_page_directory->dir_arr[pd_dir_entries].present == 1){
 //		printf("page table at this vir_add is already present \n");
 //		return -1;
 //	}
 
 	/* mapping the page directory first */
-	cur_page_directory->dir_arr[temp].present = 1; /* emable page entry*/
-	cur_page_directory->dir_arr[temp].read_write = read_write; /*read and write enable */
-	cur_page_directory->dir_arr[temp].user_supervisor = privilage; /* set privilage level */
-	cur_page_directory->dir_arr[temp].write_through = 0; /* disable write through */
-	cur_page_directory->dir_arr[temp].cache_disabled = 0; /* disable cache */
-	cur_page_directory->dir_arr[temp].accessed = 0; /* set to one to access it */
-	cur_page_directory->dir_arr[temp].reserved = 0; /* reserved set to 0*/
-	cur_page_directory->dir_arr[temp].page_size = 0; /* set map to 4kb page */
-	cur_page_directory->dir_arr[temp].global_page = 1; /* set to global page */
-	cur_page_directory->dir_arr[temp].avail = 0; /*set to 0*/
-	cur_page_directory->dir_arr[temp].PT_base_add = ((int)pt_add >> 12); /* page table address shifted */
+	cur_page_directory->dir_arr[pd_dir_entries].present = 1; /* emable page entry*/
+	cur_page_directory->dir_arr[pd_dir_entries].read_write = read_write; /*read and write enable */
+	cur_page_directory->dir_arr[pd_dir_entries].user_supervisor = privilage; /* set privilage level */
+	cur_page_directory->dir_arr[pd_dir_entries].write_through = 0; /* disable write through */
+	cur_page_directory->dir_arr[pd_dir_entries].cache_disabled = 0; /* disable cache */
+	cur_page_directory->dir_arr[pd_dir_entries].accessed = 0; /* set to one to access it */
+	cur_page_directory->dir_arr[pd_dir_entries].reserved = 0; /* reserved set to 0*/
+	cur_page_directory->dir_arr[pd_dir_entries].page_size = 0; /* set map to 4kb page */
+	cur_page_directory->dir_arr[pd_dir_entries].global_page = 1; /* set to global page */
+	cur_page_directory->dir_arr[pd_dir_entries].avail = 0; /*set to 0*/
+	cur_page_directory->dir_arr[pd_dir_entries].PT_base_add = ((int)pt_add >> 12); /* page table address shifted */
 
-	int base_add = (phy_add & 0xFFFFF000) >> 12; /* get last 20 bits of physical address */
-	temp = vir_add % four_MB; /* getting page table entries, should be 0 at this point */
-	temp /= four_KB; /* get the page_table entry index */
+	uint32_t base_add = (phy_add & 0xFFFFF000) >> 12; /* get last 20 bits of physical address */
+	uint32_t temp = vir_add % four_MB; /* getting page table entries, should be 0 at this point */
+	uint32_t pt_entries_index = temp/ four_KB; /* get the page_table entry index */
 	/* mapping the page table */
-	cur_page_table->dir_arr[temp].present = 1;
-	cur_page_table->dir_arr[temp].read_write = read_write;
-	cur_page_table->dir_arr[temp].user_supervisor = privilage;
-	cur_page_table->dir_arr[temp].write_through = 0;
-	cur_page_table->dir_arr[temp].cache_disabled = 0;
-	cur_page_table->dir_arr[temp].accessed = 0;
-	cur_page_table->dir_arr[temp].dirty = 0;
-	cur_page_table->dir_arr[temp].PT_attribute_idx = 0;
-	cur_page_table->dir_arr[temp].global_page = 1;
-	cur_page_table->dir_arr[temp].avail = 0;
-	cur_page_table->dir_arr[temp].page_base_add = base_add;
+	cur_page_table->dir_arr[pt_entries_index].present = 1;
+	cur_page_table->dir_arr[pt_entries_index].read_write = read_write;
+	cur_page_table->dir_arr[pt_entries_index].user_supervisor = privilage;
+	cur_page_table->dir_arr[pt_entries_index].write_through = 0;
+	cur_page_table->dir_arr[pt_entries_index].cache_disabled = 0;
+	cur_page_table->dir_arr[pt_entries_index].accessed = 0;
+	cur_page_table->dir_arr[pt_entries_index].dirty = 0;
+	cur_page_table->dir_arr[pt_entries_index].PT_attribute_idx = 0;
+	cur_page_table->dir_arr[pt_entries_index].global_page = 1;
+	cur_page_table->dir_arr[pt_entries_index].avail = 0;
+	cur_page_table->dir_arr[pt_entries_index].page_base_add = base_add;
 
 	return 0;
 

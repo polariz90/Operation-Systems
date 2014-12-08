@@ -208,6 +208,7 @@ int32_t execute(const uint8_t* command){
 		}
 	}
 
+	cli();
 	/* getting new pid for processes */
 	int pid = get_next_pid(com_arr);
 	/* store the pid ino the terminal structure */
@@ -225,6 +226,13 @@ int32_t execute(const uint8_t* command){
 		clear();
 		release_cur_pid(pid);
 		//occupied[pid]=0;
+		return 0;
+	}
+
+	if(strncmp((int8_t*)com_arr, "pid", 3) == 0){ /* clear screen command */
+		pcb* current_pcb = getting_to_know_yourself();
+		printf("********************%d\n", current_pcb->pid);
+		release_cur_pid(pid);
 		return 0;
 	}
 
@@ -356,7 +364,13 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 		return -1;
 	}
 
-	return (*(getting_to_know_yourself())->file_descriptor[fd].file_opt_ptr->opt_read) (fd, buf, nbytes);
+	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+
+	int temp;
+	temp=(*(current_pcb->file_descriptor[fd].file_opt_ptr->opt_read)) (fd, buf, nbytes);
+
+	return temp;
+//	return (*(getting_to_know_yourself())->file_descriptor[fd].file_opt_ptr->opt_read) (fd, buf, nbytes);
 
 }
 
@@ -630,7 +644,6 @@ uint32_t get_next_pid(int8_t* buf){
 		if(process_occupy.occupied[i] == N_USED){/* case avaliable*/
 			process_occupy.occupied[i] = USED;
 			process_occupy.num_process += 1;
-//			strcpy(process_occupy.names[i], buf);
 			sti();
 			return i;
 		}
@@ -651,7 +664,6 @@ void release_cur_pid(uint32_t pid){
 	cli();
 		process_occupy.occupied[pid] = 0;
 		process_occupy.num_process -= 1;
-//		process_occupy.names[pid] = NULL;
 	sti();
 }
 
