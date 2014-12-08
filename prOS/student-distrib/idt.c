@@ -175,9 +175,6 @@ void pit_handler()
 		}
 	}
 
-<<<<<<< HEAD
-
-
 	//store current esp, ebp
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 	asm("movl %%esp, %%eax  \n  \
