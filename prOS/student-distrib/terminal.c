@@ -945,7 +945,7 @@ void terminal_switch(uint32_t terminal_id){
 				"movl %%eax, %%cr3 					;"
 				: : : "eax", "cc"
 				);   
-
+  
 			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
 			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
 			uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
@@ -954,7 +954,7 @@ void terminal_switch(uint32_t terminal_id){
 		}
 	}
 
-	for(i = 1; i < 6; i ++){
+	for(i = 1; i < 7; i ++){
 		if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
 
 			next_page_dir_add = (uint32_t)(&processes_page_dir[i]);
@@ -990,3 +990,4 @@ void terminal_switch(uint32_t terminal_id){
 	sti();
 	terminal_open();
 }
+

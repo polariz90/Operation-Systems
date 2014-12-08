@@ -36,7 +36,7 @@
 volatile int flag;
  unsigned char code_set[0x59];
  unsigned char code_set_shift[0x59];
-	uint32_t next_page_dir_add;
+uint32_t next_page_dir_add;
 
 /*
  * This function initializes every interrupt descriptor table to enter 
@@ -200,6 +200,7 @@ void pit_handler()
 		: 
 		: "a"(next_pcb->current_esp), "b"(next_pcb->current_ebp)
 		: "cc", "memory");
+
 	sti();
 	//asm("popal;leave;iret");
 	asm("popal");
