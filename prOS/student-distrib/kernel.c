@@ -200,7 +200,6 @@ entry (unsigned long magic, unsigned long addr)
 		process_occupy.occupied[i] = 0;
 		process_occupy.top_process_flag[i] = 0;
 	}
-//****** get it!!!	process_occupy.occupied[0] = USED;
 	process_occupy.occupied[0] = USED;
 	process_occupy.num_process++;
 	process_occupy.top_process_flag[0]=1;
