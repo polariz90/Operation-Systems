@@ -123,6 +123,11 @@ int32_t halt(uint8_t status){
 
 
 	}
+	terminals[curr_terminal].pros_pids[current_pcb->pid] = 0;
+	process_occupy.top_process_flag[current_pcb->pid]= 0;
+	process_occupy.occupied[current_pcb->pid] = N_USED;
+	process_occupy.top_process_flag[current_pcb->parent_pid] = 1;
+
 
 	/* set TSS back to point at parent's kernel stack */
 	tss.esp0 = eight_mb - (eight_kb*current_pcb->parent_pid) - 4;
@@ -130,7 +135,7 @@ int32_t halt(uint8_t status){
 	int parent_page = (int)current_pcb->parent_page_dir_ptr;
 
 	/* reset current processes mask for other process use */
-//	release_cur_pid(current_pcb->pid);  should not release here
+	release_cur_pid(current_pcb->pid);
 
 		/*restore parent's paging*/
 	asm(
@@ -150,13 +155,6 @@ int32_t halt(uint8_t status){
 		: "memory", "cc"
 		);
 
-	terminals[curr_terminal].pros_pids[current_pcb->pid] = 0;
-	process_occupy.top_process_flag[current_pcb->pid]= 0;
-	process_occupy.occupied[current_pcb->pid] = N_USED;
-	process_occupy.top_process_flag[current_pcb->parent_pid] = 1;
-
-	/* reset current processes mask for other process use */
-	release_cur_pid(current_pcb->pid);
 	sti();
 
 	asm volatile(
