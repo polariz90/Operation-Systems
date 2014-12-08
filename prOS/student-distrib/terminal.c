@@ -947,7 +947,7 @@ void terminal_switch(uint32_t terminal_id){
 
 	/* step 2: switching out all old terminal processes to terminal buffer */
 
-	for (i = 0; i < 6; i++){
+	for (i = 1; i < 7; i++){
 		if (terminals[curr_terminal].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
 
 			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
@@ -958,7 +958,7 @@ void terminal_switch(uint32_t terminal_id){
 		}
 	}
 
-	for(i = 0; i < 6; i ++){
+	for(i = 1; i < 7; i ++){
 		if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
 
 			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */

@@ -35,6 +35,7 @@
 volatile int flag;
  unsigned char code_set[0x59];
  unsigned char code_set_shift[0x59];
+uint32_t next_page_dir_add;
 
 
 /*
@@ -181,15 +182,7 @@ void pit_handler()
 		}
 	}
 
-	//change page
-	if(next_pid!=current_pcb->pid){
-		uint32_t next_page_dir_add = (uint32_t)(&processes_page_dir[next_pid]);
-			asm(
-				"movl next_page_dir_add, %%eax 		;"
-				"movl %%eax, %%cr3 					;"
-				: : : "eax", "cc"
-				);
-	}
+
 	
 	//jump to next kernel stack
 	pcb* next_pcb = getting_the_ghost(next_pid);
@@ -198,6 +191,18 @@ void pit_handler()
 		: 
 		: "a"(next_pcb->current_esp), "b"(next_pcb->current_ebp)
 		: "cc", "memory");
+
+
+		//change page
+	if(next_pid!=current_pcb->pid){
+		next_page_dir_add = (uint32_t)(&processes_page_dir[next_pid]);
+			asm(
+				"movl next_page_dir_add, %%eax 		;"
+				"movl %%eax, %%cr3 					;"
+				: : : "eax", "cc"
+				);
+	}
+
 	sti();
 	//asm("popal;leave;iret");
 	asm("popal");
