@@ -24,6 +24,7 @@
 #include "pit.h"
 #include "scheduler.h"
 #include "file.h"
+#include "sys_call.h"
 
 #define NUM_COLS 80
 #define NUM_ROWS 25
@@ -35,7 +36,7 @@
 volatile int flag;
  unsigned char code_set[0x59];
  unsigned char code_set_shift[0x59];
-
+	uint32_t next_page_dir_add;
 
 /*
  * This function initializes every interrupt descriptor table to enter 
@@ -166,13 +167,6 @@ void pit_handler()
 	int temp = eight_kb*next_pid;
 	tss.esp0= eight_mb - temp - 4;
 
-	//store current esp, ebp
-	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
-	asm("movl %%esp, %%eax  \n  \
-		movl %%ebp, %%ebx"
-		: "=a"(current_pcb->current_esp), "=b"(current_pcb->current_ebp)
-		:
-		: "cc", "memory");
 	for (i = 0; i < 3; ++i)
 	{
 		if(terminals[i].pros_pids[next_pid]==1){
@@ -181,9 +175,17 @@ void pit_handler()
 		}
 	}
 
+	//store current esp, ebp
+	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+	asm("movl %%esp, %%eax  \n  \
+		movl %%ebp, %%ebx"
+		: "=a"(current_pcb->current_esp), "=b"(current_pcb->current_ebp)
+		:
+		: "cc", "memory");
+
 	//change page
 	if(next_pid!=current_pcb->pid){
-		uint32_t next_page_dir_add = (uint32_t)(&processes_page_dir[next_pid]);
+		next_page_dir_add = (uint32_t)(&processes_page_dir[next_pid]);
 			asm(
 				"movl next_page_dir_add, %%eax 		;"
 				"movl %%eax, %%cr3 					;"
@@ -220,6 +222,8 @@ void pit_handler()
  */
 void keyboard_handler()
 {
+	int i;
+	int pid;
 	asm("pushal");
 
 	//reading from the keyboard port and sending the end of interrut signal	
@@ -230,12 +234,35 @@ void keyboard_handler()
 	int shift = terminals[curr_terminal].shift;
 	int caps  = terminals[curr_terminal].caps;
 
+
+
+	//if(curr_terminal != scheduling_terminal){
+		/* do nothing */
+		//if(curr_terminal == scheduling_terminal){
+		//	cli();
+		//	break;
+		//}
+	//}
+	//else{
+	cli();
+//	for(i = 0; i < 7; i++){
+//		if((terminals[curr_terminal].pros_pids[i] == 1) && process_occupy.top_process_flag[i] == 1){
+//			pid = i ; /* find the top process of the current terminal */
+//		}
+//	}
+//
+//	next_page_dir_add = (uint32_t)(&processes_page_dir[pid]);
+//			asm(
+//				"movl next_page_dir_add, %%eax 		;"
+//				"movl %%eax, %%cr3 					;"
+//				: : : "eax", "cc"
+//				);
+
 	/*checking for the sepecial cases*/
 	if(is_special_key((int)temp) == 1)
 	{
 		exe_special_key((int)temp);
 	}
-
 	/*Writing to the buffer if it is a valid character*/
 	else if(terminals[curr_terminal].size < BUF_SIZE && (int) temp <= 58)
 	{
@@ -261,6 +288,17 @@ void keyboard_handler()
 		}
 
 	}	
+
+//	pcb* curr_pcb = getting_to_know_yourself();
+//	next_page_dir_add = (uint32_t)(&processes_page_dir[curr_pcb->pid]);
+//			asm(
+//				"movl next_page_dir_add, %%eax 		;"
+//				"movl %%eax, %%cr3 					;"
+//				: : : "eax", "cc"
+//				);
+//
+	sti();
+	//}	
 	//printf("%d",(int) temp);
 
  	asm("popal;leave;iret");
