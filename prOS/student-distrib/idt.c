@@ -224,6 +224,8 @@ void keyboard_handler()
 {
 	int i;
 	int pid;
+	uint32_t vir_add = 0x10000000; /* virtual address 256MB*/
+	uint32_t vid_add = 0xB8000; /* physcial address video memory */
 	asm("pushal");
 
 	//reading from the keyboard port and sending the end of interrut signal	
@@ -234,29 +236,23 @@ void keyboard_handler()
 	int shift = terminals[curr_terminal].shift;
 	int caps  = terminals[curr_terminal].caps;
 
+	pcb* curr_pcb = getting_to_know_yourself();
 
+	uint32_t pd_add = (uint32_t)(&processes_page_dir[curr_pcb->pid]);
+	uint32_t pt_add = (uint32_t)(&video_page_table[curr_pcb->pid]);
 
-	//if(curr_terminal != scheduling_terminal){
-		/* do nothing */
-		//if(curr_terminal == scheduling_terminal){
-		//	cli();
-		//	break;
-		//}
-	//}
-	//else{
+	uint32_t curr_base_add = video_page_table[curr_pcb->pid].dir_arr[184].page_base_add;;
+
 	cli();
-//	for(i = 0; i < 7; i++){
-//		if((terminals[curr_terminal].pros_pids[i] == 1) && process_occupy.top_process_flag[i] == 1){
-//			pid = i ; /* find the top process of the current terminal */
-//		}
-//	}
-//
-//	next_page_dir_add = (uint32_t)(&processes_page_dir[pid]);
-//			asm(
-//				"movl next_page_dir_add, %%eax 		;"
-//				"movl %%eax, %%cr3 					;"
-//				: : : "eax", "cc"
-//				);
+	/* getting terminal id for current process */
+	uint32_t c_t;
+	for(i = 0; i < 3; i++){
+		if(terminals[i].pros_pids[curr_pcb->pid] == 1){
+			c_t = i;
+			break;
+		}
+	}
+
 
 	/*checking for the sepecial cases*/
 	if(is_special_key((int)temp) == 1)
@@ -273,7 +269,10 @@ void keyboard_handler()
 			//writes into the buffer
 			terminals[curr_terminal].buf[terminals[curr_terminal].size] = code_set_shift[(int)temp];
 			terminals[curr_terminal].size++;
+
+			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = 184;
 		  	printt(code_set_shift[(int)temp]);
+			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;
 
 		}
 
@@ -283,23 +282,17 @@ void keyboard_handler()
 			//writes the buffer	
 			terminals[curr_terminal].buf[terminals[curr_terminal].size] =  code_set[(int)temp] - ((caps+shift)%2)*(CAPS_CONV);
 			terminals[curr_terminal].size++;
+
+			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = 184;
 		  	printt(code_set[(int)temp] - ((caps+shift)%2)*(CAPS_CONV));
+		  	video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;
+
 
 		}
 
 	}	
-
-//	pcb* curr_pcb = getting_to_know_yourself();
-//	next_page_dir_add = (uint32_t)(&processes_page_dir[curr_pcb->pid]);
-//			asm(
-//				"movl next_page_dir_add, %%eax 		;"
-//				"movl %%eax, %%cr3 					;"
-//				: : : "eax", "cc"
-//				);
-//
 	sti();
-	//}	
-	//printf("%d",(int) temp);
+
 
  	asm("popal;leave;iret");
 }
