@@ -187,7 +187,7 @@ entry (unsigned long magic, unsigned long addr)
 	rtc_enable();
 	printf("chkp1\n");
 	/*enable IRQ0*/
-//	pit_enable();
+	pit_enable();
 	printf("chkp2\n");
 
 	/*init*/
@@ -200,9 +200,16 @@ entry (unsigned long magic, unsigned long addr)
 		process_occupy.occupied[i] = 0;
 		process_occupy.top_process_flag[i] = 0;
 	}
+//****** get it!!!	process_occupy.occupied[0] = USED;
+	process_occupy.occupied[0] = USED;
+	process_occupy.num_process++;
+	process_occupy.top_process_flag[0]=1;
+
+
 
 	pcb * kernel_pcb_ptr;
-	kernel_pcb_ptr = add_process_stack(get_next_pid("kernel")); /* creating kernel pcb*/
+//debug	kernel_pcb_ptr = add_process_stack(get_next_pid("kernel")); /* creating kernel pcb*/
+	kernel_pcb_ptr = add_process_stack(0);
 	kernel_pcb_ptr->parent_page_dir_ptr = NULL; /* kernel doesn't have parent process */
 	kernel_pcb_ptr->pid = 0; /* kernel is the 0 process always */
 	kernel_pcb_ptr->parent_esp = 0; 
@@ -212,7 +219,8 @@ entry (unsigned long magic, unsigned long addr)
 	/* initial terminal open, open the first terminal */
 	terminal_bootup();
 	curr_terminal = 0; /* set the booting terminal as 0;*/
-	terminal_open();
+	execute("shell");
+	//terminal_open();
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your

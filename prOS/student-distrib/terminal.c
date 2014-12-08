@@ -73,6 +73,7 @@ void terminal_bootup(){
 		terminals[i].terminal_history.pre_pos = 0;
 		terminals[i].terminal_history.current = 0;
 	}
+	terminals[0].pros_pids[0]=1; //kernel is in terminal 1
 }
 
  /* Opens the terminal
@@ -124,8 +125,8 @@ int terminal_read(int32_t fd, char *buf, int32_t count )
 	terminals[curr_terminal].reading =1;
 	//need to wait until the buffer has been terminated with a \n or the buffer fills up
 
-	//while( terminals[curr_terminal].reading  != 0 && curr_terminal!=scheduling_terminal)
-	while( terminals[curr_terminal].reading  != 0 )
+	while(( !(terminals[curr_terminal].reading)  == 0 && (curr_terminal == scheduling_terminal) ))
+	//while( terminals[curr_terminal].reading  != 0 )
 	{
 		//do the dew and wait for reading to finish
 		//if not, keep looping here
@@ -923,78 +924,54 @@ void terminal_switch(uint32_t terminal_id){
 	uint32_t vid_add = 0xB8000; /* physcial address video memory */
 
 
-	//debug
+	//debug/
+	//loading kernel pdt
 	curr_page_dir_add = (uint32_t)(&kernel_page_dir);
 	asm(
 				"movl curr_page_dir_add, %%eax 		;"
 				"movl %%eax, %%cr3 					;"
 				: : : "eax", "cc"
-				);
+				); 
 
-	printf("******************mem copy\n");
-			memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
 
-			memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
+	//switching out videomemory
+	memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
+	memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
+
+
+	//loading current
+	pcb* current_pcb = getting_to_know_yourself(); // geeting current pcb
+	next_page_dir_add = (uint32_t)(&processes_page_dir[current_pcb->pid]);
+	asm(
+				"movl curr_page_dir_add, %%eax 		;"
+				"movl %%eax, %%cr3 					;"
+				: : : "eax", "cc"
+				);   
+  
 
 	/* step 2: switching out all old terminal processes to terminal buffer */
-//	for (i = 0; i < 6; i++){
-//		//if (terminals[curr_terminal].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
-//
-//			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
-//			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
-//			uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
-//			map_4kb_page(i, vir_add, terminal_vid_buf[curr_terminal], 1, pd_add, pt_add, 1); /* mapping to the buffer */
-//			map_4kb_page(i, vid_add, terminal_vid_buf[curr_terminal], 0, pd_add, video_pt_add, 1);
-//
-//		//}
-//	}
-	if(curr_terminal = 2){/* case you are in terminal 0*/
-		 /* map process 2 into buffer */
-			printf("****** mapping to \n");
-			uint32_t pd_add = (uint32_t)(&processes_page_dir[3]); /* page directory address */
-			uint32_t pt_add = (uint32_t)(&vidmap_page_table[3]); /* page table address */
-			uint32_t video_pt_add = (uint32_t)(&video_page_table[3]);
-		//	map_4kb_page(i, vir_add, terminal_vid_buf[curr_terminal], 1, pd_add, pt_add, 1); /* mapping to the buffer */
-		//	map_4kb_page(i, vid_add, terminal_vid_buf[curr_terminal], 0, pd_add, video_pt_add, 1);
+
+	for (i = 0; i < 6; i++){
+		if (terminals[curr_terminal].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
+
+			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
+			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
+			uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
+			map_4kb_page(i, vir_add, terminal_vid_buf[curr_terminal], 1, pd_add, pt_add, 1); /* mapping to the buffer */
+			map_4kb_page(i, vid_add, terminal_vid_buf[curr_terminal], 0, pd_add, video_pt_add, 1);
+		}
 	}
-	else{ /* case curr_terminal is 1 */
-		/* map process 2 into video */
-			uint32_t pd_add = (uint32_t)(&processes_page_dir[3]); /* page directory address */
-			uint32_t pt_add = (uint32_t)(&vidmap_page_table[3]); /* page table address */
-			printf("**************mapping over\n");
-			uint32_t video_pt_add = (uint32_t)(&video_page_table[3]);
+
+	for(i = 0; i < 6; i ++){
+		if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
+
+			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
+			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
+			uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
+
 			map_4kb_page(i, vir_add, vid_add, 1, pd_add, pt_add, 1); /* mapping to the buffer */
 			map_4kb_page(i, vid_add, vid_add, 0, pd_add, video_pt_add, 1);
 	}
-
-
-//	/* step 4: copying future video memory into the video memory address */
-//	for(i = 0; i < 6; i ++){
-//
-//		if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
-//
-//			/* flushing TLB*/
-//			next_page_dir_add = (uint32_t)(&processes_page_dir[i]);
-//
-//			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
-//			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
-//			uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
-//			map_4kb_page(i, vir_add, vid_add, 1, pd_add, pt_add, 1); /* mapping to the buffer */
-//			map_4kb_page(i, vid_add, vid_add, 0, pd_add, video_pt_add, 1);
-//
-//		}
-//	}
-	/* change back to current page dir */
-	printf("*************************last ckp\n");
-//	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
-//	next_page_dir_add = (uint32_t)(&processes_page_dir[current_pcb->pid]);
-//	asm(
-//				"movl curr_page_dir_add, %%eax 		;"
-//				"movl %%eax, %%cr3 					;"
-//				: : : "eax", "cc"
-//				);
-//
-//	curr_terminal = terminal_id;
 
 	sti();
 	terminal_open();

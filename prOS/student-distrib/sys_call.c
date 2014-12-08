@@ -92,6 +92,10 @@ int32_t halt(uint8_t status){
 						: : :"eax","memory","cc"
 						);
 			terminals[curr_terminal].pros_pids[current_pcb->pid] = 0;
+			process_occupy.occupied[current_pcb->pid] = N_USED;
+			process_occupy.top_process_flag[current_pcb->pid]= 0;
+			process_occupy.top_process_flag[current_pcb->parent_pid] = 1;
+
 			return status;
 		}
 		//printf("Are you Are you satisfied with your care? -- Big Hero 6 (y or n)\n");
@@ -119,6 +123,11 @@ int32_t halt(uint8_t status){
 
 
 	}
+	terminals[curr_terminal].pros_pids[current_pcb->pid] = 0;
+	process_occupy.top_process_flag[current_pcb->pid]= 0;
+	process_occupy.occupied[current_pcb->pid] = N_USED;
+	process_occupy.top_process_flag[current_pcb->parent_pid] = 1;
+
 
 	/* set TSS back to point at parent's kernel stack */
 	tss.esp0 = eight_mb - (eight_kb*current_pcb->parent_pid) - 4;
@@ -146,7 +155,7 @@ int32_t halt(uint8_t status){
 		: "memory", "cc"
 		);
 
-		sti();
+	sti();
 
 	asm volatile(
 				"movl $0,  %%eax;"
@@ -154,7 +163,7 @@ int32_t halt(uint8_t status){
 				"ret 			;"
 				: : :"eax","memory","cc"
 				);
-	terminals[curr_terminal].pros_pids[current_pcb->pid] = 0;
+
 	return status;
 
 }
@@ -172,6 +181,7 @@ int32_t halt(uint8_t status){
  */
 int32_t execute(const uint8_t* command){
 
+	cli();
 	int i,j; /* loop counter */
 	int new_term_flag = 1; /* flag to see if this is the new temrinal: 1 means this is called by new open terminal*/
 
@@ -662,7 +672,7 @@ uint32_t get_next_pid(int8_t* buf){
   */
 void release_cur_pid(uint32_t pid){
 	cli();
-		process_occupy.occupied[pid] = 0;
+		process_occupy.occupied[pid] = N_USED;
 		process_occupy.num_process -= 1;
 	sti();
 }
