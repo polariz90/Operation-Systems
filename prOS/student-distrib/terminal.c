@@ -124,8 +124,8 @@ int terminal_read(int32_t fd, char *buf, int32_t count )
 	terminals[curr_terminal].reading =1;
 	//need to wait until the buffer has been terminated with a \n or the buffer fills up
 
-	//while( terminals[curr_terminal].reading  != 0 && curr_terminal!=scheduling_terminal)
-	while( terminals[curr_terminal].reading  != 0 )
+	while(( !(terminals[curr_terminal].reading)  == 0 && (curr_terminal == scheduling_terminal) ))
+	//while( terminals[curr_terminal].reading  != 0 )
 	{
 		//do the dew and wait for reading to finish
 		//if not, keep looping here
@@ -923,18 +923,29 @@ void terminal_switch(uint32_t terminal_id){
 	uint32_t vid_add = 0xB8000; /* physcial address video memory */
 
 
-	//debug
+	//debug/
+	//loading kernel pdt
 	curr_page_dir_add = (uint32_t)(&kernel_page_dir);
 	asm(
 				"movl curr_page_dir_add, %%eax 		;"
 				"movl %%eax, %%cr3 					;"
 				: : : "eax", "cc"
-				);
+				); 
+
+	//switching out videomemory
+	memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
+	memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
 
 
-			memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
-			/* step 3: copying new terminal buffer into video memory */
-			memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
+	//loading current
+	pcb* current_pcb = getting_to_know_yourself(); // geeting current pcb
+	next_page_dir_add = (uint32_t)(&processes_page_dir[current_pcb->pid]);
+	asm(
+				"movl curr_page_dir_add, %%eax 		;"
+				"movl %%eax, %%cr3 					;"
+				: : : "eax", "cc"
+				);   
+  
 
 //debug
 	/* looking for the top process in the current terminal */
@@ -964,21 +975,13 @@ void terminal_switch(uint32_t terminal_id){
 //debug		if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
 		if (terminals[curr_terminal].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
 
-			/* flushing TLB*/
-			next_page_dir_add = (uint32_t)(&processes_page_dir[i]);
-//debug			asm(
-//				"movl next_page_dir_add, %%eax 		;"
-//				"movl %%eax, %%cr3 					;"
-//				: : : "eax", "cc"
-//				);
-
+			//flush_tlb();
 
 			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
 			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
 			uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
 			map_4kb_page(i, vir_add, terminal_vid_buf[curr_terminal], 1, pd_add, pt_add, 1); /* mapping to the buffer */
 			map_4kb_page(i, vid_add, terminal_vid_buf[curr_terminal], 0, pd_add, video_pt_add, 1);
-		//	printf("change pt id:%d vid: 0x%x phy:0x%x\n", i, vid_add, terminal_vid_buf[curr_terminal]);
 		}
 	}
 
@@ -989,13 +992,8 @@ void terminal_switch(uint32_t terminal_id){
 		if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
 //debug		if (terminals[curr_terminal].pros_pids[i] == 1){ /* case the ith process is in the future terminal */
 
-			/* flushing TLB*/
-			next_page_dir_add = (uint32_t)(&processes_page_dir[i]);
-//debug			asm(
-//				"movl next_page_dir_add, %%eax 		;"
-//				"movl %%eax, %%cr3 					;"
-//				: : : "eax", "cc"
-//			);
+
+			//flush_tlb();
 
 			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
 			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
@@ -1005,21 +1003,11 @@ void terminal_switch(uint32_t terminal_id){
 
 		}
 	}
-//debug
-//			memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
-//			/* step 3: copying new terminal buffer into video memory */
-//			memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
-	/* change back to current page dir */
-	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
-	next_page_dir_add = (uint32_t)(&processes_page_dir[current_pcb->pid]);
-	asm(
-				"movl curr_page_dir_add, %%eax 		;"
-				"movl %%eax, %%cr3 					;"
-				: : : "eax", "cc"
-				);
+
 
 	curr_terminal = terminal_id;
 
+	//flush_tlb();
 	sti();
 	terminal_open();
 }

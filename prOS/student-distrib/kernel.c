@@ -187,7 +187,7 @@ entry (unsigned long magic, unsigned long addr)
 	rtc_enable();
 	printf("chkp1\n");
 	/*enable IRQ0*/
-//	pit_enable();
+	pit_enable();
 	printf("chkp2\n");
 
 	/*init*/
@@ -200,6 +200,8 @@ entry (unsigned long magic, unsigned long addr)
 		process_occupy.occupied[i] = 0;
 		process_occupy.top_process_flag[i] = 0;
 	}
+	process_occupy.occupied[0] = USED;
+
 
 	pcb * kernel_pcb_ptr;
 	kernel_pcb_ptr = add_process_stack(get_next_pid("kernel")); /* creating kernel pcb*/

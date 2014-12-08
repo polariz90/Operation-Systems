@@ -160,4 +160,5 @@ pcb* getting_the_ghost(uint8_t pid);
 int32_t read_file_img(const int8_t * fname, uint8_t* buffer, int nbytes);
 int load_file_img(int8_t* fname);
 
+void flush_tlb();
 #endif

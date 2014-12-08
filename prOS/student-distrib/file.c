@@ -580,3 +580,14 @@ int load_file_img(int8_t* fname)
 	
 }
 
+
+
+
+void flush_tlb()
+{
+			asm(
+				"movl %%cr3, %%eax 		;"
+				"movl %%eax, %%cr3 					;"
+				: : : "eax", "cc"
+			);
+}
