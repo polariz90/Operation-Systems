@@ -1048,6 +1048,7 @@ void terminal_switch(uint32_t terminal_id){
 //	printf("terminal switch called %d \n", terminal_id);
 	int i/*, j*/;
 	//int temp = curr_terminal;
+	terminal_flag=1;
 	uint32_t vir_add = 0x10000000; /* virtual address 256MB*/
 	uint32_t vid_add = 0xB8000; /* physcial address video memory */
 
@@ -1082,8 +1083,8 @@ void terminal_switch(uint32_t terminal_id){
 			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
 			uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
 			map_4kb_page(i, vir_add, terminal_vid_buf[curr_terminal], 1, pd_add, pt_add, 1); /* mapping to the buffer */
-			//map_4kb_page(i, vid_add, terminal_vid_buf[curr_terminal], 0, pd_add, video_pt_add, 1);
-			video_page_table[i].dir_arr[vir_add/four_MB].page_base_add = ((uint32_t)terminal_vid_buf[curr_terminal] >> 12); /* page table address shifted */
+			map_4kb_page(i, vid_add, terminal_vid_buf[curr_terminal], 0, pd_add, video_pt_add, 1);
+			//video_page_table[i].dir_arr[(vir_add%four_MB)/four_KB].page_base_add = ((uint32_t)terminal_vid_buf[curr_terminal] >> 12); /* page table address shifted */
 		}
 	}
 
@@ -1102,8 +1103,8 @@ void terminal_switch(uint32_t terminal_id){
 			uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
 
 			map_4kb_page(i, vir_add, vid_add, 1, pd_add, pt_add, 1); /* mapping to the buffer */
-			video_page_table[i].dir_arr[vir_add/four_MB].page_base_add = (vid_add >> 12); /* page table address shifted */
-			//map_4kb_page(i, vid_add, vid_add, 0, pd_add, video_pt_add, 1);
+			//video_page_table[i].dir_arr[(vir_add%four_MB)/four_KB].page_base_add = (vid_add >> 12); /* page table address shifted */
+			map_4kb_page(i, vid_add, vid_add, 0, pd_add, video_pt_add, 1);
 		}
 	}
 

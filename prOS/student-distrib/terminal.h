@@ -43,6 +43,8 @@
 #define term2_vid_buf   0xBA000
 #define term3_vid_buf   0xBB000
 
+uint32_t terminal_flag;
+
 
 
 /*Decleared variables for the terminal*/

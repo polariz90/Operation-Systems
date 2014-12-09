@@ -215,6 +215,9 @@ entry (unsigned long magic, unsigned long addr)
 	kernel_pcb_ptr->parent_ebp = 0;
 	kernel_pcb_ptr->parent_pid = 0;
 
+	//debug
+	terminal_flag=0;
+
 	/* initial terminal open, open the first terminal */
 	terminal_bootup();
 	curr_terminal = 0; /* set the booting terminal as 0;*/
