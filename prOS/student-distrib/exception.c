@@ -1,5 +1,7 @@
 #include "exception.h"
 #include "lib.h"
+#include "file.h"
+#include "x86_desc.h"
 
 /* Description:
  * Divisor operand is zero
@@ -252,6 +254,9 @@ void gen_protection_excpn_13()
 }
 void page_fault_excpn_14()
 {
+	pcb* current_pcb = getting_to_know_yourself(); // geeting current pcb
+	video_page_table[current_pcb->pid].dir_arr[184].page_base_add = 184;
+	flush_tlb();
 	printf("Page fault detected(#14)");
 	while(1){}
 	asm("leave;iret");

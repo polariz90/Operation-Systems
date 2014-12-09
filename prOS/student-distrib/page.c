@@ -10,13 +10,11 @@
   #include "x86_desc.h"
   #include "lib.h"
   #include "page.h"
-
+  #include "file.h"
 
   #define max_process_num 6
   #define size_of_pagedir 4096
-  #define four_GB         0x100000000
-  #define four_MB		  0x400000
-  #define four_KB		  0x1000
+
 
   /* variable to hold the process page directory address for inline assembly */
   uint32_t new_page_dir_add;
@@ -123,6 +121,7 @@ void init_paging(){
 		}
 	}
 
+
 	/* copies the address of the page directory into the CR3 register and enable paging*/
 
 asm (
@@ -206,7 +205,7 @@ int change_process_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32
 			new_page_dir->dir_arr[0].page_size =0;
 			new_page_dir->dir_arr[0].global_page = 1;
 			new_page_dir->dir_arr[0].avail = 0;
-			new_page_dir->dir_arr[0].PT_base_add = ((int)(&video_page_table[pid]) >> 12);
+			new_page_dir->dir_arr[0].PT_base_add = ((uint32_t)(&video_page_table[pid]) >> 12);
 			//printf("******************************change pt to pid: %d\n", pid);
 
 			/* set up kernel page entries */
@@ -288,7 +287,7 @@ int map_4kb_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32_t priv
 	cur_page_directory->dir_arr[pd_dir_entries].page_size = 0; /* set map to 4kb page */
 	cur_page_directory->dir_arr[pd_dir_entries].global_page = 1; /* set to global page */
 	cur_page_directory->dir_arr[pd_dir_entries].avail = 0; /*set to 0*/
-	cur_page_directory->dir_arr[pd_dir_entries].PT_base_add = ((int)pt_add >> 12); /* page table address shifted */
+	cur_page_directory->dir_arr[pd_dir_entries].PT_base_add = (pt_add >> 12); /* page table address shifted */
 
 	uint32_t base_add = (phy_add & 0xFFFFF000) >> 12; /* get last 20 bits of physical address */
 	uint32_t temp = vir_add % four_MB; /* getting page table entries, should be 0 at this point */

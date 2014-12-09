@@ -161,9 +161,13 @@ void new_line_key();
 
 /* these function simply toggle the vaule of the keys when called*/
 void toggle_caps();
-void toggle_shift();
-void toggle_alt();
-void toggle_ctrl(); 
+//void toggle_shift();
+//void toggle_alt();
+//void toggle_ctrl(); 
+
+void toggle_shift(int flag);
+void toggle_alt(int flag);
+void toggle_ctrl(int flag); 
 
 /*stdin/stdout useless functions */
 int stdin_write();
