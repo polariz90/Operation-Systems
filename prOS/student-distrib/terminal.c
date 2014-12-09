@@ -134,7 +134,7 @@ int terminal_read(int32_t fd, char *buf, int32_t count )
 
 	cli();
 	//reset this flag
-	//terminals[curr_terminal].reading = 1;
+	terminals[curr_terminal].reading = 1;
 	sti();
 
 	int curr_index = 0;
@@ -464,7 +464,7 @@ void exe_special_key(int key)
 			}
 			
 			/*store entire line into the history */
-			add_to_history((char*)terminals[curr_terminal].buf, curr_terminal);
+		//	add_to_history((char*)terminals[curr_terminal].buf, curr_terminal);
 //			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;	
 //			flush_tlb();
 

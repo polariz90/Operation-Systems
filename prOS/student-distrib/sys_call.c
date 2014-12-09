@@ -13,7 +13,7 @@
 #include "page.h"
 #include "terminal.h"
 #include "rtc.h"
-
+#include "pit.h"
 
 #define space_char 			32
 #define vir_mem_add 		0x08000000
@@ -44,8 +44,8 @@ int32_t halt(uint8_t status){
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
 	/*may want to prevent user to close the last shell*/
-	//if(process_occupy.num_process == 2){ /* kernel + last shell */
-	if(0){ /* kernel + last shell */
+	if(current_pcb->pid==1||terminals[curr_terminal].pros_pids[current_pcb->parent_pid]==0){ /* kernel + last shell */
+	//if(0){ /* kernel + last shell */
 		uint8_t buf[buffer_size];
 		uint32_t shell_entry_point;
 		if(read_file_img((int8_t*)"shell",(uint8_t*) buf, buffer_size) == -1){
@@ -53,10 +53,15 @@ int32_t halt(uint8_t status){
 			return -1;
 		}
 
-		terminal_write(1,"Are you satisfied with your care (y or n)  ", 43);
-		char temp_buf[1];
-		terminal_read(1,temp_buf, 1);
-		if(temp_buf[0] == 'y'){
+		if(current_pcb->pid==1){
+
+			terminal_write(1,"Are you satisfied with your care (y or n)  ", 43);
+			char temp_buf[1];
+			terminal_read(1,temp_buf, 1);
+			if(temp_buf[0] == 'y'){
+
+			//stop scheduler
+			pit_disable();
 				/* set TSS back to point at parent's kernel stack */
 			tss.esp0 = eight_mb - (eight_kb*current_pcb->parent_pid) - 4;
 
@@ -98,6 +103,7 @@ int32_t halt(uint8_t status){
 
 			return status;
 		}
+		}
 		//printf("Are you Are you satisfied with your care? -- Big Hero 6 (y or n)\n");
 		memcpy(&shell_entry_point, buf+24, 4);
 
@@ -123,12 +129,12 @@ int32_t halt(uint8_t status){
 
 
 	}
-	else if(terminals[curr_terminal].pros_pids[current_pcb->parent_pid]==0){
+/*	else if(terminals[curr_terminal].pros_pids[current_pcb->parent_pid]==0){
 		//go here if this is the base shell in current terminal
 		printf("base process in this terminal, can't quit!\n");
 		return -1;
 	}
-	else{
+*/	else{
 
 	terminals[curr_terminal].pros_pids[current_pcb->pid] = 0;
 	process_occupy.top_process_flag[current_pcb->pid]= 0;
