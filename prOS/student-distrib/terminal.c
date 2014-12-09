@@ -1170,7 +1170,8 @@ void terminal_switch(uint32_t terminal_id){
 				);   
 
 
-
+	/* copying over some terminal constants */
+	terminals[terminal_id].alt = terminals[curr_terminal].alt;
 
 	curr_terminal=terminal_id;
 	terminal_open();
