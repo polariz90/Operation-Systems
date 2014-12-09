@@ -398,8 +398,7 @@ void exe_special_key(int key)
 			break;
 
 		case Lc :
-			if(curr_terminal==scheduling_terminal)
-				halt(4);
+			halt(4);
 			break;
 
 		case UPP: /* case where up arrow key is pressed */

@@ -123,12 +123,7 @@ int32_t halt(uint8_t status){
 
 
 	}
-	else if(terminals[curr_terminal].pros_pids[current_pcb->parent_pid]==0){
-		//go here if this is the base shell in current terminal
-		printf("base process in this terminal, can't quit!\n");
-		return -1;
-	}
-	else{
+
 
 	terminals[curr_terminal].pros_pids[current_pcb->pid] = 0;
 	process_occupy.top_process_flag[current_pcb->pid]= 0;
@@ -170,9 +165,9 @@ int32_t halt(uint8_t status){
 				"ret 			;"
 				: : :"eax","memory","cc"
 				);
-	
+
 	return status;
-	}
+
 }
 
 
