@@ -33,7 +33,7 @@
 #define eight_mb 			0x800000
 #define eight_kb 			0x2000
 
-volatile int flag;
+volatile int rtc_flag;
  unsigned char code_set[0x59];
  unsigned char code_set_shift[0x59];
  uint32_t idt_next_page_dir_add;
@@ -127,7 +127,7 @@ void rtc_handler()
 	outb(0x0C, RTC_PORT);	// select register C
 	inb(RTC_CMOS_PORT);	
 	send_eoi(RTC_IRQ);
-	flag = 0;
+	rtc_flag = 0;
 	/* timer implementation */
 	update_time();
 
@@ -154,10 +154,12 @@ void rtc_handler()
 void pit_handler()
 {
 	cli();
+	asm("pushal");
+
 	int i=0;
 	//while(i<1000000){i++;}
 
-	asm("pushal");
+	
 	send_eoi(PIT_IRQ);
 	
 	//call scheduler
@@ -223,8 +225,11 @@ void pit_handler()
  */
 void keyboard_handler()
 {
-
+	cli();
 	int i;
+	uint32_t vir_add = 0x10000000; /* virtual address 256MB*/
+	uint32_t vid_add = 0xB8000; /* physcial address video memory */
+
 	asm("pushal");
 
 	//reading from the keyboard port and sending the end of interrut signal	
@@ -274,13 +279,13 @@ void keyboard_handler()
 			terminals[curr_terminal].buf[terminals[curr_terminal].size] = code_set_shift[(int)temp];
 			terminals[curr_terminal].size++;
 
+			
 			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = 184;
 			flush_tlb();
 		  	printt(code_set_shift[(int)temp]);
 			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;
 			flush_tlb();
 			sti();
-
 		}
 
 		//non shifted version keys 
@@ -301,8 +306,6 @@ void keyboard_handler()
 
 	}
 	sti();	
-
-
 
  	asm("popal;leave;iret");
 }

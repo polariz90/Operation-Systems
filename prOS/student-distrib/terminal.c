@@ -64,7 +64,7 @@ void terminal_bootup(){
 		terminals[i].ctrl = 0;
 		terminals[i].alt = 0;
 		terminals[i].reading  = 0;
-		for(j = 0; i < 6; i++){
+		for(j = 1; j< NUM_PROCESSES ; j++){ //NUM PROCESSES == 7  
 			terminals[i].pros_pids[j] = 0;
 		}
 		/* initial terminal history structure */
@@ -86,7 +86,7 @@ int terminal_open()
 	/* check if current terminal contain process shell */
 	int i;
 	int shell_flag = 0;
-	for (i = 1; i < 7; i++){/*looping through all 6 processes and find shell under this terminal */
+	for (i = 1; i < NUM_PROCESSES; i++){/*looping through all 6 processes and find shell under this terminal */
 		if(terminals[curr_terminal].pros_pids[i] == 1){ /* find a process that is under this terminal */
 			/* when the terminal contains at least 1 process, it at least will have a shell */
 			shell_flag = 1;
@@ -308,8 +308,10 @@ void exe_special_key(int key)
 			for (i = 0; i < 32; i++){
 				tap_buffer[i] = '\0';
 			}
+//			cli();
 			getting_tap_buffer(tap_buffer);
 			find_tap_match(tap_buffer);
+//			sti();
 			break;
 			
 		case CAPP :
@@ -340,6 +342,7 @@ void exe_special_key(int key)
 			break;
 
 		case ENTP :
+//			cli();
 			//currenly executing terminal read
 			if( terminals[curr_terminal].reading == 1)
 			{
@@ -360,6 +363,7 @@ void exe_special_key(int key)
 
 			/*store entire line into the history */
 			add_to_history((char*)terminals[curr_terminal].buf, curr_terminal);
+//			sti();
 			break;
 
 		case RSHFTP :
@@ -527,6 +531,7 @@ void exe_special_key(int key)
 
 
 		case F1P:
+			cli();
 			if (curr_terminal == 0){
 				break;
 			}
@@ -660,7 +665,7 @@ void add_to_history(char* buffer, uint32_t terminal_idx){
 		}
 	}
 	
-	sti();
+//	sti();
 }
 
 /* terminal print
@@ -673,6 +678,7 @@ void printt(char c)
 {
 	//here is where I should code for special cases
 
+	cli();
 	//sets the screen loc in video mem
 	set_screen_y(terminals[curr_terminal].yloc);	
 	set_screen_x(terminals[curr_terminal].xloc);
@@ -715,7 +721,7 @@ void printt(char c)
 	//gets the new screen loc from video mem
 	terminals[curr_terminal].yloc = get_screen_y();
 	terminals[curr_terminal].xloc = get_screen_x();
-
+	sti();
 
 }
 
@@ -906,7 +912,6 @@ void getting_tap_buffer(int8_t* buf){
   */
 
 void terminal_switch(uint32_t terminal_id){
-	cli();
 //	printf("terminal switch called %d \n", terminal_id);
 	int i/*, j*/;
 	//int temp = curr_terminal;
@@ -930,7 +935,7 @@ void terminal_switch(uint32_t terminal_id){
 
 	/* step 2: switching out all old terminal processes to terminal buffer */
 
-	for (i = 1; i < 7; i++){
+	for (i = 1; i < NUM_PROCESSES; i++){
 		if (terminals[curr_terminal].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
 
 			next_page_dir_add = (uint32_t)(&processes_page_dir[i]);
@@ -948,7 +953,7 @@ void terminal_switch(uint32_t terminal_id){
 		}
 	}
 
-	for(i = 1; i < 7; i ++){
+	for(i = 1; i < NUM_PROCESSES; i ++){
 		if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
 
 			next_page_dir_add = (uint32_t)(&processes_page_dir[i]);

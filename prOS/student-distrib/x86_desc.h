@@ -23,10 +23,11 @@
 #define NUM_VEC 256
 
 /* Variables for paging, include PT size and PD size */
+
+#define NUM_PROCESSES		7
 #define PAGE_TABLE_SIZE 	1024
-#define PAGE_DIRECTORY_SIZE 1024 
-#define PAGE_DIRECTORY_ARR_SIZE 6144
-#define PAGE_DIRECTORY_ARR_SIZE_7 7168
+#define PAGE_DIRECTORY_SIZE 1024
+#define PAGE_DIRECTORY_ARR_SIZE (PAGE_DIRECTORY_SIZE*NUM_PROCESSES )
 
 #ifndef ASM
 
@@ -243,17 +244,17 @@ typedef struct page_table{
 
 
 /* currently declare array of 6 page tables for process vidmap use */
-extern page_table vidmap_page_table[6];
+extern page_table vidmap_page_table[NUM_PROCESSES];
 
 /* declare array of 6 page directories for processes use only */
-extern page_directory processes_page_dir[6];
+extern page_directory processes_page_dir[NUM_PROCESSES];
 /* declare array of 6 page tables for process use only */
-extern page_table process_page_table[6];
+extern page_table process_page_table[NUM_PROCESSES];
 
 /* declare kernel page directory */
 extern page_pde_t kernel_page_dir[PAGE_DIRECTORY_SIZE];
 /* declare page only 1 for video memory*/
-extern page_table video_page_table[7];
+extern page_table video_page_table[NUM_PROCESSES];
 //extern page_pte_t video_page_table[PAGE_TABLE_SIZE];
 
 

@@ -40,8 +40,8 @@ extern void rtc_disable()
 extern int32_t rtc_read()
 {	
 	sti();
-	flag = 1;
-	while(flag);
+	rtc_flag = 1;
+	while(rtc_flag);
 	//printf("i am read\n");
 	return 0;
 }

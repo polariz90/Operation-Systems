@@ -31,7 +31,7 @@
     *				up, set up Control register to enable paging,
     				page kernel to virtual memory 4MB-8MB
     */
-void init_paging( ){
+void init_paging(){
 
 
 	int i, j; /* counter for loops */
@@ -50,7 +50,7 @@ void init_paging( ){
 		kernel_page_dir[i].avail = 0;
 		kernel_page_dir[i].PT_base_add = i*1024;
 	}
-	for(j = 0; j < 7; j++){
+	for(j = 0; j < NUM_PROCESSES; j++){//num processes = 7
 		for(i = 0; i < PAGE_TABLE_SIZE; i++){
 			video_page_table[j].dir_arr[i].present = 1;
 			video_page_table[j].dir_arr[i].read_write = 0;
@@ -94,7 +94,7 @@ void init_paging( ){
 	kernel_page_dir[0].PT_base_add = ((int)(&video_page_table[0]) >> 12);
 
 	/* set up video page table entries -- the 4KB video memory in */
-	for(j = 0; j < 7; j++){
+	for(j = 0; j < NUM_PROCESSES; j++){ //NUM_processes = 7
 		video_page_table[j].dir_arr[video_table_idx].present = 1;
 		video_page_table[j].dir_arr[video_table_idx].read_write = 1;
 		video_page_table[j].dir_arr[video_table_idx].user_supervisor = 0;
@@ -108,7 +108,7 @@ void init_paging( ){
 //		video_page_table[j].dir_arr[video_table_idx].page_base_add = 0XB8;	
 	}
 
-	for(j = 0; j < 7; j++){
+	for(j = 0; j < NUM_PROCESSES; j++){ //NUM_PROCESSES = 7
 		for(i = 1; i < 4; i++){
 			video_page_table[j].dir_arr[video_table_idx + i].present = 1;
 			video_page_table[j].dir_arr[video_table_idx + i].read_write = 1;
@@ -139,7 +139,7 @@ asm (
 
 }
 
- /*Function to set up new pages for processes */
+ /*Function to set up new paNUM_PROCESSESes for processes */
   /**
     * map_4KB_page
     *	INPUT: process id, virtual address, physical address, user_superviser

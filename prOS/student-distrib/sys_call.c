@@ -21,7 +21,6 @@
 #define four_mb 			0x400000
 #define eight_mb 			0x800000
 #define eight_kb 			0x2000
-#define size_of_occupied 	7
 #define buffer_size 		128
 #define _132mb 				0x8400000
 #define _128mb 				0x8000000
@@ -440,7 +439,7 @@ int32_t open(const uint8_t* filename){
 				/* using strncpy from lib to make deep copy*/
 				int type;
 				type= s_block->file_entries[i].file_type;
-				for(j=0;j<6;j++){
+				for(j=0;j< 6;j++){
 					if(current_pcb->file_descriptor[j+2].flags==0){
 						if(type==0){
 							current_pcb->file_descriptor[j+2].file_opt_ptr=(opt*)rtc_opt;
@@ -653,7 +652,7 @@ int32_t sigreturn(void){
 uint32_t get_next_pid(int8_t* buf){
 	cli();
 	uint32_t i = 0; /* loop counter */
-	while(i < size_of_occupied){
+	while(i < NUM_PROCESSES){
 		if(process_occupy.occupied[i] == N_USED){/* case avaliable*/
 			process_occupy.occupied[i] = USED;
 			process_occupy.num_process += 1;
