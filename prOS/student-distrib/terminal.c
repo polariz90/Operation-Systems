@@ -110,7 +110,6 @@ int terminal_read(int32_t fd, char *buf, int32_t count )
 	//check if we are in current terminal
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 	int pid= current_pcb->pid;
-	int useless =1;
 
 	//passed in a bad buffer
 	if(buf == NULL)
@@ -125,15 +124,16 @@ int terminal_read(int32_t fd, char *buf, int32_t count )
 	sti();
 	//need to wait until the buffer has been terminated with a \n or the buffer fills up
 
-	while(!((terminals[curr_terminal].reading== 0) && (curr_terminal == scheduling_terminal)))
+	while(!((terminals[curr_terminal].reading == 0) && (curr_terminal == scheduling_terminal)))
 	//while( terminals[curr_terminal].reading  != 0 )
 	{
-		useless++;
 		//do the dew and wait for reading to finish
 	}
 
+	cli();
 	//reset this flag
-	terminals[curr_terminal].reading =1;
+	//terminals[curr_terminal].reading = 1;
+	sti();
 
 	int curr_index = 0;
 	//codes for the cases 
@@ -214,7 +214,18 @@ int terminal_write(int32_t fd, char *buf, int32_t count )
   */ 
 int terminal_write_key(int32_t fd, char *buf, int32_t count )
 {
-	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+	uint32_t curr_pid;
+	int i;
+	//pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+	/*finding the current terminal top process */
+	for (i = 1; i < 7; i++){ /* looping through entire 7 process */
+		if(terminals[curr_terminal].pros_pids[i] == 1){/* case there is a process*/
+			if(process_occupy.top_process_flag[i] == 1){/* case that is the top process */
+				curr_pid = i;
+			}
+		}
+	}
+	pcb* current_pcb = getting_the_ghost(curr_pid);
     
 	//want to write zero bytes
 	if(count == 0)
@@ -330,9 +341,9 @@ int is_special_key(int key)
 		key == ALTR					||
 		key == DOWNP 				||
 		key == ALTP 				||
-		(key == F1P && terminals[curr_terminal].alt == 1) ||
-		(key == F2P && terminals[curr_terminal].alt == 1) ||
-		(key == F3P && terminals[curr_terminal].alt == 1) ||
+		(key == F1P /*&& terminals[curr_terminal].alt == 1*/) ||
+		(key == F2P /*&& terminals[curr_terminal].alt == 1*/) ||
+		(key == F3P /*&& terminals[curr_terminal].alt == 1*/) ||
 		(key == Lc && terminals[curr_terminal].ctrl == 1) ||
 	    (key == Lp && terminals[curr_terminal].ctrl == 1)			
 	  )
@@ -355,16 +366,37 @@ void exe_special_key(int key)
 {
 	int i; /* loop counter */
 	int8_t tap_buffer[32]; /* buffer to hold thing from tap */	
+	uint32_t curr_base_add;
+	uint32_t curr_pid;
+	pcb* curr_pcb;
 	switch(key)
 	{
 
 		case LTABP :
-			/* clear tap buffer first */
-			for (i = 0; i < 32; i++){
-				tap_buffer[i] = '\0';
-			}
-			getting_tap_buffer(tap_buffer);
-			find_tap_match(tap_buffer);
+				curr_pcb = getting_to_know_yourself();
+				/* i is the top process pid */
+				/* store top process page maps */
+				curr_base_add = video_page_table[curr_pcb->pid].dir_arr[184].page_base_add;
+				/* map top process into video memory */
+				video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = 184;
+				flush_tlb();
+				/* clear tap buffer first */
+				for (i = 0; i < 32; i++){
+					tap_buffer[i] = '\0';
+				}
+				if(terminals[curr_terminal].size == 0){
+					/* reload top process page tables */
+					video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;
+					flush_tlb();
+					break;
+				}
+				getting_tap_buffer(tap_buffer);
+				find_tap_match(tap_buffer);
+
+				/* reload top process page tables */
+				video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;
+				flush_tlb();
+
 			break;
 			
 		case CAPP :
@@ -380,6 +412,10 @@ void exe_special_key(int key)
 			break;
 
 		case BSP :
+			curr_pcb = getting_to_know_yourself();
+			curr_base_add = video_page_table[curr_pcb->pid].dir_arr[184].page_base_add;
+			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = 184;
+			flush_tlb();
 			if(terminals[curr_terminal].size != 0)
 			{
 				//setting the x position to 
@@ -394,7 +430,8 @@ void exe_special_key(int key)
 				terminals[curr_terminal].size--;
 
 			}
-
+			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;	
+			flush_tlb();
 			break;
 
 		case ENTP :
@@ -406,7 +443,7 @@ void exe_special_key(int key)
 				terminals[curr_terminal].buf[terminals[curr_terminal].size] = '\n';
 
 				//finished reading
-				terminals[curr_terminal].reading =0;
+				terminals[curr_terminal].reading = 0;
 			}
 
 			//now im just printing
@@ -458,6 +495,11 @@ void exe_special_key(int key)
 			break;
 
 		case UPP: /* case where up arrow key is pressed */
+			curr_pcb = getting_to_know_yourself();
+			curr_base_add = video_page_table[curr_pcb->pid].dir_arr[184].page_base_add;
+			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = 184;
+			flush_tlb();
+
 			//move the screen location back to the beginning of the buffer
 			set_screen_x( terminals[curr_terminal].xloc - terminals[curr_terminal].size);
 			
@@ -478,6 +520,8 @@ void exe_special_key(int key)
 
 			/* moving position pointer */
 			if(terminals[curr_terminal].terminal_history.end == terminals[curr_terminal].terminal_history.begin){ /* case history is empty */
+				video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;	
+				flush_tlb();
 				break;
 			}
 			else if(terminals[curr_terminal].terminal_history.pre_pos == terminals[curr_terminal].terminal_history.begin){
@@ -496,6 +540,8 @@ void exe_special_key(int key)
 
 				/* output the new command to terminal */
 				terminal_write(1, terminals[curr_terminal].buf, strlen(terminals[curr_terminal].buf));
+				video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;	
+				flush_tlb();
 				break;
 			}
 			else{
@@ -512,9 +558,17 @@ void exe_special_key(int key)
 
 			/* output the new command to terminal */
 			terminal_write(1, terminals[curr_terminal].buf, strlen(terminals[curr_terminal].buf));
+
+			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;	
+			flush_tlb();
 			break;
 
 		case DOWNP:
+			curr_pcb = getting_to_know_yourself();
+			curr_base_add = video_page_table[curr_pcb->pid].dir_arr[184].page_base_add;
+			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = 184;
+			flush_tlb();
+
 			//move the screen location back to the beginning of the buffer
 			set_screen_x( terminals[curr_terminal].xloc - terminals[curr_terminal].size);
 			
@@ -531,6 +585,8 @@ void exe_special_key(int key)
 				terminals[curr_terminal].buf[i] = '\0';
 			}
 			if(terminals[curr_terminal].terminal_history.end == terminals[curr_terminal].terminal_history.begin){ /* case history is empty */
+				video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;	
+				flush_tlb();
 				break;
 			}
 			else if(terminals[curr_terminal].terminal_history.pre_pos == terminals[curr_terminal].terminal_history.end){
@@ -549,6 +605,8 @@ void exe_special_key(int key)
 				if(terminals[curr_terminal].terminal_history.pre_pos > his_buff_size){/* case reach the beginning */
 					terminals[curr_terminal].terminal_history.pre_pos = 0;
 				}
+				video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;	
+				flush_tlb();
 				break;
 			}
 			else{
@@ -572,6 +630,8 @@ void exe_special_key(int key)
 					if(terminals[curr_terminal].terminal_history.pre_pos > his_buff_size){/* case reach the beginning */
 						terminals[curr_terminal].terminal_history.pre_pos = 0;
 					}
+					video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;	
+				flush_tlb();
 					break;
 				}
 			}
@@ -581,6 +641,8 @@ void exe_special_key(int key)
 			terminals[curr_terminal].size = strlen(terminals[curr_terminal].terminal_history.command[terminals[curr_terminal].terminal_history.pre_pos].cmd);
 			/* output the new command to terminal */
 			terminal_write(1, terminals[curr_terminal].buf, strlen(terminals[curr_terminal].buf));
+			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;	
+			flush_tlb();
 			break;
 
 
@@ -674,8 +736,15 @@ void new_line()
 }
 void new_line_key()
 {
+		pcb* curr_pcb = getting_to_know_yourself();
+		uint32_t curr_base_add = video_page_table[curr_pcb->pid].dir_arr[184].page_base_add;
+
+		video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = 184;
+		flush_tlb();
+
 		if( terminals[curr_terminal].yloc == NUM_ROWS -1)
 		{	
+
 			//scrolling the screen		
 			vert_scroll(1);
 
@@ -696,6 +765,9 @@ void new_line_key()
 			terminals[curr_terminal].yloc = get_screen_y();
 			terminals[curr_terminal].xloc = get_screen_x();
 		}
+
+		video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;
+		flush_tlb();
 }
 
 
