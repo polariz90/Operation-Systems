@@ -206,6 +206,55 @@ int terminal_write(int32_t fd, char *buf, int32_t count )
 	return curr_index;
 }
 
+/* Writes count bytes to the buffer 
+  * returns number of bytes written to the terminal
+  */ 
+int terminal_write_key(int32_t fd, char *buf, int32_t count )
+{
+	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+    
+	//want to write zero bytes
+	if(count == 0)
+		return 0;
+
+	// bad buffer
+	if(buf == NULL)
+		return -1;
+
+	uint32_t curr_index =0 ;
+	//writing count bytes
+
+	if(fd == magic_fd){
+		while(curr_index < count)
+		{
+			printt_key(buf[curr_index]); 
+			curr_index++;
+		}
+	}
+
+	//executable file
+	if(current_pcb->file_descriptor[fd].exe_flag == 0)
+	{	
+		while(curr_index < count)
+		{
+			printt_key(buf[curr_index]); 
+			curr_index++;
+		}
+	}
+	else
+	{
+		while(curr_index < count)
+		{
+			printt_key(buf[curr_index]); 
+			curr_index++;
+		}
+
+	}
+
+	//returns the number of bytes written
+	return curr_index;
+}
+
 
 
 /* Clears the buffer and closes it
@@ -332,12 +381,15 @@ void exe_special_key(int key)
 			{
 				//setting the x position to 
 				set_screen_x(terminals[curr_terminal].xloc -1);
+				set_screen_y(terminals[curr_terminal].yloc);
+
 				putc(' ');
 
 				//setting the current screen location back
 				terminals[curr_terminal].xloc--;
 				set_screen_x(terminals[curr_terminal].xloc -1);
 				terminals[curr_terminal].size--;
+
 			}
 
 			break;
@@ -703,6 +755,7 @@ void printt(char c)
 	//sets the screen loc in video mem
 	set_screen_y(terminals[scheduling_terminal].yloc);	
 	set_screen_x(terminals[scheduling_terminal].xloc);
+
 	
 	//last line
 	if(terminals[scheduling_terminal].yloc == NUM_ROWS -1)
@@ -895,7 +948,7 @@ void find_tap_match(const int8_t* buf){
 		}
 		temp_buffer[j] = '\0';
 		/*writing rest of them into terminal */
-		terminal_write(1, temp_buffer, (strlen(tap_file_names[i])-length));
+		terminal_write_key(1, temp_buffer, (strlen(tap_file_names[i])-length));
 		/* store into the terminal buffer */
 		j = 0; position = terminals[curr_terminal].size;
 		while(temp_buffer[j] != '\0'){
@@ -943,7 +996,7 @@ void print_tap_match(const int* mask, int length){
 	}
 
 	/* write rest of the word into terminal */
-	terminal_write(1, buf, strlen(buf));
+	terminal_write_key(1, buf, strlen(buf));
 	/* store into terminal buffer */
 	j = 0; position = terminals[curr_terminal].size;
 	while(buf[j] != '\0'){
