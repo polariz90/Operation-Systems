@@ -17,7 +17,7 @@ extern void pit_enable()
 	load_value|=temp;
 	//printf("load vlue: %d\n", load_value);
 
-//	counter=30000;
+	counter=30000;
 	outb((counter&0x00FF), PIT_CH1_PORT);		// lowwer 8 bit of counter
 	outb(((counter&0xFF00)>>8), PIT_CH1_PORT);		// higher 8 bit of counter
 /*	char prev=inb(PIT_CMOS_PORT);	// read the current value of register B
