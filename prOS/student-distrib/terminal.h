@@ -5,6 +5,7 @@
   * 
   */ 
 #include "lib.h"
+#include "x86_desc.h"
 
 /*Defined constants*/
 #define	BUF_SIZE   		127
@@ -49,12 +50,6 @@ uint32_t curr_terminal;				/*current index into buffer to be written*/
 uint32_t scheduling_terminal;				/*current terminal number for scheduler*/
 
 
-typedef struct 
-{
-	uint8_t match; /* indicate wheather this node matches or not */
-	uint32_t size; /* given the size of array stored in this node */
-	char arr_[32];  
-}history_node;
 
 /*structure to hold specific command */
 typedef	struct 
@@ -85,11 +80,11 @@ typedef struct
 	uint32_t ctrl; 						/*0 if not pressed, one if pressed*/
 	uint32_t alt;
 	volatile uint8_t reading;
-	uint32_t pros_pids[7];      /* bit map for the process in the terminal */
+	uint32_t pros_pids[NUM_PROCESSES];      /* bit map for the process in the terminal */
 
 }terminal_buffer;
 
-extern terminal_buffer terminals[3];
+terminal_buffer terminals[3];
 extern uint32_t terminal_vid_buf[3];
 extern int8_t* tap_file_names[15];
 

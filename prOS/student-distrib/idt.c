@@ -33,7 +33,7 @@
 #define eight_mb 			0x800000
 #define eight_kb 			0x2000
 
-volatile int flag;
+volatile int rtc_flag;
  unsigned char code_set[0x59];
  unsigned char code_set_shift[0x59];
 uint32_t next_page_dir_add;
@@ -127,7 +127,7 @@ void rtc_handler()
 	outb(0x0C, RTC_PORT);	// select register C
 	inb(RTC_CMOS_PORT);	
 	send_eoi(RTC_IRQ);
-	flag = 0;
+	rtc_flag = 0;
 	/* timer implementation */
 	update_time();
 
