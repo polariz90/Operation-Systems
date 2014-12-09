@@ -13,6 +13,8 @@ void init_idt();
 void general_handler(); 
 
 
+#define VID_MEM_IDX 184
+
 /*interrupt specific handlers*/
 void keyboard_handler();
 void rtc_handler();

@@ -22,8 +22,7 @@
 #define eight_mb 			0x800000
 #define eight_kb 			0x2000
 #define buffer_size 		128
-#define _132mb 				0x8400000
-#define _128mb 				0x8000000
+
 
 /* array to keep in check of process number */
 //uint32_t occupied[7] = {0,0,0,0,0,0,0};

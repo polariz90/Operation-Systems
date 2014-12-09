@@ -30,8 +30,6 @@
 #define NUM_ROWS 25
 
 
-#define eight_mb 			0x800000
-#define eight_kb 			0x2000
 
 volatile int rtc_flag;
  unsigned char code_set[0x59];
@@ -242,7 +240,7 @@ void keyboard_handler()
 	pcb* curr_pcb = getting_to_know_yourself();
 
 
-	uint32_t curr_base_add = video_page_table[curr_pcb->pid].dir_arr[184].page_base_add;
+	uint32_t curr_base_add = video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add;
 
 	
 	/* getting terminal id for current process */
@@ -258,18 +256,7 @@ void keyboard_handler()
 	/*checking for the sepecial cases*/
 	if(is_special_key((int)temp) == 1)
 	{
-	//	video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = 184;
-	//	flush_tlb();
 		exe_special_key((int)temp);
-
-		//debug
-		if(terminal_flag == 0){
-	//		video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;	
-		}
-		else{
-			terminal_flag = 0;
-		}
-	//	flush_tlb();
 	}
 	
 	/*Writing to the buffer if it is a valid character*/
@@ -285,10 +272,10 @@ void keyboard_handler()
 			terminals[curr_terminal].size++;
 
 			
-			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = 184;
+			video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = VID_MEM_IDX;
 			flush_tlb();
 		  	printt_key(code_set_shift[(int)temp]);
-			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;
+			video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = curr_base_add;
 			flush_tlb();
 		}
 
@@ -300,10 +287,10 @@ void keyboard_handler()
 			terminals[curr_terminal].buf[terminals[curr_terminal].size] =  code_set[(int)temp] - ((caps+shift)%2)*(CAPS_CONV);
 			terminals[curr_terminal].size++;
 
-			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = 184;
+			video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = VID_MEM_IDX;
 			flush_tlb();
 		  	printt_key(code_set[(int)temp] - ((caps+shift)%2)*(CAPS_CONV));
-		  	video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;
+		  	video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = curr_base_add;
 		  	flush_tlb();
 		}
 

@@ -7,8 +7,17 @@
 
 #include "types.h"
 
-
-
+#define _8MB 		0x800000
+#define _8KB		0x2000
+#define four_GB     0x100000000
+#define four_MB     0x400000
+#define four_KB     0x1000
+#define four_kb     4096 /* 4KB = 4096 bytes */
+#define one_kb      1024 /* 1KB = 1024 bytes */
+#define eight_mb 	0x800000
+#define eight_kb 	0x2000
+#define _132mb 		0x8400000
+#define _128mb 		0x8000000
 
 /*Varible declarations*/
 //int screen_x;

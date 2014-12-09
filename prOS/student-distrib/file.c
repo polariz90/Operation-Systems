@@ -14,8 +14,9 @@
 #define pcb_bitmask 0xFFFFE000
 #define stdin_idx 0
 #define stdout_idx 1
-#define _8MB 		0x800000
-#define _8KB		0x2000
+  
+
+
 
 
 void * file_opt[4]={

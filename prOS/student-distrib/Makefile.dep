@@ -24,5 +24,5 @@ scheduler.o: scheduler.c lib.h types.h scheduler.h sys_call.h file.h \
   x86_desc.h assembly_ops.h
 sys_call.o: sys_call.c lib.h types.h sys_call.h file.h x86_desc.h \
   assembly_ops.h page.h terminal.h rtc.h
-terminal.o: terminal.c terminal.h lib.h types.h x86_desc.h file.h \
-  assembly_ops.h page.h sys_call.h clock.h
+terminal.o: terminal.c file.h x86_desc.h types.h assembly_ops.h lib.h \
+  terminal.h page.h sys_call.h clock.h idt.h
