@@ -28,7 +28,7 @@
 /* array to keep in check of process number */
 //uint32_t occupied[7] = {0,0,0,0,0,0,0};
 process_arr process_occupy;
-uint32_t entry_point;
+
 uint8_t ELF[4]={0x7f, 0x45, 0x4c, 0x46};
 
 
@@ -186,6 +186,7 @@ int32_t execute(const uint8_t* command){
 	cli();
 	int i,j; /* loop counter */
 	int new_term_flag = 1; /* flag to see if this is the new temrinal: 1 means this is called by new open terminal*/
+	uint32_t entry_point;
 
 	/*Parse*/
 	uint8_t com_arr[buffer_size];
@@ -221,7 +222,7 @@ int32_t execute(const uint8_t* command){
 	}
 
 	/* getting new pid for processes */
-	int pid = get_next_pid(com_arr);
+	int pid = get_next_pid((int8_t*)com_arr);
 	/* store the pid ino the terminal structure */
 	terminals[curr_terminal].pros_pids[pid] = 1;
 	if(pid == -1){
