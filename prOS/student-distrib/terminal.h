@@ -191,6 +191,9 @@ void getting_tap_buffer(int8_t* buf);
 /* initial terminal booting up function */
 void terminal_bootup(); 
 
+/* updating the keyboard cursor */
+extern void update_cursor(int row, int col);
+
 
 
 

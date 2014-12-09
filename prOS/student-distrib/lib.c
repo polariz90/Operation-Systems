@@ -14,6 +14,8 @@
 #define ATTRIB 0x7
 #define X_INITAL_LOC 0
 #define Y_INITAL_LOC 0
+#define ATT_BLUE 0x16
+#define ATT_BLUESCREEN 30
 
 /*defined moved to lib.h*/
 
@@ -23,9 +25,53 @@
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
+uint8_t att=16;
 
 
+/*
+* void clear(void);
+*   Inputs: void
+*   Return Value: none
+*	Function: Clears video memory
+*/
+void
+blue_screen(void)
+{
+	int32_t i;
+	for(i=0; i<NUM_ROWS*NUM_COLS; i++) {
+        *(uint8_t *)(video_mem + (i << 1) + 1) = ATT_BLUESCREEN;
+    }
+}
 
+void 
+block_screen(int clk_pos, int cur_pos)
+{
+	int32_t i;
+    for(i=clk_pos; i< cur_pos; i++) {
+        *(uint8_t *)(video_mem + (i << 1) + 1) = 112;
+    }
+}
+
+void
+normal_screen(void)
+{
+	int32_t i;
+	for(i=0; i<NUM_ROWS*NUM_COLS; i++) {
+        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+    }
+}
+
+void
+blue(void)
+{
+	printf("%d",att);
+	int32_t i;
+	for(i=0; i<NUM_ROWS*NUM_COLS; i++) {
+        *(uint8_t *)(video_mem + (i << 1) + 1) = att;
+    }
+
+    att++;
+}
 
 /*
 * void clear(void);

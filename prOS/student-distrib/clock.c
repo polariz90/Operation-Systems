@@ -7,17 +7,33 @@
 
 #include "clock.h"
 #include "terminal.h"
+#include "lib.h"
+#include "idt.h"
+#include "rtc.h"
+#include "file.h"
+
 
 #define lowerbound 48
 #define upperbound 58
 
-volatile uint32_t real_time = 0;
+volatile uint32_t real_time;
+volatile uint32_t delay_start, delay_end;
 
 uint32_t time_tracker = 0;
 char time_buffer[5];
 
 /*initializing time variables */
 uint32_t min_h = 0; uint32_t min_l = 0; uint32_t sec_h = 0; uint32_t sec_l = 0; 
+
+
+/**
+  * initialization volatile variables in timer 
+  */
+void initial_timer(){
+	real_time = 0;
+	delay_start = 0; 
+	delay_end = 0; 
+}
 
 
 /**
@@ -39,15 +55,26 @@ void update_time(){
 
 
 	time_tracker ++;
-	if(time_tracker%1024 == 0){ /* updating time in every second*/
+	if(time_tracker%rtc_freq == 0){ /* updating time in every second*/
 	int temp_x, temp_y;
+
 	cli();
+	/* changing screen buffers in order to print onto screen every time */
+	pcb* curr_pcb = getting_to_know_yourself();
+	uint32_t curr_base_add = video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add;
+	video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = VID_MEM_IDX;
+	flush_tlb();
+
 	temp_x = get_screen_x(); temp_y = get_screen_y();
 	set_screen_x(75);
 	set_screen_y(24);
 	printf("%d%d%c%d%d", min_h,min_l,time_buffer[2],sec_h,sec_l);
+
+	video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = curr_base_add;
+	flush_tlb();
+
 	set_screen_x(temp_x); set_screen_y(temp_y);
-	sti();
+
 	//terminal_write(time_buffer, 5);
 		time_tracker = 0;
 		sec_l ++;
@@ -100,11 +127,11 @@ char in_to_char (uint32_t input){
   * SIDE EFFECTS: delay program for a certain time 
   */
 void delay(const uint32_t delay){
-	volatile uint32_t delay_start, delay_end;
+	sti();
 	delay_end = real_time + delay;
 	delay_start = real_time;
-	while(delay_start < delay_end){
-		delay_start = real_time;
+	while((volatile)real_time < delay_end){
+
 		/*expensive while loop*/
 	}
 	return;

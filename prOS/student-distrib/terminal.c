@@ -5,6 +5,8 @@
 #include "sys_call.h"
 #include "clock.h"
 #include "idt.h"
+#include "x86_desc.h"
+
 
 #define NUM_COLS 80
 #define NUM_ROWS 25
@@ -119,16 +121,12 @@ int terminal_read(int32_t fd, char *buf, int32_t count )
 	
 	cli();
 	terminals[curr_terminal].reading =1;
-	int temp = terminals[curr_terminal].reading;
 	sti();
 	//need to wait until the buffer has been terminated with a \n or the buffer fills up
 
-	while(!((temp == 0) && (curr_terminal == scheduling_terminal)))
-	//while(!((terminals[curr_terminal].reading == 0) && (curr_terminal == scheduling_terminal)))
+
+	while(!((terminals[curr_terminal].reading == 0) && (curr_terminal == scheduling_terminal)))
 	{
-		cli();
-		temp = terminals[curr_terminal].reading;
-		sti();
 		//do the dew and wait for reading to finish
 	}
 
@@ -425,11 +423,21 @@ void exe_special_key(int key)
 				terminals[curr_terminal].size--;
 
 			}
+			update_cursor(terminals[curr_terminal].xloc,terminals[curr_terminal].yloc);
+
 			video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = curr_base_add;	
 			flush_tlb();
 			break;
 
 		case ENTP :
+
+
+			curr_pcb = getting_to_know_yourself();
+			curr_base_add = video_page_table[curr_pcb->pid].dir_arr[184].page_base_add;
+
+//			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = 184;
+//			flush_tlb();
+			
 			//currenly executing terminal read
 			if( terminals[curr_terminal].reading == 1)
 			{
@@ -448,9 +456,12 @@ void exe_special_key(int key)
 				//checking the case if at the bottom of the screen
 				new_line_key();
 			}
-
+			
 			/*store entire line into the history */
-			add_to_history((char*)terminals[curr_terminal].buf, curr_terminal);
+		//	add_to_history((char*)terminals[curr_terminal].buf, curr_terminal);
+//			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;	
+//			flush_tlb();
+
 			break;
 
 		case RSHFTP :
@@ -868,6 +879,7 @@ void printt(char c)
 			}
 	}
 
+	update_cursor(terminals[curr_terminal].xloc+1,terminals[curr_terminal].yloc);
 	//gets the new screen loc from video mem
 	terminals[scheduling_terminal].yloc = get_screen_y();
 	terminals[scheduling_terminal].xloc = get_screen_x();
@@ -980,6 +992,7 @@ void printt_key(char c)
 			}
 	}
 
+	update_cursor(terminals[curr_terminal].xloc+1,terminals[curr_terminal].yloc);
 	//gets the new screen loc from video mem
 	terminals[curr_terminal].yloc = get_screen_y();
 	terminals[curr_terminal].xloc = get_screen_x();
@@ -1176,4 +1189,26 @@ void terminal_switch(uint32_t terminal_id){
 	curr_terminal=terminal_id;
 	terminal_open();
 }
+
+void update_cursor(int row, int col)
+ {
+    unsigned short position=row + col*80;
+
+    //(row*80) + col;
+ 
+    // cursor LOW port to vga INDEX register
+    /*
+    outb(0x3D4, 0x0F);
+    outb(0x3D5, (unsigned char)(position&0xFF));
+    // cursor HIGH port to vga INDEX register
+    outb(0x3D4, 0x0E);
+    outb(0x3D5, (unsigned char )((position>>8)&0xFF));
+    */
+    outb(0x0F,0x3D4);
+    outb((unsigned char)(position&0xFF), 0x3D5);
+    // cursor HIGH port to vga INDEX register
+    outb(0x0E, 0x3D4);
+    outb((unsigned char )((position>>8)&0xFF), 0x3D5);
+
+ }
 

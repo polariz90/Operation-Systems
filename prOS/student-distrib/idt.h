@@ -19,6 +19,7 @@ void general_handler();
 void keyboard_handler();
 void rtc_handler();
 void pit_handler();
+void mouse_handler();
 
 #endif /* _IDT_H  */
 

@@ -167,18 +167,18 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t * buf, uint32_t lengt
 
 	/* check boundary conditions */
 	if(inode < 0 || inode > s_block->inodes){
-		printf("case1\n");
+	//	printf("case1\n");
 		return -1; /* case invalid inode number */
 	}
 	if(offset < 0 || offset > file_length){
-		printf("case2\n");
+	//	printf("case2\n");
 		return -1; /* case invalid offset */
 	}
 	if(file_length == 0){
 		return 0; /* case empty file */
 	}
 	if(buf == NULL){
-		printf("case3\n");
+	//	printf("case3\n");
 		return -1; /* case passed in invalid buffer */
 	}
 	if (bytes_left==0) //if meet end of the file

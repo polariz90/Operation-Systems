@@ -11,6 +11,8 @@ void * rtc_opt[4]={
   rtc_close
 };
 
+uint32_t rtc_freq; /* variable to hold rtc frequency*/
+
 
 extern void rtc_enable()
 {
@@ -18,6 +20,7 @@ extern void rtc_enable()
 	char prev=inb(RTC_CMOS_PORT);	// read the current value of register B
 	outb(RTC_B, RTC_PORT);		// set the index again (a read will reset the index to register D)
 	outb(prev | 0x40, RTC_CMOS_PORT);	// write the previous value ORed with 0x40. This turns on bit 6 of register B
+	rtc_freq = 1024;
 	enable_irq(RTC_IRQ);
 }
 
@@ -95,6 +98,7 @@ extern int32_t rtc_write(int fd, const int32_t* buf, int32_t nbytes)
 
 	outb(RTC_A, RTC_PORT);
 	outb((0xF0 & prev_a) | freq, RTC_CMOS_PORT);
+	rtc_freq = freq*4; 
 
 	//write success!! (always 0) */
 	return 0;
@@ -115,6 +119,7 @@ extern int32_t rtc_open()
 	char prev_b = inb(RTC_CMOS_PORT);
 	outb(RTC_A, RTC_PORT);
 	outb((0xF0 & prev_b) | F2HZ, RTC_CMOS_PORT);
+	rtc_freq = 2;
 	return 0;
 }
 

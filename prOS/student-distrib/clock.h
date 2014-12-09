@@ -20,6 +20,7 @@ extern uint32_t sec_l;
 extern char time_buffer[5];
 
 void update_time ();
+void initial_timer();
 char in_to_char (uint32_t input);
 void delay(const uint32_t delay);
 

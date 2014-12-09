@@ -258,6 +258,7 @@ void page_fault_excpn_14()
 	video_page_table[current_pcb->pid].dir_arr[184].page_base_add = 184;
 	flush_tlb();
 	printf("Page fault detected(#14)");
+	blue_screen();
 	while(1){}
 	asm("leave;iret");
 	return;

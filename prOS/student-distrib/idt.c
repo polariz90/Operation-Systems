@@ -25,6 +25,7 @@
 #include "scheduler.h"
 #include "file.h"
 #include "sys_call.h"
+#include "mouse.h"
 
 #define NUM_COLS 80
 #define NUM_ROWS 25
@@ -87,6 +88,7 @@ void init_idt()
 	SET_IDT_ENTRY(idt[32], pit_handler);
 	SET_IDT_ENTRY(idt[33], keyboard_handler);     			//keyboard 
 	SET_IDT_ENTRY(idt[40], rtc_handler);     				//rtc 
+	SET_IDT_ENTRY(idt[44], mouse_handler);					// mouse
 
 //	SET_IDT_ENTRY(idt[128], sys_call_handler);			//sys call jumptable
 	SET_IDT_ENTRY(idt[128], sys_call_linkage);
@@ -127,12 +129,27 @@ void rtc_handler()
 	send_eoi(RTC_IRQ);
 	rtc_flag = 0;
 	/* timer implementation */
-	//update_time();
+	update_time();
 
 	sti();
 	asm("popal;leave;iret");
 }
 
+
+void mouse_handler()
+{
+	//printf("mouse\n");
+	asm("pushal");
+	
+	mouse_();
+
+	
+	send_eoi(M_IRQ);
+	
+
+	asm("popal;leave;iret");
+
+}
 
 
 

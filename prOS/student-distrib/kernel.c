@@ -171,24 +171,25 @@ entry (unsigned long magic, unsigned long addr)
 	/* initializing paging */
 	init_paging();
 
-	/* printing out booting image */
-	clear();
-	//booting_img();
-	clear();
-
 	/* Init the PIC */
 	i8259_init();
+
+	/* enable timer */
+	initial_timer();
+
+	/*initiailize rtc*/
+	rtc_enable();
 	
+	/* printing out booting image */
+	clear();
+	booting_img();
+	clear();
 
 	/*initilize keyboard*/
 	kb_enable();
 
-	/*initiailize rtc*/
-	rtc_enable();
-//	printf("chkp1\n");
-	/*enable IRQ0*/
-
-//	printf("chkp2\n");
+	/* initializing mouse */
+	mouse_install();
 
 	/*init*/
 	scheduling_terminal=0;
@@ -214,7 +215,6 @@ entry (unsigned long magic, unsigned long addr)
 	kernel_pcb_ptr->parent_esp = 0; 
 	kernel_pcb_ptr->parent_ebp = 0;
 	kernel_pcb_ptr->parent_pid = 0;
-
 
 	/* initial terminal open, open the first terminal */
 	terminal_bootup();
