@@ -4,6 +4,7 @@
 #include "lib.h"
 #include "sys_call.h"
 #include "clock.h"
+#include "x86_desc.h"
 
 #define NUM_COLS 80
 #define NUM_ROWS 25
@@ -125,15 +126,14 @@ int terminal_read(int32_t fd, char *buf, int32_t count )
 	sti();
 	//need to wait until the buffer has been terminated with a \n or the buffer fills up
 
-	while(!((terminals[curr_terminal].reading== 0) && (curr_terminal == scheduling_terminal)))
-	//while( terminals[curr_terminal].reading  != 0 )
-	{
+	
+	while(!((terminals[curr_terminal].reading== 0) && (curr_terminal == scheduling_terminal))){
 		useless++;
 		//do the dew and wait for reading to finish
 	}
 
 	//reset this flag
-	terminals[curr_terminal].reading =1;
+	//terminals[curr_terminal].reading =1;
 
 	int curr_index = 0;
 	//codes for the cases 
@@ -355,6 +355,8 @@ void exe_special_key(int key)
 {
 	int i; /* loop counter */
 	int8_t tap_buffer[32]; /* buffer to hold thing from tap */	
+	pcb * curr_pcb;
+	uint32_t curr_base_add;
 	switch(key)
 	{
 
@@ -398,6 +400,14 @@ void exe_special_key(int key)
 			break;
 
 		case ENTP :
+
+
+			curr_pcb = getting_to_know_yourself();
+			curr_base_add = video_page_table[curr_pcb->pid].dir_arr[184].page_base_add;
+
+//			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = 184;
+//			flush_tlb();
+			
 			//currenly executing terminal read
 			if( terminals[curr_terminal].reading == 1)
 			{
@@ -415,9 +425,12 @@ void exe_special_key(int key)
 				//checking the case if at the bottom of the screen
 				new_line_key();
 			}
-
+			
 			/*store entire line into the history */
 			add_to_history((char*)terminals[curr_terminal].buf, curr_terminal);
+//			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;	
+//			flush_tlb();
+
 			break;
 
 		case RSHFTP :

@@ -20,10 +20,7 @@ extern void pit_enable()
 	counter=30000;
 	outb((counter&0x00FF), PIT_CH1_PORT);		// lowwer 8 bit of counter
 	outb(((counter&0xFF00)>>8), PIT_CH1_PORT);		// higher 8 bit of counter
-/*	char prev=inb(PIT_CMOS_PORT);	// read the current value of register B
-	outb(PIT_B, PIT_PORT);		// set the index again (a read will reset the index to register D)
-	outb(prev | 0x40, PIT_CMOS_PORT);	// write the previous value ORed with 0x40. This turns on bit 6 of register B
-*/	enable_irq(PIT_IRQ);
+	enable_irq(PIT_IRQ);
 }
 
 extern void pit_disable()
