@@ -14,6 +14,9 @@
 #define SIZE_128MB  0x8000000 /*size of 128mb*/
 #define file_vir_addr 0x08048000
 
+  #define four_GB         0x100000000
+  #define four_MB     0x400000
+  #define four_KB     0x1000
 #define four_kb     4096 /* 4KB = 4096 bytes */
 #define one_kb      1024 /* 1KB = 1024 bytes */
 #define name_length 32 /* length of the name string */

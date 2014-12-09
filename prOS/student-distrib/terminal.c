@@ -369,11 +369,11 @@ void exe_special_key(int key)
 			break;
 
 		case LSHFTP :
-			toggle_shift();
+			toggle_shift(1);
 			break;
 
 		case LSHFTR :
-			toggle_shift();
+			toggle_shift(0);
 			break;
 
 		case BSP :
@@ -418,19 +418,19 @@ void exe_special_key(int key)
 			break;
 
 		case RSHFTP :
-			toggle_shift();
+			toggle_shift(1);
 			break;
 
 		case RSHFTR :
-			toggle_shift();
+			toggle_shift(0);
 			break;
 
 		case CTLP :
-			toggle_ctrl();
+			toggle_ctrl(1);
 			break;
 
 		case CTLR :
-			toggle_ctrl();
+			toggle_ctrl(0);
 			break;
 
 		case ALTP :
@@ -450,7 +450,8 @@ void exe_special_key(int key)
 			break;
 
 		case Lc :
-			halt(4);
+			if(curr_terminal==scheduling_terminal)
+				halt(4);
 			break;
 
 		case UPP: /* case where up arrow key is pressed */
@@ -614,24 +615,27 @@ void toggle_caps()
 		terminals[curr_terminal].caps =1;
 }
 
-void toggle_shift()
+void toggle_shift(int flag)
+//void toggle_shift()
 {
-	if(terminals[curr_terminal].shift == 1)
-		terminals[curr_terminal].shift = 0;
-	else
-		terminals[curr_terminal].shift =1;
+	terminals[curr_terminal].shift =flag;
+//	if(terminals[curr_terminal].shift == 1)
+//		terminals[curr_terminal].shift = 0;
+//	else
+//		terminals[curr_terminal].shift =1;
 }
 
-void toggle_ctrl()
+void toggle_ctrl(int flag)
 {
-	if(terminals[curr_terminal].ctrl == 1)
-		terminals[curr_terminal].ctrl = 0;
-	else
-		terminals[curr_terminal].ctrl = 1;
+	terminals[curr_terminal].ctrl = flag;
+//	if(terminals[curr_terminal].ctrl == 1)
+//		terminals[curr_terminal].ctrl = 0;
+//	else
+//		terminals[curr_terminal].ctrl = 1;
 
 }	
 
-void toggle_alt()
+void toggle_alt(int flag)
 {
 	if(terminals[curr_terminal].alt == 1)
 		terminals[curr_terminal].alt = 0;
@@ -1044,6 +1048,7 @@ void terminal_switch(uint32_t terminal_id){
 //	printf("terminal switch called %d \n", terminal_id);
 	int i/*, j*/;
 	//int temp = curr_terminal;
+	terminal_flag=1;
 	uint32_t vir_add = 0x10000000; /* virtual address 256MB*/
 	uint32_t vid_add = 0xB8000; /* physcial address video memory */
 
@@ -1067,36 +1072,38 @@ void terminal_switch(uint32_t terminal_id){
 	for (i = 1; i < NUM_PROCESSES; i++){
 		if (terminals[curr_terminal].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
 
-			next_page_dir_add = (uint32_t)(&processes_page_dir[i]);
-			asm(
-				"movl curr_page_dir_add, %%eax 		;"
-				"movl %%eax, %%cr3 					;"
-				: : : "eax", "cc"
-				);   
+//			next_page_dir_add = (uint32_t)(&processes_page_dir[i]);
+//			asm(
+//				"movl curr_page_dir_add, %%eax 		;"
+//				"movl %%eax, %%cr3 					;"
+//				: : : "eax", "cc"
+//				);   
   
 			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
 			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
 			uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
 			map_4kb_page(i, vir_add, terminal_vid_buf[curr_terminal], 1, pd_add, pt_add, 1); /* mapping to the buffer */
 			map_4kb_page(i, vid_add, terminal_vid_buf[curr_terminal], 0, pd_add, video_pt_add, 1);
+			//video_page_table[i].dir_arr[(vir_add%four_MB)/four_KB].page_base_add = ((uint32_t)terminal_vid_buf[curr_terminal] >> 12); /* page table address shifted */
 		}
 	}
 
 	for(i = 1; i < NUM_PROCESSES; i ++){
 		if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
 
-			next_page_dir_add = (uint32_t)(&processes_page_dir[i]);
-			asm(
-				"movl curr_page_dir_add, %%eax 		;"
-				"movl %%eax, %%cr3 					;"
-				: : : "eax", "cc"
-				); 
+//			next_page_dir_add = (uint32_t)(&processes_page_dir[i]);
+//			asm(
+//				"movl curr_page_dir_add, %%eax 		;"
+//				"movl %%eax, %%cr3 					;"
+//				: : : "eax", "cc"
+//				); 
 
 			uint32_t pd_add = (uint32_t)(&processes_page_dir[i]); /* page directory address */
 			uint32_t pt_add = (uint32_t)(&vidmap_page_table[i]); /* page table address */
 			uint32_t video_pt_add = (uint32_t)(&video_page_table[i]);
 
 			map_4kb_page(i, vir_add, vid_add, 1, pd_add, pt_add, 1); /* mapping to the buffer */
+			//video_page_table[i].dir_arr[(vir_add%four_MB)/four_KB].page_base_add = (vid_add >> 12); /* page table address shifted */
 			map_4kb_page(i, vid_add, vid_add, 0, pd_add, video_pt_add, 1);
 		}
 	}

@@ -43,6 +43,8 @@
 #define term2_vid_buf   0xBA000
 #define term3_vid_buf   0xBB000
 
+uint32_t terminal_flag;
+
 
 
 /*Decleared variables for the terminal*/
@@ -164,9 +166,13 @@ void new_line_key();
 
 /* these function simply toggle the vaule of the keys when called*/
 void toggle_caps();
-void toggle_shift();
-void toggle_alt();
-void toggle_ctrl(); 
+//void toggle_shift();
+//void toggle_alt();
+//void toggle_ctrl(); 
+
+void toggle_shift(int flag);
+void toggle_alt(int flag);
+void toggle_ctrl(int flag); 
 
 /*stdin/stdout useless functions */
 int stdin_write();

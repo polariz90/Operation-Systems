@@ -185,10 +185,10 @@ entry (unsigned long magic, unsigned long addr)
 
 	/*initiailize rtc*/
 	rtc_enable();
-	printf("chkp1\n");
+//	printf("chkp1\n");
 	/*enable IRQ0*/
-	pit_enable();
-	printf("chkp2\n");
+
+//	printf("chkp2\n");
 
 	/*init*/
 	scheduling_terminal=0;
@@ -215,9 +215,13 @@ entry (unsigned long magic, unsigned long addr)
 	kernel_pcb_ptr->parent_ebp = 0;
 	kernel_pcb_ptr->parent_pid = 0;
 
+	//debug
+	terminal_flag=0;
+
 	/* initial terminal open, open the first terminal */
 	terminal_bootup();
 	curr_terminal = 0; /* set the booting terminal as 0;*/
+	pit_enable();
 	execute("shell");
 	//terminal_open();
 

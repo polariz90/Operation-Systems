@@ -261,7 +261,14 @@ void keyboard_handler()
 		video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = 184;
 		flush_tlb();
 		exe_special_key((int)temp);
-		video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;
+
+		//debug
+		if(terminal_flag==0){
+			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;	
+		}
+		else{
+			terminal_flag=0;
+		}
 		flush_tlb();
 	}
 	
