@@ -115,7 +115,10 @@ int terminal_read(int32_t fd, char *buf, int32_t count );
   */ 
 int terminal_write(int32_t fd, char *buf, int32_t count );
 
-
+/* Writes count bytes to the buffer 
+  * returns number of bytes written to the terminal
+  */ 
+int terminal_write_key(int32_t fd, char *buf, int32_t count );
 
 /* Clears the buffer and closes it
   *  returns 0
