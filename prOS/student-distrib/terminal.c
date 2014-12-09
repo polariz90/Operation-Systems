@@ -108,8 +108,8 @@ int terminal_open()
 int terminal_read(int32_t fd, char *buf, int32_t count )
 {
 	//check if we are in current terminal
-	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
-	int pid= current_pcb->pid;
+	//pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+	//int pid= current_pcb->pid;
 	int useless =1;
 
 	//passed in a bad buffer
@@ -126,7 +126,6 @@ int terminal_read(int32_t fd, char *buf, int32_t count )
 	//need to wait until the buffer has been terminated with a \n or the buffer fills up
 
 	while(!((terminals[curr_terminal].reading== 0) && (curr_terminal == scheduling_terminal)))
-	//while( terminals[curr_terminal].reading  != 0 )
 	{
 		useless++;
 		//do the dew and wait for reading to finish
@@ -530,6 +529,7 @@ void exe_special_key(int key)
 
 
 		case F1P:
+			cli();
 			if (curr_terminal == 0){
 				break;
 			}
@@ -537,6 +537,7 @@ void exe_special_key(int key)
 			break;
 
 		case F2P:
+			cli();
 			if(curr_terminal == 1){
 				break;
 			}
@@ -544,6 +545,7 @@ void exe_special_key(int key)
 			break;
 
 		case F3P:
+			cli();
 			if(curr_terminal == 2){
 				break;
 			}
