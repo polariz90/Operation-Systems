@@ -47,6 +47,7 @@ clear(void)
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
+	/*
     cli();
 	int temp_x, temp_y;
 	temp_x = get_screen_x(); temp_y = get_screen_y();
@@ -54,6 +55,7 @@ clear(void)
 	printf("%d%d%c%d%d", min_h,min_l,time_buffer[2],sec_h,sec_l);
 	set_screen_x(temp_x); set_screen_y(temp_y);
 	sti();
+	*/
 }
 
 /* Standard printf().
@@ -627,6 +629,7 @@ void vert_scroll(uint32_t count)
 		//here is where i am going to adjust the screen x and screen y
 		screen_x =0;	
 	}
+/*
 	cli();
 	int temp_x, temp_y;
 	temp_x = get_screen_x(); temp_y = get_screen_y();
@@ -636,6 +639,7 @@ void vert_scroll(uint32_t count)
 	printf("%d%d%c%d%d", min_h,min_l,time_buffer[2],sec_h,sec_l);
 	set_screen_x(temp_x); set_screen_y(temp_y);
 	sti();
+*/
 	return;
 }
 

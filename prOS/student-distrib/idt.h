@@ -7,7 +7,7 @@
 #define _IDT_H
 
 
-extern volatile int flag;
+extern volatile int rtc_flag;
 /*idt functions*/
 void init_idt();
 void general_handler(); 

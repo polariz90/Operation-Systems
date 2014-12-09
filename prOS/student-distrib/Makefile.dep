@@ -1,7 +1,7 @@
 assembly_ops.o: assembly_ops.S assembly_ops.h x86_desc.h types.h
 boot.o: boot.S multiboot.h x86_desc.h types.h
 x86_desc.o: x86_desc.S x86_desc.h types.h
-clock.o: clock.c clock.h lib.h types.h terminal.h
+clock.o: clock.c clock.h lib.h types.h terminal.h x86_desc.h
 exception.o: exception.c exception.h lib.h types.h
 file.o: file.c multiboot.h types.h file.h x86_desc.h assembly_ops.h lib.h \
   terminal.h
@@ -13,14 +13,15 @@ kernel.o: kernel.c multiboot.h types.h x86_desc.h lib.h i8259.h debug.h \
   page.h idt.h keyboard.h rtc.h file.h assembly_ops.h terminal.h \
   pros_img.h sys_call.h clock.h pit.h
 keyboard.o: keyboard.c keyboard.h i8259.h types.h
-lib.o: lib.c lib.h types.h i8259.h rtc.h terminal.h clock.h
+lib.o: lib.c lib.h types.h i8259.h rtc.h terminal.h x86_desc.h clock.h
 page.o: page.c x86_desc.h types.h lib.h page.h
 pit.o: pit.c lib.h types.h pit.h i8259.h
-pros_img.o: pros_img.c pros_img.h lib.h types.h terminal.h clock.h
+pros_img.o: pros_img.c pros_img.h lib.h types.h terminal.h x86_desc.h \
+  clock.h
 rtc.o: rtc.c i8259.h types.h rtc.h lib.h idt.h
 scheduler.o: scheduler.c lib.h types.h scheduler.h sys_call.h file.h \
   x86_desc.h assembly_ops.h
 sys_call.o: sys_call.c lib.h types.h sys_call.h file.h x86_desc.h \
   assembly_ops.h page.h terminal.h rtc.h
-terminal.o: terminal.c terminal.h lib.h types.h file.h x86_desc.h \
+terminal.o: terminal.c terminal.h lib.h types.h x86_desc.h file.h \
   assembly_ops.h page.h sys_call.h clock.h
