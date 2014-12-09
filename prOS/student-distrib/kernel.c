@@ -185,10 +185,10 @@ entry (unsigned long magic, unsigned long addr)
 
 	/*initiailize rtc*/
 	rtc_enable();
-	printf("chkp1\n");
+
 	/*enable IRQ0*/
 	pit_enable();
-	printf("chkp2\n");
+
 
 	/*init*/
 	scheduling_terminal=0;
@@ -218,8 +218,8 @@ entry (unsigned long magic, unsigned long addr)
 	/* initial terminal open, open the first terminal */
 	terminal_bootup();
 	curr_terminal = 0; /* set the booting terminal as 0;*/
-	execute("shell");
-	//terminal_open();
+	//execute((uint8_t*)"shell Bazinga!");
+	terminal_open();
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your

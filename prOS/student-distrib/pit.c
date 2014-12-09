@@ -42,7 +42,7 @@ extern void pit_disable()
  * Inputs: none
  * Retvals: none
  */
-extern int32_t PIT_read()
+extern int32_t pit_read()
 {	
 	sti();
 	//flag = 1;
@@ -64,7 +64,7 @@ extern int32_t PIT_read()
  * -1: failure
  * n: number of bytes written
  */
-extern int32_t PIT_write(int fd, const int32_t* buf, int32_t nbytes)
+extern int32_t pit_write(int fd, const int32_t* buf, int32_t nbytes)
 {
 	unsigned char prev_a; // temporary 
 	int8_t freq;
@@ -115,7 +115,7 @@ extern int32_t PIT_write(int fd, const int32_t* buf, int32_t nbytes)
  * Inputs: 
  * Outputs:
  */
-extern int32_t PIT_open()
+extern int32_t pit_open()
 {
 	outb(PIT_A, PIT_PORT);
 	char prev_b = inb(PIT_CMOS_PORT);
@@ -138,3 +138,4 @@ extern int32_t PIT_open()
 	return 0;
 }
 */
+

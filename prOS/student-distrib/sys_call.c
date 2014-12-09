@@ -223,7 +223,7 @@ int32_t execute(const uint8_t* command){
 
 	cli();
 	/* getting new pid for processes */
-	int pid = get_next_pid(com_arr);
+	int pid = get_next_pid((int8_t*)com_arr);
 	/* store the pid ino the terminal structure */
 	terminals[curr_terminal].pros_pids[pid] = 1;
 	if(pid == -1){

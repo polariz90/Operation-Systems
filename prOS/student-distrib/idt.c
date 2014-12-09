@@ -36,7 +36,7 @@
 volatile int flag;
  unsigned char code_set[0x59];
  unsigned char code_set_shift[0x59];
-uint32_t next_page_dir_add;
+ uint32_t idt_next_page_dir_add;
 
 /*
  * This function initializes every interrupt descriptor table to enter 
@@ -185,9 +185,9 @@ void pit_handler()
 
 	//change page
 	if(next_pid!=current_pcb->pid){
-		next_page_dir_add = (uint32_t)(&processes_page_dir[next_pid]);
+		idt_next_page_dir_add = (uint32_t)(&processes_page_dir[next_pid]);
 			asm(
-				"movl next_page_dir_add, %%eax 		;"
+				"movl idt_next_page_dir_add, %%eax 		;"
 				"movl %%eax, %%cr3 					;"
 				: : : "eax", "cc"
 				);
@@ -223,10 +223,8 @@ void pit_handler()
  */
 void keyboard_handler()
 {
+
 	int i;
-	int pid;
-	uint32_t vir_add = 0x10000000; /* virtual address 256MB*/
-	uint32_t vid_add = 0xB8000; /* physcial address video memory */
 	asm("pushal");
 
 	//reading from the keyboard port and sending the end of interrut signal	
@@ -239,12 +237,9 @@ void keyboard_handler()
 
 	pcb* curr_pcb = getting_to_know_yourself();
 
-	uint32_t pd_add = (uint32_t)(&processes_page_dir[curr_pcb->pid]);
-	uint32_t pt_add = (uint32_t)(&video_page_table[curr_pcb->pid]);
 
 	uint32_t curr_base_add = video_page_table[curr_pcb->pid].dir_arr[184].page_base_add;
 
-	cli();
 	/* getting terminal id for current process */
 	uint32_t c_t;
 	for(i = 0; i < 3; i++){
@@ -258,11 +253,13 @@ void keyboard_handler()
 	/*checking for the sepecial cases*/
 	if(is_special_key((int)temp) == 1)
 	{
+		cli();
 		video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = 184;
 		flush_tlb();
 		exe_special_key((int)temp);
 		video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;
 		flush_tlb();
+		sti();
 	}
 	
 	/*Writing to the buffer if it is a valid character*/
@@ -271,7 +268,8 @@ void keyboard_handler()
 
 		//prints the shifted key
 		if (shift ==1)
-		{
+		{	
+			cli();
 			//writes into the buffer
 			terminals[curr_terminal].buf[terminals[curr_terminal].size] = code_set_shift[(int)temp];
 			terminals[curr_terminal].size++;
@@ -281,12 +279,14 @@ void keyboard_handler()
 		  	printt(code_set_shift[(int)temp]);
 			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;
 			flush_tlb();
+			sti();
 
 		}
 
 		//non shifted version keys 
 		else
 		{
+			cli();
 			//writes the buffer	
 			terminals[curr_terminal].buf[terminals[curr_terminal].size] =  code_set[(int)temp] - ((caps+shift)%2)*(CAPS_CONV);
 			terminals[curr_terminal].size++;
@@ -296,6 +296,7 @@ void keyboard_handler()
 		  	printt(code_set[(int)temp] - ((caps+shift)%2)*(CAPS_CONV));
 		  	video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;
 		  	flush_tlb();
+		  	sti();
 		}
 
 	}

@@ -86,7 +86,7 @@ int terminal_open()
 	/* check if current terminal contain process shell */
 	int i;
 	int shell_flag = 0;
-	for (i = 0; i < 7; i++){/*looping through all 6 processes and find shell under this terminal */
+	for (i = 1; i < 7; i++){/*looping through all 6 processes and find shell under this terminal */
 		if(terminals[curr_terminal].pros_pids[i] == 1){ /* find a process that is under this terminal */
 			/* when the terminal contains at least 1 process, it at least will have a shell */
 			shell_flag = 1;
@@ -108,8 +108,6 @@ int terminal_open()
 int terminal_read(int32_t fd, char *buf, int32_t count )
 {
 	//check if we are in current terminal
-	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
-	int pid= current_pcb->pid;
 
 	sti();
 	//passed in a bad buffer
@@ -310,10 +308,8 @@ void exe_special_key(int key)
 			for (i = 0; i < 32; i++){
 				tap_buffer[i] = '\0';
 			}
-			cli();
 			getting_tap_buffer(tap_buffer);
 			find_tap_match(tap_buffer);
-			sti();
 			break;
 			
 		case CAPP :
@@ -344,7 +340,6 @@ void exe_special_key(int key)
 			break;
 
 		case ENTP :
-			cli();
 			//currenly executing terminal read
 			if( terminals[curr_terminal].reading == 1)
 			{
@@ -365,7 +360,6 @@ void exe_special_key(int key)
 
 			/*store entire line into the history */
 			add_to_history((char*)terminals[curr_terminal].buf, curr_terminal);
-			sti();
 			break;
 
 		case RSHFTP :
