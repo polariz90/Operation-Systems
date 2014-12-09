@@ -42,7 +42,6 @@ extern int32_t rtc_read()
 	sti();
 	rtc_flag = 1;
 	while(rtc_flag);
-	//printf("i am read\n");
 	return 0;
 }
 
@@ -164,17 +163,5 @@ int counter = 0;
 	}
 }
 
-/*
- * test_close()
- *
- * Function which tests if rtc_write() function is properly working
- * Channges frequency.
- *
- * Inputs: frequency value, bytes
- * Outputs: none
- */
-/*extern void test_write(int ret_val, int32_t nbytes)
-{
-	rtc_write(&ret_val, nbytes);
-}*/
+
 
