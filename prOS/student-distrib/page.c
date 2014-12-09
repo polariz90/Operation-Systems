@@ -89,7 +89,7 @@ void init_paging(){
 	kernel_page_dir[0].page_size =0;
 	kernel_page_dir[0].global_page = 1;
 	kernel_page_dir[0].avail = 0;
-	kernel_page_dir[0].PT_base_add = ((int)(&video_page_table[0]) >> 12);
+	kernel_page_dir[0].PT_base_add = ((uint32_t)(&video_page_table[0]) >> 12);
 
 	/* set up video page table entries -- the 4KB video memory in */
 	for(j = 0; j < NUM_PROCESSES; j++){ //NUM_processes = 7

@@ -660,7 +660,7 @@ uint32_t get_next_pid(int8_t* buf){
 		if(process_occupy.occupied[i] == N_USED){/* case avaliable*/
 			process_occupy.occupied[i] = USED;
 			process_occupy.num_process += 1;
-			sti();
+			//sti();
 			return i;
 		}
 		else{

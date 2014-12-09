@@ -132,6 +132,9 @@ int terminal_read(int32_t fd, char *buf, int32_t count )
 		//do the dew and wait for reading to finish
 	}
 
+	//reset this flag
+	terminals[curr_terminal].reading =1;
+
 	int curr_index = 0;
 	//codes for the cases 
 	//1.reading count bytes
