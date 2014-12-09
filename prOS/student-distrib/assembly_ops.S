@@ -67,7 +67,7 @@ sys_call_linkage_buttom:
 
 # A jump table to C functions that implement the system calls themselves.
 sys_call_jumptable:
-	.long 0x0
+	.long FAIL_EAX
 	.long halt
 	.long execute
 	.long read

@@ -17,9 +17,6 @@
 #define _8MB 		0x800000
 #define _8KB		0x2000
 
-/*extern var: file descriptor*/
-file_entry file_desc[8];
-
 
 void * file_opt[4]={
   open_file,
@@ -60,7 +57,6 @@ void init_pcb(pcb* curr_pcb)
 	curr_pcb->file_descriptor[stdin_idx].inode_ptr = NULL; /*stdin do not have inode */
 	curr_pcb->file_descriptor[stdin_idx].file_pos = 0; /*stdin is read only */
 	curr_pcb->file_descriptor[stdin_idx].flags=USED;
-
 
 	/* initialize stdout */
 	curr_pcb->file_descriptor[stdout_idx].file_opt_ptr = (opt*)stdout_opt; /* initialize jump table */
@@ -219,69 +215,6 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t * buf, uint32_t lengt
 
 
 
-/** open_sys
-  * DESCRIPTION: 	open system call
-  					for file system read the file system by given file name
-  *					open the process control block in file descriptor
-  * INPUT:			fname---file name
-  * OUTPUT:			0 when seccess
-  *					-1 when fail: the file descriptor is full or cannot find the file
-  * SIDE EFFECT:	open a new pcb in file_desc
-  */
-int32_t open_sys(const uint8_t * fname){
-
-	int i, j;	/* loop counter */
-	uint32_t num_entries = s_block->dir_entries; /* variable hold # of entries */
-	uint32_t length; /* variable to hold fname string length */
-	length = strlen((int8_t*)fname);	
-
-	for(i = 0; i < num_entries; i++){ /* looping through entire entries to find file*/
-		if(strlen(s_block->file_entries[i].filename) == length){/* case 2 names doesnt have the same length*/
-			if(strncmp((int8_t*)fname, s_block->file_entries[i].filename, length) == 0){ /* check if 2 are the same */
-				/* using strncpy from lib to make deep copy*/
-				int type;
-				type= s_block->file_entries[i].file_type;
-				printf("%s", s_block->file_entries[i].filename);
-				printf("	file_type: %d", s_block->file_entries[i].file_type);
-				printf("	inode num: %d\n", s_block->file_entries[i].inode_num);
-				for(j=0;j<6;j++){
-					if(file_desc[j+2].flags==0){
-						if(type==0){}	//set this pcb to rtc
-						else if(type==1){}	//set this pcb to directory
-						else if(type==2){}	//set this pcb to regular file
-
-
-						file_desc[j+2].flags=1;
-						break;	
-					}
-					else if(j==5&&file_desc[j+2].flags!=0){
-						return -1; 	//array is full
-					}
-				}
-				
-				return 0; /* operation success*/
-			}
-		}
-
-	}
-	return -1; /* operation failed */
-}
-
-
-/** read_sys
-  * DESCRIPTION: 	write system call
-  * INPUT:
-  * OUTPUT:			file, dir: 	return the number of bytes read
-								return 0 if is the end of the file
-					rtc:		return 0
-  *					-1 when fail: cannot read
-  * SIDE EFFECT:	
-  */
-int32_t read_sys(int32_t fd, void * buf, int32_t nbytes){
-	//go to the corresponding read function and jump back return;
-	return -1;
-}
-
 /** read_file
   * DESCRIPTION: 	read a file from file system
   * INPUT:			filename, buffer, number of bytes need to read 
@@ -291,7 +224,7 @@ int32_t read_sys(int32_t fd, void * buf, int32_t nbytes){
   */
 int32_t read_file(int32_t fd, void * buf, uint32_t nbytes){
 
-	sti();
+		sti();
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
 	//dentry_t file_dentry; /* dentry to hold inofrmation of this file */
@@ -305,17 +238,6 @@ int32_t read_file(int32_t fd, void * buf, uint32_t nbytes){
 	return ret;
 }
 
-/** write_sys
-  * DESCRIPTION: 	write system call
-  * INPUT:
-  * OUTPUT:			0 when success
-  *					-1 when fail: cannot write
-  * SIDE EFFECT:	
-  */
-int32_t write_sys(int32_t fd, const void * buf, int32_t nbytes){
-	//go to the corresponding write function and jump back return;
-	return -1;
-}
 
 /** read_dir
   * DESCRIPTION: 	read the directory from file system
@@ -340,7 +262,7 @@ int32_t read_dir(int32_t fd, uint8_t * buf, uint32_t nbytes){
 		return strlen(s_block->file_entries[pos].filename);
 	}
 	else if(pos>s_block->dir_entries){
-		file_desc[fd].file_pos=0;
+		current_pcb->file_descriptor[fd].file_pos=0;
 		return 0;
 	}
 	else{
@@ -359,18 +281,6 @@ int32_t read_dir(int32_t fd, uint8_t * buf, uint32_t nbytes){
 int32_t write_dir(){
 	//read only return -1
 	return -1;
-}
-
-/** close_sys
-  * DESCRIPTION: 	close this pcb on file descriptor
-  * INPUT:			fd---file descriptor number
-  * OUTPUT:			return 0 
-  * SIDE EFFECT:
-  */
-int32_t close_sys(int32_t fd){
-	//read only return -1
-	file_desc[fd].flags=0;
-	return 0;
 }
 
 
@@ -442,8 +352,6 @@ pcb* add_process_stack(uint8_t num )
 	//Finds location of current pcb in kernel memory
 
 	pcb* curr_pcb = (pcb*)(BOT_KERNEL_MEM - (num+1)*STACK_OFF);
-
-
 	//initilizes current_pcb
 	init_pcb(curr_pcb);
 	

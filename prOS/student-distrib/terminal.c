@@ -64,7 +64,7 @@ void terminal_bootup(){
 		terminals[i].ctrl = 0;
 		terminals[i].alt = 0;
 		terminals[i].reading  = 0;
-		for(j = 0; i < 6; i++){
+		for(j = 1; j< NUM_PROCESSES ; j++){ //NUM PROCESSES == 7  
 			terminals[i].pros_pids[j] = 0;
 		}
 		/* initial terminal history structure */
@@ -86,7 +86,7 @@ int terminal_open()
 	/* check if current terminal contain process shell */
 	int i;
 	int shell_flag = 0;
-	for (i = 0; i < 7; i++){/*looping through all 6 processes and find shell under this terminal */
+	for (i = 1; i < NUM_PROCESSES; i++){/*looping through all 6 processes and find shell under this terminal */
 		if(terminals[curr_terminal].pros_pids[i] == 1){ /* find a process that is under this terminal */
 			/* when the terminal contains at least 1 process, it at least will have a shell */
 			shell_flag = 1;
@@ -110,8 +110,8 @@ int terminal_read(int32_t fd, char *buf, int32_t count )
 	//check if we are in current terminal
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 	int pid= current_pcb->pid;
+	int useless =1;
 
-	sti();
 	//passed in a bad buffer
 	if(buf == NULL)
 		return -1;
@@ -119,13 +119,16 @@ int terminal_read(int32_t fd, char *buf, int32_t count )
 	//if they want to read 0 bytes
 	if(count == 0)
 		return 0;
-
+	
+	cli();
 	terminals[curr_terminal].reading =1;
+	sti();
 	//need to wait until the buffer has been terminated with a \n or the buffer fills up
 
 	while(!((terminals[curr_terminal].reading== 0) && (curr_terminal == scheduling_terminal)))
 	//while( terminals[curr_terminal].reading  != 0 )
 	{
+		useless++;
 		//do the dew and wait for reading to finish
 	}
 
@@ -169,7 +172,6 @@ int terminal_write(int32_t fd, char *buf, int32_t count )
 	if(buf == NULL)
 		return -1;
 
-	
 	uint32_t curr_index =0 ;
 	//writing count bytes
 
@@ -199,7 +201,6 @@ int terminal_write(int32_t fd, char *buf, int32_t count )
 		}
 
 	}
-
 
 	//returns the number of bytes written
 	return curr_index;
@@ -310,10 +311,8 @@ void exe_special_key(int key)
 			for (i = 0; i < 32; i++){
 				tap_buffer[i] = '\0';
 			}
-//			cli();
 			getting_tap_buffer(tap_buffer);
 			find_tap_match(tap_buffer);
-//			sti();
 			break;
 			
 		case CAPP :
@@ -344,7 +343,6 @@ void exe_special_key(int key)
 			break;
 
 		case ENTP :
-//			cli();
 			//currenly executing terminal read
 			if( terminals[curr_terminal].reading == 1)
 			{
@@ -365,7 +363,6 @@ void exe_special_key(int key)
 
 			/*store entire line into the history */
 			add_to_history((char*)terminals[curr_terminal].buf, curr_terminal);
-//			sti();
 			break;
 
 		case RSHFTP :
@@ -593,7 +590,7 @@ void toggle_alt()
 
 void new_line()
 {
-		if( get_screen_y() == NUM_ROWS -1)
+		if( terminals[curr_terminal].yloc == NUM_ROWS -1)
 		{	
 			//scrolling the screen		
 			vert_scroll(1);
@@ -644,7 +641,6 @@ int stdout_read(){
   */
 void add_to_history(char* buffer, uint32_t terminal_idx){
 	//terminal_write(1,"add to history reached ",24);
-	cli();
 	int i = 0;
 	/* copying terminal buffer into history buffer */
 	while(buffer[i] != '\n'){
@@ -666,7 +662,6 @@ void add_to_history(char* buffer, uint32_t terminal_idx){
 		}
 	}
 	
-//	sti();
 }
 
 /* terminal print
@@ -680,11 +675,11 @@ void printt(char c)
 	//here is where I should code for special cases
 
 	//sets the screen loc in video mem
-	set_screen_y(terminals[curr_terminal].yloc);	
-	set_screen_x(terminals[curr_terminal].xloc);
+	set_screen_y(terminals[scheduling_terminal].yloc);	
+	set_screen_x(terminals[scheduling_terminal].xloc);
 	
 	//last line
-	if(get_screen_y() == NUM_ROWS -1)
+	if(terminals[scheduling_terminal].yloc == NUM_ROWS -1)
 	{
 		//character is an enter
 		if(c == '\n')
@@ -692,7 +687,7 @@ void printt(char c)
 			new_line();
 		}
 		//at the end 
-		else if(get_screen_x() == NUM_COLS -1)
+		else if(terminals[scheduling_terminal].xloc == NUM_COLS -1)
 		{
 			putc(c);
 			new_line();
@@ -700,14 +695,14 @@ void printt(char c)
 		//somewhere in the middle of the screen
 		else 
 		{
-			//prints the new character]
+			//prints the new charact]
 			putc(c);
 		}
 	}
 	//not on last line
 	else	
 	{
-			if(get_screen_x() ==  NUM_COLS -1)
+			if(terminals[scheduling_terminal].xloc ==  NUM_COLS -1)
 			{
 				putc(c);
 				new_line();
@@ -719,9 +714,8 @@ void printt(char c)
 	}
 
 	//gets the new screen loc from video mem
-	terminals[curr_terminal].yloc = get_screen_y();
-	terminals[curr_terminal].xloc = get_screen_x();
-
+	terminals[scheduling_terminal].yloc = get_screen_y();
+	terminals[scheduling_terminal].xloc = get_screen_x();
 
 }
 
@@ -737,11 +731,11 @@ void printt_hex(char c)
 	//here is where I should code for special cases
 
 	//sets the screen loc in video mem
-	set_screen_y(terminals[curr_terminal].yloc);	
-	set_screen_x(terminals[curr_terminal].xloc);
+	set_screen_y(terminals[scheduling_terminal].yloc);	
+	set_screen_x(terminals[scheduling_terminal].xloc);
 	
 	//last line
-	if(get_screen_y() == NUM_ROWS -1)
+	if(terminals[scheduling_terminal].yloc == NUM_ROWS -1)
 	{
 		//character is an enter
 		if(c == '\n')
@@ -749,29 +743,85 @@ void printt_hex(char c)
 			new_line();
 		}
 		//at the end 
-		else if(get_screen_x() == NUM_COLS -1)
+		else if(terminals[scheduling_terminal].xloc == NUM_COLS -1)
 		{
-			printf("%x",c);
+			putc(c);
 			new_line();
 		}
 		//somewhere in the middle of the screen
 		else 
 		{
 			//prints the new character]
-			printf("%x",c);
+			putc(c);
 		}
 	}
 	//not on last line
 	else	
 	{
-			if(get_screen_x() ==  NUM_COLS -1)
+			if(terminals[scheduling_terminal].xloc ==  NUM_COLS -1)
 			{
-				printf("%x",c);
+				putc(c);
 				new_line();
 			}
 			else
 			{
-			printf("%x",c);
+			putc(c);
+			}
+	}
+
+	//gets the new screen loc from video mem
+	terminals[scheduling_terminal].yloc = get_screen_y();
+	terminals[scheduling_terminal].xloc = get_screen_x();
+
+
+}
+
+/* terminal print for key
+ * takes a char and a current screen location and prints the char there
+ * returns nothing
+ *
+ * should also set the current x and y correct
+ */
+void printt_key(char c)
+{
+	//here is where I should code for special cases
+
+	//sets the screen loc in video mem
+	set_screen_y(terminals[curr_terminal].yloc);	
+	set_screen_x(terminals[curr_terminal].xloc);
+	
+	//last line
+	if(terminals[curr_terminal].yloc == NUM_ROWS -1)
+	{
+		//character is an enter
+		if(c == '\n')
+		{
+			new_line();
+		}
+		//at the end 
+		else if(terminals[curr_terminal].xloc == NUM_COLS -1)
+		{
+			putc(c);
+			new_line();
+		}
+		//somewhere in the middle of the screen
+		else 
+		{
+			//prints the new charact]
+			putc(c);
+		}
+	}
+	//not on last line
+	else	
+	{
+			if(terminals[curr_terminal].xloc ==  NUM_COLS -1)
+			{
+				putc(c);
+				new_line();
+			}
+			else
+			{
+			putc(c);
 			}
 	}
 
@@ -779,8 +829,8 @@ void printt_hex(char c)
 	terminals[curr_terminal].yloc = get_screen_y();
 	terminals[curr_terminal].xloc = get_screen_x();
 
-
 }
+
 
 /**
   * find tap match 
@@ -912,7 +962,6 @@ void getting_tap_buffer(int8_t* buf){
   */
 
 void terminal_switch(uint32_t terminal_id){
-	cli();
 //	printf("terminal switch called %d \n", terminal_id);
 	int i/*, j*/;
 	//int temp = curr_terminal;
@@ -936,7 +985,7 @@ void terminal_switch(uint32_t terminal_id){
 
 	/* step 2: switching out all old terminal processes to terminal buffer */
 
-	for (i = 1; i < 7; i++){
+	for (i = 1; i < NUM_PROCESSES; i++){
 		if (terminals[curr_terminal].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
 
 			next_page_dir_add = (uint32_t)(&processes_page_dir[i]);
@@ -954,7 +1003,7 @@ void terminal_switch(uint32_t terminal_id){
 		}
 	}
 
-	for(i = 1; i < 7; i ++){
+	for(i = 1; i < NUM_PROCESSES; i ++){
 		if (terminals[terminal_id].pros_pids[i] == 1){ /* case the ith process is in this terminal*/
 
 			next_page_dir_add = (uint32_t)(&processes_page_dir[i]);
@@ -986,8 +1035,6 @@ void terminal_switch(uint32_t terminal_id){
 
 
 	curr_terminal=terminal_id;
-
-	sti();
 	terminal_open();
 }
 

@@ -33,7 +33,7 @@
 #define eight_mb 			0x800000
 #define eight_kb 			0x2000
 
-volatile int flag;
+volatile int rtc_flag;
  unsigned char code_set[0x59];
  unsigned char code_set_shift[0x59];
 uint32_t next_page_dir_add;
@@ -127,9 +127,9 @@ void rtc_handler()
 	outb(0x0C, RTC_PORT);	// select register C
 	inb(RTC_CMOS_PORT);	
 	send_eoi(RTC_IRQ);
-	flag = 0;
+	rtc_flag = 0;
 	/* timer implementation */
-	update_time();
+	//update_time();
 
 	sti();
 	asm("popal;leave;iret");
@@ -280,7 +280,7 @@ void keyboard_handler()
 			
 			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = 184;
 			flush_tlb();
-		  	printt(code_set_shift[(int)temp]);
+		  	printt_key(code_set_shift[(int)temp]);
 			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;
 			flush_tlb();
 		}
@@ -295,7 +295,7 @@ void keyboard_handler()
 
 			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = 184;
 			flush_tlb();
-		  	printt(code_set[(int)temp] - ((caps+shift)%2)*(CAPS_CONV));
+		  	printt_key(code_set[(int)temp] - ((caps+shift)%2)*(CAPS_CONV));
 		  	video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;
 		  	flush_tlb();
 		}

@@ -1,0 +1,9 @@
+make: Warning: File `Makefile.dep' has modification time 2.1e+02 s in the future
+gcc  -nostdinc -g  -c -o boot.o boot.S
+page.h: Assembler messages:
+page.h:15: Error: no such instruction: `void init_paging()'
+page.h:21: Error: junk `(uint32_t pid,uint32_t vir_add,uint32_t phy_add,uint32_t privilage)' after expression
+page.h:21: Error: suffix or operands invalid for `int'
+page.h:24: Error: junk `(uint32_t pid,uint32_t vir_add,uint32_t phy_add,uint32_t privilage,uint32_t pd_add,uint32_t pt_add,uint32_t read_write)' after expression
+page.h:24: Error: suffix or operands invalid for `int'
+make: *** [boot.o] Error 1
