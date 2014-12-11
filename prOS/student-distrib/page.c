@@ -48,6 +48,7 @@ void init_paging(){
 		kernel_page_dir[i].avail = 0;
 		kernel_page_dir[i].PT_base_add = i*1024;
 	}
+	/* initialize all  video page tables */
 	for(j = 0; j < NUM_PROCESSES; j++){//num processes = 7
 		for(i = 0; i < PAGE_TABLE_SIZE; i++){
 			video_page_table[j].dir_arr[i].present = 1;
@@ -63,33 +64,49 @@ void init_paging(){
 			video_page_table[j].dir_arr[i].page_base_add = i;
 		}
 	}
+	/* initialize all process page table */
+	for(j = 0; j < NUM_PROCESSES; j++){
+		for(i = 0; i < PAGE_TABLE_SIZE; i++){
+			process_page_table[j].dir_arr[i].present = 0;
+			process_page_table[j].dir_arr[i].read_write = 0;
+			process_page_table[j].dir_arr[i].user_supervisor = 1;
+			process_page_table[j].dir_arr[i].write_through = 0;
+			process_page_table[j].dir_arr[i].cache_disabled = 0;
+			process_page_table[j].dir_arr[i].accessed = 0;
+			process_page_table[j].dir_arr[i].dirty = 0;
+			process_page_table[j].dir_arr[i].PT_attribute_idx = 0;
+			process_page_table[j].dir_arr[i].global_page = 0;
+			process_page_table[j].dir_arr[i].avail = 0;
+			process_page_table[j].dir_arr[i].page_base_add = i;
+		}
+	}
 
-	/* set up kernel page entries -- the 4MB mapping to kernel code */
-	kernel_page_dir[1].present = 1; /* enable page entry */
-	kernel_page_dir[1].read_write = 1; /* read and write enable*/
-	kernel_page_dir[1].user_supervisor = 0; /* 0 for supervisor privilege lvl */
-	kernel_page_dir[1].write_through = 0; /* set to one, pass control to CR0 */
-	kernel_page_dir[1].cache_disabled = 0; /* set to one, pass control to CR0*/
-	kernel_page_dir[1].accessed = 0; /* set to one to access it */
-	kernel_page_dir[1].reserved = 0; /* set to 0 */
-	kernel_page_dir[1].page_size = 1; /* 1 indicate 4 MB pages */
-	kernel_page_dir[1].global_page = 1; /* set to global*/
-	kernel_page_dir[1].avail = 0; /* set to 0 */
-	kernel_page_dir[1].PT_base_add = 1024;
-
-
-	/* set up video page directory  entries -- the page directory which video memory in */
-	kernel_page_dir[0].present = 1;
-	kernel_page_dir[0].read_write = 1;
-	kernel_page_dir[0].user_supervisor = 0;
-	kernel_page_dir[0].write_through = 0;
-	kernel_page_dir[0].cache_disabled = 0;
-	kernel_page_dir[0].accessed = 0;
-	kernel_page_dir[0].reserved =0;
-	kernel_page_dir[0].page_size =0;
-	kernel_page_dir[0].global_page = 1;
-	kernel_page_dir[0].avail = 0;
-	kernel_page_dir[0].PT_base_add = ((uint32_t)(&video_page_table[0]) >> 12);
+		/* set up kernel page entries -- the 4MB mapping to kernel code */
+		kernel_page_dir[1].present = 1; /* enable page entry */
+		kernel_page_dir[1].read_write = 1; /* read and write enable*/
+		kernel_page_dir[1].user_supervisor = 0; /* 0 for supervisor privilege lvl */
+		kernel_page_dir[1].write_through = 0; /* set to one, pass control to CR0 */
+		kernel_page_dir[1].cache_disabled = 0; /* set to one, pass control to CR0*/
+		kernel_page_dir[1].accessed = 0; /* set to one to access it */
+		kernel_page_dir[1].reserved = 0; /* set to 0 */
+		kernel_page_dir[1].page_size = 1; /* 1 indicate 4 MB pages */
+		kernel_page_dir[1].global_page = 1; /* set to global*/
+		kernel_page_dir[1].avail = 0; /* set to 0 */
+		kernel_page_dir[1].PT_base_add = 1024;
+	
+	
+		/* set up video page directory  entries -- the page directory which video memory in */
+		kernel_page_dir[0].present = 1;
+		kernel_page_dir[0].read_write = 1;
+		kernel_page_dir[0].user_supervisor = 0;
+		kernel_page_dir[0].write_through = 0;
+		kernel_page_dir[0].cache_disabled = 0;
+		kernel_page_dir[0].accessed = 0;
+		kernel_page_dir[0].reserved =0;
+		kernel_page_dir[0].page_size =0;
+		kernel_page_dir[0].global_page = 1;
+		kernel_page_dir[0].avail = 0;
+		kernel_page_dir[0].PT_base_add = ((uint32_t)(&video_page_table[0]) >> 12);
 
 	/* set up video page table entries -- the 4KB video memory in */
 	for(j = 0; j < NUM_PROCESSES; j++){ //NUM_processes = 7
@@ -160,6 +177,8 @@ int change_process_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32
 		/* page directory pointer which point at the new page directory */
 		page_directory * new_page_dir;
 		new_page_dir = (page_directory*) &processes_page_dir[pid]; 
+		page_table * new_page_table;
+		new_page_table = (page_table*) &process_page_table[pid];
 
 		new_page_dir_add = (uint32_t)(&processes_page_dir[pid]);
 
@@ -182,17 +201,50 @@ int change_process_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32
 
 		/*initialize the 4MB memory, at Virtual 128MB, physical 4MB+pid*4MB */
 		/* this is the new page memory for process */
-			new_page_dir->dir_arr[vir_address].present = 1; /* enable page entry */
-			new_page_dir->dir_arr[vir_address].read_write = 1; /* read and write enable */
-			new_page_dir->dir_arr[vir_address].user_supervisor = privilage; /* set to user privilage */
-			new_page_dir->dir_arr[vir_address].write_through = 0; /* disable write through*/
+		//	new_page_dir->dir_arr[vir_address].present = 1; /* enable page entry */
+		//	new_page_dir->dir_arr[vir_address].read_write = 1; /* read and write enable */
+		//	new_page_dir->dir_arr[vir_address].user_supervisor = privilage; /* set to user privilage */
+		//	new_page_dir->dir_arr[vir_address].write_through = 0; /* disable write through*/
+		//	new_page_dir->dir_arr[vir_address].cache_disabled = 0; /* disable cache */
+		//	new_page_dir->dir_arr[vir_address].accessed = 0; /* set to one to access it */
+		//	new_page_dir->dir_arr[vir_address].reserved = 0; /* reserved set to 0 */
+		//	new_page_dir->dir_arr[vir_address].page_size = 1; /* 1 indicate to 4MB pages */
+		//	new_page_dir->dir_arr[vir_address].global_page = 0; /* process not global page */
+		//	new_page_dir->dir_arr[vir_address].avail = 0; /* set to 0*/
+		//	new_page_dir->dir_arr[vir_address].PT_base_add = 1024*(pid+1); /*set to physcial address */
+		//uint32_t base_add = (phy_add & 0xFFFFF000);
+//		uint32_t physical_address = phy_add;
+		//for( i = 0; i < 1024; i++){
+		//	physical_address = physical_address + (i*four_kb);
+		//	map_4kb_page(pid, vir_add, phy_add, privilage, (&processes_page_dir[pid]), (&process_page_table[pid]), 1);
+		//}
+		/* initialize the page dir and page tables for the new process */
+			new_page_dir->dir_arr[vir_address].present = 1; /* emable page entry*/
+			new_page_dir->dir_arr[vir_address].read_write = 1; /*read and write enable */
+			new_page_dir->dir_arr[vir_address].user_supervisor = privilage; /* set privilage level */
+			new_page_dir->dir_arr[vir_address].write_through = 0; /* disable write through */
 			new_page_dir->dir_arr[vir_address].cache_disabled = 0; /* disable cache */
 			new_page_dir->dir_arr[vir_address].accessed = 0; /* set to one to access it */
-			new_page_dir->dir_arr[vir_address].reserved = 0; /* reserved set to 0 */
-			new_page_dir->dir_arr[vir_address].page_size = 1; /* 1 indicate to 4MB pages */
-			new_page_dir->dir_arr[vir_address].global_page = 0; /* process not global page */
-			new_page_dir->dir_arr[vir_address].avail = 0; /* set to 0*/
-			new_page_dir->dir_arr[vir_address].PT_base_add = 1024*(pid+1); /*set to physcial address */
+			new_page_dir->dir_arr[vir_address].reserved = 0; /* reserved set to 0*/
+			new_page_dir->dir_arr[vir_address].page_size = 1; /* set map to 4kb page */
+			new_page_dir->dir_arr[vir_address].global_page = 0; /* set to global page */
+			new_page_dir->dir_arr[vir_address].avail = 0; /*set to 0*/
+			new_page_dir->dir_arr[vir_address].PT_base_add = ((uint32_t)(&process_page_table[pid]) >> 12); /* page table address shifted */
+		/* initialize the page table */
+			for(i = 0; i < PAGE_TABLE_SIZE; i++){
+				new_page_table->dir_arr[i].present = 0;
+				new_page_table->dir_arr[i].read_write = 0;
+				new_page_table->dir_arr[i].user_supervisor = privilage;
+				new_page_table->dir_arr[i].write_through = 0;
+				new_page_table->dir_arr[i].cache_disabled = 0;
+				new_page_table->dir_arr[i].accessed = 0;
+				new_page_table->dir_arr[i].dirty = 0;
+				new_page_table->dir_arr[i].PT_attribute_idx = 0;
+				new_page_table->dir_arr[i].global_page = 0;
+				new_page_table->dir_arr[i].avail = 0;
+				new_page_table->dir_arr[i].page_base_add = ((1024*pid+1) + i);
+			}
+
 
 			/* set up video page directory  entries */
 			new_page_dir->dir_arr[0].present = 1;
@@ -206,7 +258,6 @@ int change_process_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32
 			new_page_dir->dir_arr[0].global_page = 1;
 			new_page_dir->dir_arr[0].avail = 0;
 			new_page_dir->dir_arr[0].PT_base_add = ((uint32_t)(&video_page_table[pid]) >> 12);
-			//printf("******************************change pt to pid: %d\n", pid);
 
 			/* set up kernel page entries */
 			new_page_dir->dir_arr[1].present = 1; /* enable page entry */

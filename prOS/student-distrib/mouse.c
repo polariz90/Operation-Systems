@@ -10,6 +10,7 @@
 #include "lib.h"
 #include "file.h"
 #include "terminal.h"
+#include "idt.h"
 #include "sys_call.h"
 
 uint8_t  mouse_cycle;   //cycle through 0 to 2, 3 signals
@@ -30,10 +31,13 @@ int8_t y_up;
 int8_t x_left;
 int8_t y_down;
 
-uint8_t buf[four_kb];
+uint8_t curr_char, curr_attrib;
+uint8_t mouse_buf[four_kb];
 uint8_t bufcpy[four_kb];
 uint8_t bufrclk[four_kb];
 uint8_t Bazinga[128];
+
+uint8_t mouse_click_flag;
 
 int block_flag;	//flag used for blocking
 int temp;
@@ -160,6 +164,8 @@ extern void mouse_install() {
 	pos_x=40;
 	pos_y=12;
 
+	mouse_click_flag = 0;
+
 	counter2 = 0;
 	counter = 0;
 	temp = 0;
@@ -266,7 +272,17 @@ extern void set_pointer()
 	}
 
 	//Save the current terminal status 
-	memcpy((void*) buf, (void*) 0xB8000, four_kb);
+	cli();
+	pcb* curr_pcb = getting_to_know_yourself();
+	uint32_t curr_base_add = video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add;
+	video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = VID_MEM_IDX;
+	flush_tlb();
+
+	memcpy((void*) mouse_buf, (void*) 0xB8000, four_kb);
+
+	video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = curr_base_add;
+	flush_tlb();
+	sti();
 	
 
 	set_screen_x(prevpos_x);
@@ -279,26 +295,56 @@ extern void set_pointer()
 
 	bufpos = 2*prevpos_x + 160*prevpos_y;	//calculating previous buf position
 	
-	if(buf[bufpos] == 32 || buf[bufpos] == 0 || buf[bufpos] == 219)		//when there were blank, null, and cursor previous position
+	if(mouse_buf[bufpos] == 32 || mouse_buf[bufpos] == 0 || mouse_buf[bufpos] == 219)		//when there were blank, null, and cursor previous position
 	{
 		if(bufcpy[bufpos+1] != NULL){
 			prevbufpos = bufpos;	//save the previous buffer position
 		}
 		else{
-			buf[bufpos] = 32;	//set the buffer as blank, erases
-			memcpy( (void*) 0xB8000,(void*) buf, four_kb);
+			cli();
+			pcb* curr_pcb = getting_to_know_yourself();
+			uint32_t curr_base_add = video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add;
+			video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = VID_MEM_IDX;
+			flush_tlb();
+
+			mouse_buf[bufpos] = 32;	//set the buffer as blank, erases
+			memcpy( (void*) 0xB8000,(void*) mouse_buf, four_kb);
+
+			video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = curr_base_add;
+			flush_tlb();
+			sti();
 		}
 	}
 	else
 	{
 		if(bufcpy[bufpos+1] != NULL){
+			cli();
+			pcb* curr_pcb = getting_to_know_yourself();
+			uint32_t curr_base_add = video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add;
+			video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = VID_MEM_IDX;
+			flush_tlb();
+
 			prevbufpos = bufpos+1;	//saves current character color
-			buf[bufpos+1] = 112;	//reverse the color
-			memcpy( (void*) 0xB8000,(void*) buf, four_kb);
+			mouse_buf[bufpos+1] = 112;	//reverse the color
+			memcpy( (void*) 0xB8000,(void*) mouse_buf, four_kb);
+
+			video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = curr_base_add;
+			flush_tlb();
+			sti();
 		}
 		else{
-			buf[bufpos+1] = 7;	//ordinary color
-			memcpy( (void*) 0xB8000,(void*) buf, four_kb);
+			cli();
+			pcb* curr_pcb = getting_to_know_yourself();
+			uint32_t curr_base_add = video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add;
+			video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = VID_MEM_IDX;
+			flush_tlb();
+
+			mouse_buf[bufpos+1] = 7;	//ordinary color
+			memcpy( (void*) 0xB8000,(void*) mouse_buf, four_kb);
+
+			video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = curr_base_add;
+			flush_tlb();
+			sti();
 		}
 	}
 
@@ -311,16 +357,40 @@ extern void set_pointer()
 	 */
 	bufpos = 2*pos_x + 160*pos_y;	//calculate current mouse position
 
+	/* save the position char in global variable */
+	curr_char = mouse_buf[bufpos];  curr_attrib = mouse_buf[bufpos+1];
+
 	//when there are blank, null, cursor at the current position
-	if(buf[bufpos] == 32 || buf[bufpos] == 0 || buf[bufpos] == 219)	
+	if(mouse_buf[bufpos] == 32 || mouse_buf[bufpos] == 0 || mouse_buf[bufpos] == 219)	
 	{
-		buf[bufpos] = 219;	//draw cursor
-		putc(buf[bufpos]); 	//draw
+		cli();
+		pcb* curr_pcb = getting_to_know_yourself();
+		uint32_t curr_base_add = video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add;
+		video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = VID_MEM_IDX;
+		flush_tlb();
+
+		mouse_buf[bufpos] = 219;	//draw cursor
+		putc(mouse_buf[bufpos]); 	//draw
+
+		video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = curr_base_add;
+		flush_tlb();
+		sti();
 	}
 	else // if cursor is above characters, block the characters
 	{
-		buf[bufpos+1] = 112;	//reverse color
-		memcpy( (void*) 0xB8000,(void*) buf, four_kb);
+
+		cli();
+		pcb* curr_pcb = getting_to_know_yourself();
+		uint32_t curr_base_add = video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add;
+		video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = VID_MEM_IDX;
+		flush_tlb();
+
+		mouse_buf[bufpos+1] = 112;	//reverse color
+		memcpy( (void*) 0xB8000,(void*) mouse_buf, four_kb);
+
+		video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = curr_base_add;
+		flush_tlb();
+		sti();
 	}
 
 
@@ -333,9 +403,9 @@ extern void set_pointer()
  *	
  */
 extern void rclk_block(){
-	if(buf[prevbufpos] == 219){  //erase block created at empty place
-		buf[prevbufpos] = 32;
-		memcpy( (void*) 0xB8000,(void*) buf, four_kb);
+	if(mouse_buf[prevbufpos] == 219){  //erase block created at empty place
+		mouse_buf[prevbufpos] = 32;
+		memcpy( (void*) 0xB8000,(void*) mouse_buf, four_kb);
 	}
 
 	for(i=0; i<4000; i++){		//buffer clear
@@ -351,20 +421,20 @@ extern void rclk_block(){
 extern void lclk_copy()
 {
 	prevbufpos_c = bufpos;
-	while((buf[prevbufpos_c] != 32)){
+	while((mouse_buf[prevbufpos_c] != 32)){
 
-		bufrclk[prevbufpos_c] = buf[prevbufpos_c];
+		bufrclk[prevbufpos_c] = mouse_buf[prevbufpos_c];
 		prevbufpos_c+=2;
 		counter2++;
 		
 	}
 	prevbufpos_c -= 2;
-	while((buf[prevbufpos_c] != 32)){
-		bufrclk[prevbufpos_c] = buf[prevbufpos_c];
+	while((mouse_buf[prevbufpos_c] != 32)){
+		bufrclk[prevbufpos_c] = mouse_buf[prevbufpos_c];
 		prevbufpos_c-=2;
 		counter++;
 		if(prevbufpos_c == 0) {
-			bufrclk[0] = buf[0];
+			bufrclk[0] = mouse_buf[0];
 			break;
 		}
 			
@@ -443,16 +513,17 @@ extern void mouse_r_click()
 			prevbufpos_c = prevbufpos_c - counter2*2;
 			while(counter != 0)
 			{
-			//	printf("%c", bufrclk[prevbufpos_c+i]);
 				Bazinga[i/2]= bufrclk[prevbufpos_c+i];
 				i = i+2;
 				counter--;
 			}
 			counter = 0;
 			counter2 = 0;
-			execute((int8_t*)Bazinga);
+		//	execute((uint8_t*)Bazinga);
+			mouse_click_flag = 1;
 		} 
 		prevdata = 0;
+		execute((uint8_t*)Bazinga);
 	}
 	if(mouse_byte[1] == 8)
 	{
@@ -465,9 +536,9 @@ extern void mouse_r_click()
 extern void mouse_l_click()
 {
 	if (mouse_byte[1] == 9){
-		if(prevdata ==1){
+		if(prevdata == 1){
 			lclk_copy();
-			execute((int8_t*)bufrclk);
+		//	execute((uint8_t*)bufrclk);
 
 		}
 		prevdata = 0;

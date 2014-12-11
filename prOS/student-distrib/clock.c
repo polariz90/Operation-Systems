@@ -7,6 +7,7 @@
 
 #include "clock.h"
 #include "terminal.h"
+#include "types.h"
 #include "lib.h"
 #include "idt.h"
 #include "rtc.h"
@@ -33,6 +34,7 @@ void initial_timer(){
 	real_time = 0;
 	delay_start = 0; 
 	delay_end = 0; 
+	time_tracker = 0;
 }
 
 
@@ -130,7 +132,7 @@ void delay(const uint32_t delay){
 	sti();
 	delay_end = real_time + delay;
 	delay_start = real_time;
-	while((volatile)real_time < delay_end){
+	while(real_time < delay_end){
 
 		/*expensive while loop*/
 	}

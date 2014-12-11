@@ -14,6 +14,7 @@
 #include "terminal.h"
 #include "rtc.h"
 #include "pit.h"
+#include "mouse.h"
 
 #define space_char 			32
 #define vir_mem_add 		0x08000000
@@ -39,11 +40,24 @@ uint8_t ELF[4]={0x7f, 0x45, 0x4c, 0x46};
  * 
  */
 int32_t halt(uint8_t status){
+	cli();
 	/*restore parent's esp/ebp and anything else you need*/
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+	int i;
+	int pid;
+	for(i = 1; i < 7; i++){
+		if(terminals[scheduling_terminal].pros_pids[i] == 1){
+			if(process_occupy.top_process_flag[i] == 1){
+				pid = i;
+				break;
+			}
+		}
+	}
+
+//	pcb* current_pcb = getting_the_ghost(pid);
 
 	/*may want to prevent user to close the last shell*/
-	if(current_pcb->pid==1||terminals[curr_terminal].pros_pids[current_pcb->parent_pid]==0){ /* kernel + last shell */
+	if(current_pcb->pid==1||terminals[scheduling_terminal].pros_pids[current_pcb->parent_pid]==0){ /* kernel + last shell */
 	//if(0){ /* kernel + last shell */
 		uint8_t buf[buffer_size];
 		uint32_t shell_entry_point;
@@ -52,56 +66,56 @@ int32_t halt(uint8_t status){
 			return -1;
 		}
 
-		if(current_pcb->pid==1){
-
-			terminal_write(1,"Are you satisfied with your care (y or n)  ", 43);
-			char temp_buf[1];
-			terminal_read(1,temp_buf, 1);
-			if(temp_buf[0] == 'y'){
-
-			//stop scheduler
-			pit_disable();
-				/* set TSS back to point at parent's kernel stack */
-			tss.esp0 = eight_mb - (eight_kb*current_pcb->parent_pid) - 4;
-
-			int parent_page = (int)current_pcb->parent_page_dir_ptr;
-
-			/* reset current processes mask for other process use */
-			release_cur_pid(current_pcb->pid);
-
-				/*restore parent's paging*/
-			asm(
-				"movl %%eax, %%cr3			;"
-				: 
-				: "a"(parent_page) 
-				: "memory","cc"
-				);
-
-			/* transfer back to parent stack */
-			asm(
-				"movl %%eax, %%esp 			;"
-				"movl %%ebx, %%ebp 			;"
-				"pushl %%ecx 				;"
-				:
-				: "a"(current_pcb->parent_esp), "b"(current_pcb->parent_ebp), "c"(status)
-				: "memory", "cc"
-				);
-
-				sti();
-
-			asm volatile(
-						"movl $0,  %%eax;"
-						"leave			;"
-						"ret 			;"
-						: : :"eax","memory","cc"
-						);
-			terminals[curr_terminal].pros_pids[current_pcb->pid] = 0;
-			process_occupy.occupied[current_pcb->pid] = N_USED;
-			process_occupy.top_process_flag[current_pcb->pid]= 0;
-			process_occupy.top_process_flag[current_pcb->parent_pid] = 1;
-
-			return status;
-		}
+			if(current_pcb->pid==1){
+	
+				terminal_write(1,"Are you satisfied with your care (y or n)  ", 43);
+				char temp_buf[1];
+				terminal_read(1,temp_buf, 1);
+				if(temp_buf[0] == 'y'){
+	
+				//stop scheduler
+				pit_disable();
+					/* set TSS back to point at parent's kernel stack */
+				tss.esp0 = eight_mb - (eight_kb*current_pcb->parent_pid) - 4;
+	
+				int parent_page = (int)current_pcb->parent_page_dir_ptr;
+	
+				/* reset current processes mask for other process use */
+				release_cur_pid(current_pcb->pid);
+	
+					/*restore parent's paging*/
+				asm(
+					"movl %%eax, %%cr3			;"
+					: 
+					: "a"(parent_page) 
+					: "memory","cc"
+					);
+	
+				/* transfer back to parent stack */
+				asm(
+					"movl %%eax, %%esp 			;"
+					"movl %%ebx, %%ebp 			;"
+					"pushl %%ecx 				;"
+					:
+					: "a"(current_pcb->parent_esp), "b"(current_pcb->parent_ebp), "c"(status)
+					: "memory", "cc"
+					);
+	
+					sti();
+	
+				asm volatile(
+							"movl $0,  %%eax;"
+							"leave			;"
+							"ret 			;"
+							: : :"eax","memory","cc"
+							);
+				terminals[curr_terminal].pros_pids[current_pcb->pid] = 0;
+				process_occupy.occupied[current_pcb->pid] = N_USED;
+				process_occupy.top_process_flag[current_pcb->pid]= 0;
+				process_occupy.top_process_flag[current_pcb->parent_pid] = 1;
+	
+				return status;
+			}
 		}
 		//printf("Are you Are you satisfied with your care? -- Big Hero 6 (y or n)\n");
 		memcpy(&shell_entry_point, buf+24, 4);
@@ -125,17 +139,12 @@ int32_t halt(uint8_t status){
 
 
 		asm ("iret");
-
+		return status;
 
 	}
-/*	else if(terminals[curr_terminal].pros_pids[current_pcb->parent_pid]==0){
-		//go here if this is the base shell in current terminal
-		printf("base process in this terminal, can't quit!\n");
-		return -1;
-	}
-*/	else{
+	else{
 
-	terminals[curr_terminal].pros_pids[current_pcb->pid] = 0;
+	terminals[scheduling_terminal].pros_pids[current_pcb->pid] = 0;
 	process_occupy.top_process_flag[current_pcb->pid]= 0;
 	process_occupy.occupied[current_pcb->pid] = N_USED;
 	process_occupy.top_process_flag[current_pcb->parent_pid] = 1;
@@ -146,9 +155,6 @@ int32_t halt(uint8_t status){
 
 	int parent_page = (int)current_pcb->parent_page_dir_ptr;
 
-	/* reset current processes mask for other process use */
-	release_cur_pid(current_pcb->pid);
-
 		/*restore parent's paging*/
 	asm(
 		"movl %%eax, %%cr3			;"
@@ -156,6 +162,9 @@ int32_t halt(uint8_t status){
 		: "a"(parent_page) 
 		: "memory","cc"
 		);
+
+		/* reset current processes mask for other process use */
+	release_cur_pid(current_pcb->pid);
 
 	/* transfer back to parent stack */
 	asm(
@@ -166,6 +175,7 @@ int32_t halt(uint8_t status){
 		: "a"(current_pcb->parent_esp), "b"(current_pcb->parent_ebp), "c"(status)
 		: "memory", "cc"
 		);
+
 
 	sti();
 
@@ -194,6 +204,7 @@ int32_t halt(uint8_t status){
 int32_t execute(const uint8_t* command){
 
 	cli();
+	mouse_click_flag = 0;
 	int i,j; /* loop counter */
 	int new_term_flag = 1; /* flag to see if this is the new temrinal: 1 means this is called by new open terminal*/
 	uint32_t entry_point;

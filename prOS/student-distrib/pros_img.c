@@ -16,7 +16,7 @@ char pro_img[2000] = "                                                          
 
 	clear();
 	/* filling the booting image buffer */
-	int temp = 0;
+//	int temp = 0;
 
 	terminal_write(magic_fd, pro_img, 2000);
 	delay(2);

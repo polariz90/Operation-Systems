@@ -6,6 +6,7 @@
 #include "clock.h"
 #include "idt.h"
 #include "x86_desc.h"
+#include "mouse.h"
 
 
 #define NUM_COLS 80
@@ -111,6 +112,7 @@ int terminal_open()
 int terminal_read(int32_t fd, char *buf, int32_t count )
 {
 
+	
 	//passed in a bad buffer
 	if(buf == NULL)
 		return -1;
@@ -120,14 +122,16 @@ int terminal_read(int32_t fd, char *buf, int32_t count )
 		return 0;
 	
 	cli();
+	int called_terminal = curr_terminal;
 	terminals[curr_terminal].reading =1;
 	sti();
 	//need to wait until the buffer has been terminated with a \n or the buffer fills up
 
 
-	while(!((terminals[curr_terminal].reading == 0) && (curr_terminal == scheduling_terminal)))
+	while(!((terminals[called_terminal].reading == 0) && (curr_terminal == scheduling_terminal)))
 	{
 		//do the dew and wait for reading to finish
+
 	}
 
 	int curr_index = 0;
@@ -361,7 +365,8 @@ void exe_special_key(int key)
 	int i; /* loop counter */
 	int8_t tap_buffer[32]; /* buffer to hold thing from tap */	
 	uint32_t curr_base_add;
-	pcb* curr_pcb;
+	pcb* curr_pcb;	
+
 	switch(key)
 	{
 
@@ -433,16 +438,18 @@ void exe_special_key(int key)
 
 
 			curr_pcb = getting_to_know_yourself();
-			curr_base_add = video_page_table[curr_pcb->pid].dir_arr[184].page_base_add;
+			curr_base_add = video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add;
 
-//			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = 184;
-//			flush_tlb();
+			video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = VID_MEM_IDX;
+			flush_tlb();
 			
+
+
 			//currenly executing terminal read
-			if( terminals[curr_terminal].reading == 1)
+			if( terminals[curr_terminal].reading == 1 )
 			{
 				//getting a new line and writing the terminal character into the buffer
-				new_line_key();
+				new_line_key();	
 				terminals[curr_terminal].buf[terminals[curr_terminal].size] = '\n';
 
 				//finished reading
@@ -452,15 +459,15 @@ void exe_special_key(int key)
 			//now im just printing
 			else
 			{
-				terminals[curr_terminal].reading = 1;
+			//	terminals[curr_terminal].reading = 1;
 				//checking the case if at the bottom of the screen
 				new_line_key();
 			}
 			
 			/*store entire line into the history */
-		//	add_to_history((char*)terminals[curr_terminal].buf, curr_terminal);
-//			video_page_table[curr_pcb->pid].dir_arr[184].page_base_add = curr_base_add;	
-//			flush_tlb();
+			add_to_history((char*)terminals[curr_terminal].buf, curr_terminal);
+			video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = curr_base_add;	
+			flush_tlb();
 
 			break;
 
@@ -691,19 +698,11 @@ void toggle_shift(int flag)
 //void toggle_shift()
 {
 	terminals[curr_terminal].shift =flag;
-//	if(terminals[curr_terminal].shift == 1)
-//		terminals[curr_terminal].shift = 0;
-//	else
-//		terminals[curr_terminal].shift =1;
 }
 
 void toggle_ctrl(int flag)
 {
 	terminals[curr_terminal].ctrl = flag;
-//	if(terminals[curr_terminal].ctrl == 1)
-//		terminals[curr_terminal].ctrl = 0;
-//	else
-//		terminals[curr_terminal].ctrl = 1;
 
 }	
 
@@ -1134,7 +1133,11 @@ void terminal_switch(uint32_t terminal_id){
 	int i;
 	uint32_t vir_add = 0x10000000; /* virtual address 256MB*/
 	uint32_t vid_add = 0xB8000; /* physcial address video memory */
+	int mouse_pos; /* holding mouse position */
 
+    /* trying to erase the mouse first */
+    mouse_pos = 2*pos_x + 160*pos_y;
+    mouse_buf[mouse_pos] = curr_char; mouse_buf[mouse_pos+1] = curr_attrib;
 
 	//loading kernel pdt
 	curr_page_dir_add = (uint32_t)(&kernel_page_dir);
@@ -1146,6 +1149,9 @@ void terminal_switch(uint32_t terminal_id){
 
 
 	//switching out videomemory
+	*(uint8_t *)(vid_add + (mouse_pos)) = curr_char;
+	*(uint8_t *)(vid_add + (mouse_pos) + 1) = curr_attrib;
+	//memcpy( (void*)vid_add,(void*) mouse_buf, four_kb);
 	memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
 	memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
   
@@ -1185,6 +1191,7 @@ void terminal_switch(uint32_t terminal_id){
 
 	/* copying over some terminal constants */
 	terminals[terminal_id].alt = terminals[curr_terminal].alt;
+	terminals[terminal_id].shift = terminals[curr_terminal].shift;
 
 	curr_terminal=terminal_id;
 	terminal_open();
@@ -1194,16 +1201,6 @@ void update_cursor(int row, int col)
  {
     unsigned short position=row + col*80;
 
-    //(row*80) + col;
- 
-    // cursor LOW port to vga INDEX register
-    /*
-    outb(0x3D4, 0x0F);
-    outb(0x3D5, (unsigned char)(position&0xFF));
-    // cursor HIGH port to vga INDEX register
-    outb(0x3D4, 0x0E);
-    outb(0x3D5, (unsigned char )((position>>8)&0xFF));
-    */
     outb(0x0F,0x3D4);
     outb((unsigned char)(position&0xFF), 0x3D5);
     // cursor HIGH port to vga INDEX register

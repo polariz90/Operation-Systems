@@ -133,7 +133,7 @@ extern int32_t rtc_open()
  */
 extern int32_t rtc_close()
 {
-	rtc_disable();
+//	rtc_disable();
 	return 0;
 }
 

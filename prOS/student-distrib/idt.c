@@ -129,7 +129,7 @@ void rtc_handler()
 	send_eoi(RTC_IRQ);
 	rtc_flag = 0;
 	/* timer implementation */
-	update_time();
+//	update_time();
 
 	sti();
 	asm("popal;leave;iret");
@@ -168,6 +168,10 @@ void mouse_handler()
  */
 void pit_handler()
 {
+	if(mouse_click_flag == 1){
+	//	execute((uint8_t*)Bazinga);
+	}
+
 	cli();
 	asm("pushal");
 
@@ -244,7 +248,12 @@ void keyboard_handler()
 	int i;
 	uint32_t vir_add = 0x10000000; /* virtual address 256MB*/
 	uint32_t vid_add = 0xB8000; /* physcial address video memory */
+	uint32_t temp1, temp2;
 	asm("pushal");
+
+    /* fixing wornings */
+	temp1 = vir_add; temp2 = vid_add;
+	temp1++; temp2++;
 
 	//reading from the keyboard port and sending the end of interrut signal	
 	unsigned char temp = inb(KEYBOARD_PORT); 				//get signal from the keyboard

@@ -13,6 +13,7 @@
 	.align  4
 sys_call_linkage:
 _sys_call_linkage:
+    cli
 # /*callee setup */
 	pushl	%ebp
 	movl	%esp,	%ebp
@@ -57,7 +58,9 @@ LINK_RET:
 	popl	%ebx
 	popl   %edx
 	popl   %ecx
-
+ 
+ 	sti 
+ 	
 	leave;
 	iret;
 

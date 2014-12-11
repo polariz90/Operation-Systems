@@ -18,6 +18,7 @@
 #include "sys_call.h"
 #include "clock.h"
 #include "pit.h"
+#include "mouse.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -182,7 +183,7 @@ entry (unsigned long magic, unsigned long addr)
 	
 	/* printing out booting image */
 	clear();
-	booting_img();
+//	booting_img();
 	clear();
 
 	/*initilize keyboard*/
@@ -220,7 +221,7 @@ entry (unsigned long magic, unsigned long addr)
 	terminal_bootup();
 	curr_terminal = 0; /* set the booting terminal as 0;*/
 	pit_enable();
-	execute("shell");
+	execute((uint8_t*)"shell");
 	//terminal_open();
 
 	/* Enable interrupts */

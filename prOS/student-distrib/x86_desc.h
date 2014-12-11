@@ -243,12 +243,12 @@ typedef struct page_table{
 }page_table;
 
 
-/* currently declare array of 6 page tables for process vidmap use */
+/* currently declare array of 7 page tables for process vidmap use */
 extern page_table vidmap_page_table[NUM_PROCESSES];
 
-/* declare array of 6 page directories for processes use only */
+/* declare array of 7 page directories for processes use only */
 extern page_directory processes_page_dir[NUM_PROCESSES];
-/* declare array of 6 page tables for process use only */
+/* declare array of 7 page tables for process use only */
 extern page_table process_page_table[NUM_PROCESSES];
 
 /* declare kernel page directory */
