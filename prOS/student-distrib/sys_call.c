@@ -275,6 +275,16 @@ int32_t execute(const uint8_t* command){
 			return 0;
 		}
 	}
+	/* calling command to test malloc */
+	if(strncmp((int8_t*)com_arr, "we_want_credit", 14) == 0){
+		int* pointer;
+		pcb* malloc_pcb = getting_to_know_yourself();
+		uint32_t malloc_pid = malloc_pcb->pid;
+		pointer = (_128mb + 1048576);
+		*pointer = 2;
+		release_cur_pid(pid);
+		return 0;
+	}
 
 	if(strncmp((int8_t*)com_arr, "pid", 3) == 0){ /* clear screen command */
 		pcb* current_pcb = getting_to_know_yourself();
