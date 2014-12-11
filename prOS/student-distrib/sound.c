@@ -13,8 +13,8 @@ extern void play_sound(int nFrequence) {
         //Set the PIT to the desired frequency
  	Div = 1193180 / nFrequence;
  	outb( 0xb6, 0x43);
- 	outb((char) (Div) ,0x40);
- 	outb( (char) (Div >> 8), 0x40);
+ 	outb((char) (Div) ,0x42);
+ 	outb( (char) (Div >> 8), 0x42);
  
         //And play the sound using the PC speaker
  	tmp = inb(0x61);
