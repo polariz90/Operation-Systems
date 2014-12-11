@@ -733,3 +733,34 @@ int rand(){
   	return w = w ^ (w >> 19) ^ (t ^ (t >> 8));
 	return 0;
 }
+
+/*function convert acsii into decimal -- only works for decimals */
+int atoin(int8_t* buf){
+	uint32_t length = strlen(buf);
+	uint32_t cap = length; 
+	int ret = 0;
+
+	int i = 0;
+	while(i < cap){
+		ret += power(10, (length -1))*(buf[i]-48);
+		i++; length--;
+	}
+	return ret;
+}
+
+/* power function */
+int power( int base, int power){
+	int ret; 
+	if(power == 0){
+		return 1;
+	}
+	ret = base;
+	//while(power > 0){
+	//	ret = ret*base;
+	//	power --;
+	//}
+	for(power; power > 1; power--){
+		ret = ret*base;
+	}
+	return ret; 
+}

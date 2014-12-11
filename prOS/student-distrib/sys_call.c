@@ -254,7 +254,13 @@ int32_t execute(const uint8_t* command){
 		return -1;
 	}
 
-
+//	if(strncmp((int8_t*)com_arr, "check", 5) == 0){
+//		int ret = atoin(arg_arr);
+//		printf("***********%d \n", ret);
+//
+//		release_cur_pid(pid);
+//		return 0;
+//	}
 	/* checking special commands */
 	if(strncmp((int8_t*)com_arr, "clear", 5) == 0){ /* clear screen command */
 		clear();
@@ -265,7 +271,14 @@ int32_t execute(const uint8_t* command){
 	/* special case for malloc */
 	if(strncmp((int8_t*)com_arr, "malloc", 6) == 0){ /* case when malloc is calling */
 
-		uint32_t ret = malloc(2034);
+		uint32_t malloc_bytes;
+		if(arg_arr[0] == '\0' || arg_arr[0] == 0){
+			malloc_bytes = 0;
+		}
+		else{
+		 	malloc_bytes= atoin(arg_arr);
+		}
+		uint32_t ret = malloc(malloc_bytes);
 		if(ret == -1){ /* case bad malloc */
 			printf("Bad malloc, running out of memory man~~~!!!\n");
 		}
