@@ -19,6 +19,7 @@
 #include "clock.h"
 #include "pit.h"
 #include "mouse.h"
+#include "sound.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -221,7 +222,9 @@ entry (unsigned long magic, unsigned long addr)
 	terminal_bootup();
 	curr_terminal = 0; /* set the booting terminal as 0;*/
 	pit_enable();
+	beep();
 	execute((uint8_t*)"shell");
+
 	//terminal_open();
 
 	/* Enable interrupts */
