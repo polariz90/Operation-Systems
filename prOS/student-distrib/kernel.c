@@ -222,7 +222,7 @@ entry (unsigned long magic, unsigned long addr)
 	terminal_bootup();
 	curr_terminal = 0; /* set the booting terminal as 0;*/
 	pit_enable();
-	beep();
+	//beep();
 	execute((uint8_t*)"shell");
 
 	//terminal_open();

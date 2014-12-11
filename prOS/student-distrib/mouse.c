@@ -481,6 +481,9 @@ extern void mouse_l_click()
 		temp += 2;
 	}
 	send_eoi(M_IRQ);
+	if(pos_x==79&&pos_y==0){
+		halt(0);
+	}
 	execute((uint8_t*)Bazinga);
 }
 

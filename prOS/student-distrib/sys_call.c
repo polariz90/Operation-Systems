@@ -293,7 +293,7 @@ int32_t execute(const uint8_t* command){
 		int* pointer;
 		pcb* malloc_pcb = getting_to_know_yourself();
 		uint32_t malloc_pid = malloc_pcb->pid;
-		pointer = (_128mb + 1048576);
+		pointer = (_128mb + 0xFF000);
 		*pointer = 2;
 		release_cur_pid(pid);
 		return 0;
