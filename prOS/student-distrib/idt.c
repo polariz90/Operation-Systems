@@ -129,7 +129,7 @@ void rtc_handler()
 	send_eoi(RTC_IRQ);
 	rtc_flag = 0;
 	/* timer implementation */
-//	update_time();
+	update_time();
 
 	sti();
 	asm("popal;leave;iret");
@@ -138,15 +138,14 @@ void rtc_handler()
 
 void mouse_handler()
 {
+	cli();
 	//printf("mouse\n");
 	asm("pushal");
-	
+
 	mouse_();
-
-	
 	send_eoi(M_IRQ);
-	
 
+	sti();
 	asm("popal;leave;iret");
 
 }
@@ -169,7 +168,6 @@ void mouse_handler()
 void pit_handler()
 {
 	if(mouse_click_flag == 1){
-	//	execute((uint8_t*)Bazinga);
 	}
 
 	cli();

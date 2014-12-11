@@ -499,8 +499,14 @@ void exe_special_key(int key)
 
 		//l is pressed as well as the ctrl
 		case Lp :
+			curr_pcb = getting_to_know_yourself();
+			curr_base_add = video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add;
+			video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = VID_MEM_IDX;
+			flush_tlb();
 			terminals[curr_terminal].size =  0;
 			clear();
+			video_page_table[curr_pcb->pid].dir_arr[VID_MEM_IDX].page_base_add = curr_base_add;	
+			flush_tlb();
 			break;
 
 		case Lc :
@@ -1154,7 +1160,7 @@ void terminal_switch(uint32_t terminal_id){
 	//memcpy( (void*)vid_add,(void*) mouse_buf, four_kb);
 	memcpy((void*)terminal_vid_buf[curr_terminal], (void*)vid_add, four_kb);
 	memcpy((void*)vid_add, (void*)terminal_vid_buf[terminal_id], four_kb);
-  
+  	display_clock();
 
 	/* step 2: switching out all old terminal processes to terminal buffer */
 

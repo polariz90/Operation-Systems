@@ -226,14 +226,14 @@ int change_process_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32
 			new_page_dir->dir_arr[vir_address].cache_disabled = 0; /* disable cache */
 			new_page_dir->dir_arr[vir_address].accessed = 0; /* set to one to access it */
 			new_page_dir->dir_arr[vir_address].reserved = 0; /* reserved set to 0*/
-			new_page_dir->dir_arr[vir_address].page_size = 1; /* set map to 4kb page */
+			new_page_dir->dir_arr[vir_address].page_size = 0; /* set map to 4kb page */
 			new_page_dir->dir_arr[vir_address].global_page = 0; /* set to global page */
 			new_page_dir->dir_arr[vir_address].avail = 0; /*set to 0*/
 			new_page_dir->dir_arr[vir_address].PT_base_add = ((uint32_t)(&process_page_table[pid]) >> 12); /* page table address shifted */
 		/* initialize the page table */
-			for(i = 0; i < PAGE_TABLE_SIZE; i++){
-				new_page_table->dir_arr[i].present = 0;
-				new_page_table->dir_arr[i].read_write = 0;
+			for(i = 0; i < 255; i++){ /* first 1MB is for programing image */
+				new_page_table->dir_arr[i].present = 1;
+				new_page_table->dir_arr[i].read_write = 1;
 				new_page_table->dir_arr[i].user_supervisor = privilage;
 				new_page_table->dir_arr[i].write_through = 0;
 				new_page_table->dir_arr[i].cache_disabled = 0;
@@ -242,8 +242,23 @@ int change_process_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32
 				new_page_table->dir_arr[i].PT_attribute_idx = 0;
 				new_page_table->dir_arr[i].global_page = 0;
 				new_page_table->dir_arr[i].avail = 0;
-				new_page_table->dir_arr[i].page_base_add = ((1024*pid+1) + i);
+				new_page_table->dir_arr[i].page_base_add = ((1024*(pid+1)) + i);
 			}
+			for(i = 513; i < 1024; i++){ /* last 1Mb is for stack */
+				new_page_table->dir_arr[i].present = 1;
+				new_page_table->dir_arr[i].read_write = 1;
+				new_page_table->dir_arr[i].user_supervisor = privilage;
+				new_page_table->dir_arr[i].write_through = 0;
+				new_page_table->dir_arr[i].cache_disabled = 0;
+				new_page_table->dir_arr[i].accessed = 0;
+				new_page_table->dir_arr[i].dirty = 0;
+				new_page_table->dir_arr[i].PT_attribute_idx = 0;
+				new_page_table->dir_arr[i].global_page = 0;
+				new_page_table->dir_arr[i].avail = 0;
+				new_page_table->dir_arr[i].page_base_add = ((1024*(pid+1)) + i);
+			}
+		/* seperating stack and heap */
+			new_page_table->dir_arr[512].present = 0;
 
 
 			/* set up video page directory  entries */

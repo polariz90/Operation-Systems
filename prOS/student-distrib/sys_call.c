@@ -15,6 +15,7 @@
 #include "rtc.h"
 #include "pit.h"
 #include "mouse.h"
+#include "x86_desc.h"
 
 #define space_char 			32
 #define vir_mem_add 		0x08000000
@@ -43,16 +44,16 @@ int32_t halt(uint8_t status){
 	cli();
 	/*restore parent's esp/ebp and anything else you need*/
 	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
-	int i;
-	int pid;
-	for(i = 1; i < 7; i++){
-		if(terminals[scheduling_terminal].pros_pids[i] == 1){
-			if(process_occupy.top_process_flag[i] == 1){
-				pid = i;
-				break;
-			}
-		}
-	}
+//	int i;
+//	int pid;
+//	for(i = 1; i < 7; i++){
+//		if(terminals[scheduling_terminal].pros_pids[i] == 1){
+//			if(process_occupy.top_process_flag[i] == 1){
+//				pid = i;
+//				break;
+//			}
+//		}
+//	}
 
 //	pcb* current_pcb = getting_the_ghost(pid);
 
@@ -258,8 +259,21 @@ int32_t execute(const uint8_t* command){
 	if(strncmp((int8_t*)com_arr, "clear", 5) == 0){ /* clear screen command */
 		clear();
 		release_cur_pid(pid);
-		//occupied[pid]=0;
 		return 0;
+	}
+
+	/* special case for malloc */
+	if(strncmp((int8_t*)com_arr, "malloc", 6) == 0){ /* case when malloc is calling */
+
+		uint32_t ret = malloc();
+		if(ret == -1){ /* case bad malloc */
+			printf("Bad malloc, running out of memory man~~~!!!\n");
+		}
+		else{
+			printf("Memory address is : %x\n", ret);
+			release_cur_pid(pid);
+			return 0;
+		}
 	}
 
 	if(strncmp((int8_t*)com_arr, "pid", 3) == 0){ /* clear screen command */
@@ -277,8 +291,6 @@ int32_t execute(const uint8_t* command){
 		//occupied[pid]=0;
 		terminals[curr_terminal].pros_pids[pid] = 0;
 		return -1;
-		asm("movl $-1, %eax");
-		asm("leave;ret");
 	}
 
 	if(strncmp((int8_t*)buf, (int8_t*)ELF, (uint32_t)4)){
@@ -287,8 +299,6 @@ int32_t execute(const uint8_t* command){
 		//occupied[pid]=0;
 		terminals[curr_terminal].pros_pids[pid] = 0;
 		return -1;
-		asm("movl $-1, %eax");
-		asm("leave;ret");
 	}
 	else{
 		/* it is executable, do nothing */
@@ -312,9 +322,6 @@ int32_t execute(const uint8_t* command){
 		//occupied[pid]=0;
 		terminals[curr_terminal].pros_pids[pid] = 0;
 		return -1;
-		asm("movl $-1, %eax");
-		asm("leave;ret");
-
 	}
 
 
@@ -352,6 +359,7 @@ int32_t execute(const uint8_t* command){
 	uint32_t eflag = 0;
 	cli_and_save(eflag);
 	sti();
+	display_clock();
 
 	asm volatile(
 			"pushl %%eax     		;"
@@ -372,16 +380,6 @@ int32_t execute(const uint8_t* command){
 	return 0;
 }
 
-/**
-  * test function to call execute system call
-  */
-void test_execute(){
-execute((uint8_t*)"shell abc");
-//	int32_t (*test)(const uint8_t*);
-//	test = execute;
-//	execute("shell abc");
-}
-
 /* Description:
  * system call read.
  *	Read system call: passing in fd with read buffer and number of bytes need to 
@@ -397,13 +395,9 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 		return -1;
 	}
 
-	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
+//	pcb* current_pcb = getting_to_know_yourself(); /* geeting current pcb*/
 
-	int temp;
-	temp=(*(current_pcb->file_descriptor[fd].file_opt_ptr->opt_read)) (fd, buf, nbytes);
-
-	return temp;
-//	return (*(getting_to_know_yourself())->file_descriptor[fd].file_opt_ptr->opt_read) (fd, buf, nbytes);
+	return (*(getting_to_know_yourself())->file_descriptor[fd].file_opt_ptr->opt_read) (fd, buf, nbytes);
 
 }
 
@@ -696,4 +690,39 @@ void release_cur_pid(uint32_t pid){
 		process_occupy.num_process -= 1;
 }
 
+
+/**
+  * Malloc System call
+  * 		allocating a new page for the user program
+  *  return the address of that page. 
+  */
+uint32_t malloc(){
+
+	/* getting current pcb first */
+	pcb* current_pcb = getting_to_know_yourself();
+
+	int i; /* counter */
+	/* walking down the heap section for that process */
+	for( i = 255; i < 512; i++){
+		if(process_page_table[current_pcb->pid].dir_arr[i].present == 0){ /*case the memory is free */
+
+		   process_page_table[current_pcb->pid].dir_arr[i].present = 1;
+		   process_page_table[current_pcb->pid].dir_arr[i].read_write = 1; 
+		   process_page_table[current_pcb->pid].dir_arr[i].user_supervisor = 1;
+		   process_page_table[current_pcb->pid].dir_arr[i].write_through = 0;
+		   process_page_table[current_pcb->pid].dir_arr[i].cache_disabled = 0;
+		   process_page_table[current_pcb->pid].dir_arr[i].accessed = 0;
+		   process_page_table[current_pcb->pid].dir_arr[i].dirty = 0;
+		   process_page_table[current_pcb->pid].dir_arr[i].PT_attribute_idx = 0;
+		   process_page_table[current_pcb->pid].dir_arr[i].global_page = 0;
+		   process_page_table[current_pcb->pid].dir_arr[i].avail = 0;
+		   process_page_table[current_pcb->pid].dir_arr[i].page_base_add = ((1024*(current_pcb->pid + 1)) + i);
+
+		   uint32_t ret; /* return level */
+		   ret = eight_mb + ((current_pcb->pid - 1)*four_mb) + (i*four_kb);
+		   return ret;
+		}
+	}
+	return -1;
+} 
 

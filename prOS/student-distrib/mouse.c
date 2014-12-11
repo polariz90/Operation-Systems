@@ -70,11 +70,16 @@ extern void mouse_()
       mouse_cycle=0;
       
       set_pointer();
+      if((mouse_byte[1] & 1) == 1){/* case left mouse buttom pressed*/
+      //	printf("mouse clicked \n");
+      	mouse_l_click();
+      }
+      if((mouse_byte[1] & 2) == 1){/* case right mouse buttom pressed*/
+      	printf("You activated the ultimate weapon! Self Destruction in 5.\n");
+      	mouse_r_click();
+      }
       break;
   }
-
-mouse_r_click();
-mouse_l_click();
 
 }
 
@@ -444,109 +449,40 @@ extern void lclk_copy()
 	prevbufpos_c = bufpos;
 }
 
-/*
-extern void mouse_rclick()
-{
-	if (mouse_byte[1] == 9){
-   		//t_toggle = curr_terminal;
-
-   		if(curr_terminal == 0){
-   			if(prevdata == 1){
-   				terminal_switch(1);
-   			}
-   		}
-   		else if(curr_terminal == 1){
-   			if(prevdata == 1){
-   				terminal_switch(2);
-   			}
-   		}
-   		else if(curr_terminal == 2){
-   			if(prevdata == 1){
-   				terminal_switch(0);
-   			}
-   		}
-   		prevdata = 0;
-   	}
-   	if(mouse_byte[1] == 8)
-   	{
-   		prevdata = 1;
-   	}
-}
-
-extern void mouse_lclick()
-{
-	if (mouse_byte[1] == 10){
-   		//t_toggle = curr_terminal;
-
-   		if(curr_terminal == 0){
-   			if(prevdata == 1){
-   				terminal_switch(2);
-   			}
-   		}
-   		else if(curr_terminal == 1){
-   			if(prevdata == 1){
-   				terminal_switch(0);
-   			}
-   		}
-   		else if(curr_terminal == 2){
-   			if(prevdata == 1){
-   				terminal_switch(1);
-   			}
-   		}
-   		prevdata = 0;
-   	}
-   	if(mouse_byte[1] == 8)
-   	{
-   		prevdata = 1;
-   	}
-}
-*/
-
 extern void mouse_r_click()
 {
-
-	if (mouse_byte[1] == 10){
-		if(prevdata == 1){
-			//lclk_block();
-			i = 0;
-			counter2 = counter - counter2;
-			prevbufpos_c = prevbufpos_c - counter2*2;
-			while(counter != 0)
-			{
-				Bazinga[i/2]= bufrclk[prevbufpos_c+i];
-				i = i+2;
-				counter--;
-			}
-			counter = 0;
-			counter2 = 0;
-		//	execute((uint8_t*)Bazinga);
-			mouse_click_flag = 1;
-		} 
-		prevdata = 0;
-		execute((uint8_t*)Bazinga);
-	}
-	if(mouse_byte[1] == 8)
-	{
-		prevdata = 1;
-	}
-
+	return 0;
 } 
 
 
 extern void mouse_l_click()
 {
-	if (mouse_byte[1] == 9){
-		if(prevdata == 1){
-			lclk_copy();
-		//	execute((uint8_t*)bufrclk);
 
-		}
-		prevdata = 0;
-		
+	/* clearing buffer first */
+	for(i = 0; i < 128; i++){
+		Bazinga[i] = '\0';
 	}
-	if(mouse_byte[1] == 8)
-   	{
-   		prevdata = 1;
-   	}
+
+	int temp = bufpos;
+	/* getting to the starting position see */
+	while( !((mouse_buf[temp] == 32) || (temp%160 == 0))){/* case havent reach starting  of buffer yet */
+		temp -= 2;
+	}
+
+	/* than looking for the end */
+	if(mouse_buf[temp] == 32){
+		temp += 2;
+	}
+
+	int i = 0;
+	while( !((mouse_buf[temp] == 32) || ((temp+1)%160 == 0))){ /* case havent reach end of buffer yet */
+		Bazinga[i] = mouse_buf[temp];
+		i ++;
+		temp += 2;
+	}
+	send_eoi(M_IRQ);
+	execute((uint8_t*)Bazinga);
 }
+
+
 

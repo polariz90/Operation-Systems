@@ -21,6 +21,7 @@ extern char time_buffer[5];
 
 void update_time ();
 void initial_timer();
+void display_clock();
 char in_to_char (uint32_t input);
 void delay(const uint32_t delay);
 

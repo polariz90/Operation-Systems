@@ -180,17 +180,17 @@ entry (unsigned long magic, unsigned long addr)
 
 	/*initiailize rtc*/
 	rtc_enable();
-	
-	/* printing out booting image */
-	clear();
-//	booting_img();
-	clear();
 
 	/*initilize keyboard*/
 	kb_enable();
 
 	/* initializing mouse */
 	mouse_install();
+
+	/* printing out booting image */
+	clear();
+	booting_img();
+	clear();
 
 	/*init*/
 	scheduling_terminal=0;

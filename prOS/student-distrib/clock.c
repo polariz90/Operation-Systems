@@ -18,7 +18,7 @@
 #define upperbound 58
 
 volatile uint32_t real_time;
-volatile uint32_t delay_start, delay_end;
+//volatile uint32_t delay_start, delay_end;
 
 uint32_t time_tracker = 0;
 char time_buffer[5];
@@ -32,8 +32,8 @@ uint32_t min_h = 0; uint32_t min_l = 0; uint32_t sec_h = 0; uint32_t sec_l = 0;
   */
 void initial_timer(){
 	real_time = 0;
-	delay_start = 0; 
-	delay_end = 0; 
+//	delay_start = 0; 
+//	delay_end = 0; 
 	time_tracker = 0;
 }
 
@@ -130,11 +130,25 @@ char in_to_char (uint32_t input){
   */
 void delay(const uint32_t delay){
 	sti();
-	delay_end = real_time + delay;
-	delay_start = real_time;
-	while(real_time < delay_end){
-
+	volatile uint32_t delay_end = real_time + delay;
+	volatile uint32_t delay_start = real_time;
+	while(delay_start < delay_end){
+		delay_start = real_time;
 		/*expensive while loop*/
 	}
 	return;
 }
+
+
+/**
+  * display clock
+  * 	physically display current timer onto screen 
+  */
+void display_clock(){
+	int temp_x, temp_y;
+	temp_x = get_screen_x(); temp_y = get_screen_y();
+	set_screen_x(75);set_screen_y(24);
+	printf("%d%d%c%d%d", min_h,min_l,time_buffer[2],sec_h,sec_l);
+	set_screen_x(temp_x); set_screen_y(temp_y);
+}
+
