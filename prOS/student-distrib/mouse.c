@@ -451,7 +451,7 @@ extern void lclk_copy()
 
 extern void mouse_r_click()
 {
-	return 0;
+
 } 
 
 

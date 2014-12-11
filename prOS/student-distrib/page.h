@@ -13,8 +13,15 @@
 /* Function initializing paging */
   void init_paging();
 
-/*function to map the vertual memery address to the same physical memery address*/
-//int set_same_virtual_addr(int physical_addr, int mem_size, int wr);
+
+/* structure tracking of the bytes */
+typedef struct mem_track
+{
+	uint32_t mem_cap[1024];
+}mem_track;
+
+/* tracking number of bytes that in specific page tables */
+extern mem_track process_memory_cap[NUM_PROCESSES];
 
 /* function to map the virtual memory addess to physical memory address */
 int change_process_page(uint32_t pid, uint32_t vir_add, uint32_t phy_add, uint32_t privilage);

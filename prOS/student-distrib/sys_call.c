@@ -15,7 +15,7 @@
 #include "rtc.h"
 #include "pit.h"
 #include "mouse.h"
-#include "x86_desc.h"
+#include "clock.h"
 
 #define space_char 			32
 #define vir_mem_add 		0x08000000
@@ -265,7 +265,7 @@ int32_t execute(const uint8_t* command){
 	/* special case for malloc */
 	if(strncmp((int8_t*)com_arr, "malloc", 6) == 0){ /* case when malloc is calling */
 
-		uint32_t ret = malloc();
+		uint32_t ret = malloc(2034);
 		if(ret == -1){ /* case bad malloc */
 			printf("Bad malloc, running out of memory man~~~!!!\n");
 		}
@@ -696,33 +696,109 @@ void release_cur_pid(uint32_t pid){
   * 		allocating a new page for the user program
   *  return the address of that page. 
   */
-uint32_t malloc(){
+uint32_t malloc(uint32_t size ){
 
 	/* getting current pcb first */
 	pcb* current_pcb = getting_to_know_yourself();
+	uint32_t ret; /* return value */
 
-	int i; /* counter */
+
+	int i, j; /* counter */
 	/* walking down the heap section for that process */
-	for( i = 255; i < 512; i++){
-		if(process_page_table[current_pcb->pid].dir_arr[i].present == 0){ /*case the memory is free */
+	for( i = 255; i < 512; i++){ /* searching through entire heap */
 
-		   process_page_table[current_pcb->pid].dir_arr[i].present = 1;
-		   process_page_table[current_pcb->pid].dir_arr[i].read_write = 1; 
-		   process_page_table[current_pcb->pid].dir_arr[i].user_supervisor = 1;
-		   process_page_table[current_pcb->pid].dir_arr[i].write_through = 0;
-		   process_page_table[current_pcb->pid].dir_arr[i].cache_disabled = 0;
-		   process_page_table[current_pcb->pid].dir_arr[i].accessed = 0;
-		   process_page_table[current_pcb->pid].dir_arr[i].dirty = 0;
-		   process_page_table[current_pcb->pid].dir_arr[i].PT_attribute_idx = 0;
-		   process_page_table[current_pcb->pid].dir_arr[i].global_page = 0;
-		   process_page_table[current_pcb->pid].dir_arr[i].avail = 0;
-		   process_page_table[current_pcb->pid].dir_arr[i].page_base_add = ((1024*(current_pcb->pid + 1)) + i);
-
-		   uint32_t ret; /* return level */
-		   ret = eight_mb + ((current_pcb->pid - 1)*four_mb) + (i*four_kb);
-		   return ret;
+		/**** this will not work if free() function is added to the OS!!! ****/
+		uint32_t left_over = size; /* tracking how many bytes left */
+		if(process_memory_cap[current_pcb->pid].mem_cap[i] != four_kb){/* case this page is not full */
+			ret = eight_mb + ((current_pcb->pid - 1)*four_mb) + (i*four_kb) + process_memory_cap[current_pcb->pid].mem_cap[i]; /* return value */
+			j = 0; /* number of pages tracking */
+			while(left_over != 0){
+				if(left_over <= four_kb){/* case this will be the last page */
+					/* initializing this page */
+					process_page_table[current_pcb->pid].dir_arr[i+j].present = 1;
+			   		process_page_table[current_pcb->pid].dir_arr[i+j].read_write = 1; 
+			   		process_page_table[current_pcb->pid].dir_arr[i+j].user_supervisor = 1;
+			   		process_page_table[current_pcb->pid].dir_arr[i+j].write_through = 0;
+			   		process_page_table[current_pcb->pid].dir_arr[i+j].cache_disabled = 0;
+			   		process_page_table[current_pcb->pid].dir_arr[i+j].accessed = 0;
+			   		process_page_table[current_pcb->pid].dir_arr[i+j].dirty = 0;
+			   		process_page_table[current_pcb->pid].dir_arr[i+j].PT_attribute_idx = 0;
+			   		process_page_table[current_pcb->pid].dir_arr[i+j].global_page = 0;
+			   		process_page_table[current_pcb->pid].dir_arr[i+j].avail = 0;
+			   		process_page_table[current_pcb->pid].dir_arr[i+j].page_base_add = ((1024*(current_pcb->pid + 1)) + i);
+					
+					process_memory_cap[current_pcb->pid].mem_cap[i+j] += left_over;
+					left_over = 0;
+					break;
+				}
+				else{
+					/* initializing this page */
+					process_page_table[current_pcb->pid].dir_arr[i+j].present = 1;
+			   		process_page_table[current_pcb->pid].dir_arr[i+j].read_write = 1; 
+			   		process_page_table[current_pcb->pid].dir_arr[i+j].user_supervisor = 1;
+			   		process_page_table[current_pcb->pid].dir_arr[i+j].write_through = 0;
+			   		process_page_table[current_pcb->pid].dir_arr[i+j].cache_disabled = 0;
+			   		process_page_table[current_pcb->pid].dir_arr[i+j].accessed = 0;
+			   		process_page_table[current_pcb->pid].dir_arr[i+j].dirty = 0;
+			   		process_page_table[current_pcb->pid].dir_arr[i+j].PT_attribute_idx = 0;
+			   		process_page_table[current_pcb->pid].dir_arr[i+j].global_page = 0;
+			   		process_page_table[current_pcb->pid].dir_arr[i+j].avail = 0;
+			   		process_page_table[current_pcb->pid].dir_arr[i+j].page_base_add = ((1024*(current_pcb->pid + 1)) + i);
+					
+					process_memory_cap[current_pcb->pid].mem_cap[i+j] = four_kb;
+					left_over -= four_kb;
+					j++;
+				}
+			}
+		return ret;
 		}
 	}
 	return -1;
 } 
-
+//
+//if(size < four_kb){ /* case things can fit into a single page */
+//			if((four_kb - process_memory_cap[current_pcb->pid].mem_cap[i]) >= size ){/* case there is enough in it*/
+//				ret = eight_mb + ((current_pcb->pid - 1)*four_mb) + (i*four_kb) + process_memory_cap[current_pcb->pid].mem_cap[i];
+//				process_memory_cap[current_pcb->pid].mem_cap[i] += size; /* increment the size cap */
+//				return ret;
+//			}
+//		}
+//		else{ /* case need to malloc thing more than 1 page */
+//			uint32_t left_over = size%four_kb; /* thing more than 4kb */
+//			uint32_t main_storage = size / four_kb; /*number of pages needed */
+//			/**** this will not work if free() function is added to the OS!!! ****/
+//			ret = eight_mb + ((current_pcb->pid - 1)*four_mb) + (i*four_kb); /* return value */
+//			if(process_page_table[current_pcb->pid].dir_arr[i].present == 0){ /*case the memory is free */
+//				for(j = 0; j < main_storage; j++){
+//					process_page_table[current_pcb->pid].dir_arr[i+j].present = 1;
+//			   		process_page_table[current_pcb->pid].dir_arr[i+j].read_write = 1; 
+//			   		process_page_table[current_pcb->pid].dir_arr[i+j].user_supervisor = 1;
+//			   		process_page_table[current_pcb->pid].dir_arr[i+j].write_through = 0;
+//			   		process_page_table[current_pcb->pid].dir_arr[i+j].cache_disabled = 0;
+//			   		process_page_table[current_pcb->pid].dir_arr[i+j].accessed = 0;
+//			   		process_page_table[current_pcb->pid].dir_arr[i+j].dirty = 0;
+//			   		process_page_table[current_pcb->pid].dir_arr[i+j].PT_attribute_idx = 0;
+//			   		process_page_table[current_pcb->pid].dir_arr[i+j].global_page = 0;
+//			   		process_page_table[current_pcb->pid].dir_arr[i+j].avail = 0;
+//			   		process_page_table[current_pcb->pid].dir_arr[i+j].page_base_add = ((1024*(current_pcb->pid + 1)) + i);
+//					
+//					process_memory_cap[current_pcb->pid].mem_cap[i+j] = four_kb;
+//				}
+//			}
+//			if(left_over != 0){
+//				process_page_table[current_pcb->pid].dir_arr[i+j].present = 1;
+//			   	process_page_table[current_pcb->pid].dir_arr[i+j].read_write = 1; 
+//			   	process_page_table[current_pcb->pid].dir_arr[i+j].user_supervisor = 1;
+//			   	process_page_table[current_pcb->pid].dir_arr[i+j].write_through = 0;
+//			   	process_page_table[current_pcb->pid].dir_arr[i+j].cache_disabled = 0;
+//			   	process_page_table[current_pcb->pid].dir_arr[i+j].accessed = 0;
+//			   	process_page_table[current_pcb->pid].dir_arr[i+j].dirty = 0;
+//			   	process_page_table[current_pcb->pid].dir_arr[i+j].PT_attribute_idx = 0;
+//			   	process_page_table[current_pcb->pid].dir_arr[i+j].global_page = 0;
+//			   	process_page_table[current_pcb->pid].dir_arr[i+j].avail = 0;
+//			   	process_page_table[current_pcb->pid].dir_arr[i+j].page_base_add = ((1024*(current_pcb->pid + 1)) + i);
+//				
+//				process_memory_cap[current_pcb->pid].mem_cap[i+j] = left_over;	
+//			}
+//			return ret; 
+//		}

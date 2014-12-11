@@ -19,6 +19,9 @@
   /* variable to hold the process page directory address for inline assembly */
   uint32_t new_page_dir_add;
 
+  /* tracking number of bytes that in specific page tables */
+	 mem_track process_memory_cap[NUM_PROCESSES];
+
   /*Function to initializing paging*/
   /**
     * init_paging
@@ -62,6 +65,8 @@ void init_paging(){
 			video_page_table[j].dir_arr[i].global_page = 0;
 			video_page_table[j].dir_arr[i].avail = 0;
 			video_page_table[j].dir_arr[i].page_base_add = i;
+
+			process_memory_cap[j].mem_cap[i] = 0;
 		}
 	}
 	/* initialize all process page table */
